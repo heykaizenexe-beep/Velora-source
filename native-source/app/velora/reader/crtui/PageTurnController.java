@@ -33,7 +33,6 @@ import app.velora.reader.feature.reader.readium.VeloraEpubReaderFragment;
 import org.readium.r2.navigator.R2BasicWebView;
 import org.readium.r2.navigator.epub.EpubNavigatorFragment;
 import org.readium.r2.navigator.epub.EpubSettings;
-import org.readium.r2.navigator.epub.EpubPreferences;
 import org.readium.r2.navigator.preferences.ReadingProgression;
 import org.readium.r2.shared.publication.Layout;
 
@@ -141,17 +140,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private static final PageTurnCache.Disposer<Bitmap> BITMAP_DISPOSER = new PageTurnCache.Disposer<Bitmap>() {
         @Override public void dispose(Bitmap bitmap) { recycle(bitmap); }
     };
-    private PageTurnCache.Image<Bitmap> snapshot, underSnapshot, frontCache;
-    private Object frontLocator;
-    private EpubSettings frontSettings;
-    private EpubPreferences frontPreferences;
-    private R2WebView frontWeb;
-    private boolean frontBionic;
-    private int frontResource, frontPage;
-    private int frontLeft, frontTop, frontWidth, frontHeight;
-    private int frontPaperColor;
-    private long frontWarmGeneration;
-    private FrontWarmRequest frontWarmRequest;
+    private PageTurnCache.Image<Bitmap> snapshot, underSnapshot;
     private ValueAnimator animator;
     private Runnable secondFrame;
     private CommitTicket commitTicket;
@@ -316,6 +305,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         controller.useCachedUnderPage();
         boolean moved;
         try {
+            controller.trace("move_dispatched");
             moved = move(navigator, forward, false);
         } catch (RuntimeException error) {
             controller.clearVisual();
@@ -437,7 +427,6 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     }
 
     private void pauseWarming() {
-        cancelFrontWarmup();
         target.removeCallbacks(warmPreview);
         warmup.stop();
         if (preview != null) preview.setBusy(true);
@@ -453,74 +442,6 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
 
     private void resumeWarmingAfterTouch() {
         requestWarmup();
-    }
-
-    private void cancelFrontWarmup() {
-        frontWarmGeneration++;
-        if (frontWarmRequest != null) target.removeCallbacks(frontWarmRequest);
-        frontWarmRequest = null;
-    }
-
-    private final class FrontWarmRequest implements Runnable {
-        final R2WebView web;
-        final long token;
-        final Object locator;
-        final EpubSettings setting;
-        final EpubPreferences readerPreferences;
-        final boolean bionic;
-        final int resource, page, left, top, width, height, paper;
-        FrontWarmRequest(R2WebView web, long token) {
-            this.web = web; this.token = token;
-            locator = navigator.getCurrentLocator().getValue();
-            setting = settings();
-            readerPreferences = VeloraEpubReaderFragment.access$getReaderPreferences(owner);
-            bionic = VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner);
-            resource = navigator.getCurrentPagerPosition$readium_navigator();
-            page = web.getMCurItem$readium_navigator();
-            left = target.getLeft(); top = target.getTop();
-            width = target.getWidth(); height = target.getHeight(); paper = paperColor();
-        }
-        boolean valid() {
-            return token == frontWarmGeneration && mayWarmNow() && owner.isResumed() && canAnimate()
-                    && web == currentWebView() && resource == navigator.getCurrentPagerPosition$readium_navigator()
-                    && page == web.getMCurItem$readium_navigator()
-                    && equal(locator, navigator.getCurrentLocator().getValue()) && equal(setting, settings())
-                    && equal(readerPreferences, VeloraEpubReaderFragment.access$getReaderPreferences(owner))
-                    && bionic == VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner)
-                    && left == target.getLeft() && top == target.getTop()
-                    && width == target.getWidth() && height == target.getHeight() && paper == paperColor();
-        }
-        @Override public void run() {
-            if (frontWarmRequest != this) return;
-            frontWarmRequest = null;
-            if (!valid() || frontMatches(web, locator, setting)) return;
-            Bitmap captured = null;
-            try {
-                captured = captureTarget();
-                if (captured == null) return;
-                if (!valid()) { recycle(captured); captured = null; return; }
-                PageTurnCache.Image<Bitmap> image = new PageTurnCache.Image<Bitmap>(captured, BITMAP_DISPOSER);
-                captured = null;
-                try { cacheFront(image, locator); } finally { image.release(); }
-                trace("front_warm_ready");
-            } catch (RuntimeException unavailable) {
-                if (captured != null) recycle(captured);
-            } catch (OutOfMemoryError unavailable) {
-                if (captured != null) recycle(captured);
-            }
-        }
-    }
-
-    private boolean frontMatches(R2WebView web, Object locator, EpubSettings setting) {
-        return frontCache != null && web != null && frontWeb == web
-                && frontResource == navigator.getCurrentPagerPosition$readium_navigator()
-                && frontPage == web.getMCurItem$readium_navigator()
-                && frontBionic == VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner)
-                && equal(frontPreferences, VeloraEpubReaderFragment.access$getReaderPreferences(owner))
-                && equal(frontLocator, locator) && equal(frontSettings, setting)
-                && frontLeft == target.getLeft() && frontTop == target.getTop()
-                && frontWidth == target.getWidth() && frontHeight == target.getHeight()
-                && frontPaperColor == paperColor();
     }
 
     private PageTurnPreview ensurePreview() {
@@ -601,13 +522,14 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 clearVisual();
                 return false;
             }
-            clearFrontCache();
+            final long captureStartedAt = SystemClock.uptimeMillis();
             Bitmap captured = captureTarget();
             if (captured == null) {
                 clearVisual();
                 return false;
             }
             snapshot = new PageTurnCache.Image<Bitmap>(captured, BITMAP_DISPOSER);
+            trace("capture_ready draw_ms=" + (SystemClock.uptimeMillis() - captureStartedAt));
             if(reusableOverlay==null)reusableOverlay=new PageCurlView(root.getContext());
             overlay = reusableOverlay;
             overlay.setSurface(surface);
@@ -715,6 +637,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         }
         target.removeCallbacks(timeout);
         frameReady = true;
+        trace("live_frame_ready");
         if (underSnapshot == null && overlay != null) overlay.revealLivePage();
         finishCommittedIfReady();
     }
@@ -767,6 +690,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 animator = null;
                 if (committed) {
                     settled = true;
+                    trace("animation_settled");
                     finishCommittedIfReady();
                 } else clearVisual();
             }
@@ -1100,7 +1024,6 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     }
 
     private void clearVisual() {
-        cancelFrontWarmup();
         generation++;
         cancelFrameWait();
         cancelAnimator();
@@ -1119,8 +1042,6 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 && sameBounds() && sameSettings();
         if (confirmed && preview != null && old != null)
             preview.rebase(logicalForward, beforeLocator, old);
-        if (confirmed && under != null) cacheFront(under, navigator.getCurrentLocator().getValue());
-        else if (locationChanged || destroyed) clearFrontCache();
         if (old != null) old.release();
         if (under != null) under.release();
         if (preview != null) preview.cancelRequest();
@@ -1136,36 +1057,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         resumeWarmingAfterTouch();
     }
 
-    private void cacheFront(PageTurnCache.Image<Bitmap> image, Object locator) {
-        PageTurnCache.Image<Bitmap> retained = image.retain();
-        clearFrontCache();
-        frontCache = retained;
-        frontLocator = locator;
-        frontSettings = settings();
-        frontPreferences = VeloraEpubReaderFragment.access$getReaderPreferences(owner);
-        frontBionic = VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner);
-        frontResource = navigator.getCurrentPagerPosition$readium_navigator();
-        R2WebView web = currentWebView();
-        frontWeb = web;
-        frontPage = web == null ? Integer.MIN_VALUE : web.getMCurItem$readium_navigator();
-        frontLeft = target.getLeft(); frontTop = target.getTop();
-        frontWidth = target.getWidth(); frontHeight = target.getHeight();
-        frontPaperColor = paperColor();
-    }
-
-    private void clearFrontCache() {
-        PageTurnCache.Image<Bitmap> old = frontCache;
-        frontCache = null;
-        frontLocator = null;
-        frontSettings = null;
-        frontPreferences = null;
-        frontWeb = null;
-        if (old != null) old.release();
-    }
-
     private void disposePreview() {
-        cancelFrontWarmup();
-        clearFrontCache();
         target.removeCallbacks(warmPreview);
         warmup.stop();
         PageTurnPreview old = preview;
@@ -1241,7 +1133,6 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             int oldLeft, int oldTop, int oldRight, int oldBottom) {
         if (snapshot != null && !sameBounds()) cancel(this);
         if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
-            cancelFrontWarmup();
             requestWarmup();
         }
     }
