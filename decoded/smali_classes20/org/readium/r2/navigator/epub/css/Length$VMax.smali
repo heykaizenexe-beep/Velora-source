@@ -1,0 +1,270 @@
+.class public final Lorg/readium/r2/navigator/epub/css/Length$VMax;
+.super Ljava/lang/Object;
+.source "Properties.kt"
+
+# interfaces
+.implements Lorg/readium/r2/navigator/epub/css/Length$Relative;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lorg/readium/r2/navigator/epub/css/Length;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x19
+    name = "VMax"
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    d1 = {
+        "\u00000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0006\n\u0002\u0008\u0005\n\u0002\u0010\u000e\n\u0002\u0008\u0003\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0000\n\u0002\u0008\u0003\n\u0002\u0010\u0008\n\u0002\u0008\u0005\u0008\u0087@\u0018\u00002\u00020\u0001B\u000f\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0004\u0008\u0004\u0010\u0005J\u000f\u0010\u0008\u001a\u00020\tH\u0016\u00a2\u0006\u0004\u0008\n\u0010\u000bJ\u001b\u0010\u000c\u001a\u00020\r2\u0008\u0010\u000e\u001a\u0004\u0018\u00010\u000fH\u00d6\u0083\u0004\u00a2\u0006\u0004\u0008\u0010\u0010\u0011J\u0011\u0010\u0012\u001a\u00020\u0013H\u00d6\u0081\u0004\u00a2\u0006\u0004\u0008\u0014\u0010\u0015J\u0011\u0010\u0016\u001a\u00020\tH\u00d6\u0081\u0004\u00a2\u0006\u0004\u0008\u0017\u0010\u000bR\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0008\n\u0000\u001a\u0004\u0008\u0006\u0010\u0007\u0088\u0001\u0002\u00a8\u0006\u0018"
+    }
+    d2 = {
+        "Lorg/readium/r2/navigator/epub/css/Length$VMax;",
+        "Lorg/readium/r2/navigator/epub/css/Length$Relative;",
+        "value",
+        "",
+        "constructor-impl",
+        "(D)D",
+        "getValue",
+        "()D",
+        "toCss",
+        "",
+        "toCss-impl",
+        "(D)Ljava/lang/String;",
+        "equals",
+        "",
+        "other",
+        "",
+        "equals-impl",
+        "(DLjava/lang/Object;)Z",
+        "hashCode",
+        "",
+        "hashCode-impl",
+        "(D)I",
+        "toString",
+        "toString-impl",
+        "readium-navigator"
+    }
+    k = 0x1
+    mv = {
+        0x2,
+        0x3,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+.annotation runtime Lkotlin/jvm/JvmInline;
+.end annotation
+
+
+# instance fields
+.field private final value:D
+
+
+# direct methods
+.method private synthetic constructor <init>(D)V
+    .locals 0
+    .param p1, "value"    # D
+
+    .line 482
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-wide p1, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    return-void
+.end method
+
+.method public static final synthetic box-impl(D)Lorg/readium/r2/navigator/epub/css/Length$VMax;
+    .locals 1
+
+    new-instance v0, Lorg/readium/r2/navigator/epub/css/Length$VMax;
+
+    invoke-direct {v0, p0, p1}, Lorg/readium/r2/navigator/epub/css/Length$VMax;-><init>(D)V
+
+    return-object v0
+.end method
+
+.method public static constructor-impl(D)D
+    .locals 0
+
+    return-wide p0
+.end method
+
+.method public static equals-impl(DLjava/lang/Object;)Z
+    .locals 4
+
+    instance-of v0, p2, Lorg/readium/r2/navigator/epub/css/Length$VMax;
+
+    const/4 v1, 0x0
+
+    if-nez v0, :cond_0
+
+    return v1
+
+    :cond_0
+    move-object v0, p2
+
+    check-cast v0, Lorg/readium/r2/navigator/epub/css/Length$VMax;
+
+    invoke-virtual {v0}, Lorg/readium/r2/navigator/epub/css/Length$VMax;->unbox-impl()D
+
+    move-result-wide v2
+
+    invoke-static {p0, p1, v2, v3}, Ljava/lang/Double;->compare(DD)I
+
+    move-result v0
+
+    if-eqz v0, :cond_1
+
+    return v1
+
+    :cond_1
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
+.method public static final equals-impl0(DD)Z
+    .locals 1
+
+    invoke-static {p0, p1, p2, p3}, Ljava/lang/Double;->compare(DD)I
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    const/4 v0, 0x1
+
+    goto :goto_0
+
+    :cond_0
+    const/4 v0, 0x0
+
+    :goto_0
+    return v0
+.end method
+
+.method public static hashCode-impl(D)I
+    .locals 1
+
+    invoke-static {p0, p1}, Ljava/lang/Double;->hashCode(D)I
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public static toCss-impl(D)Ljava/lang/String;
+    .locals 1
+    .param p0, "arg0"    # D
+
+    .line 483
+    const-string/jumbo v0, "vmax"
+
+    invoke-static {p0, p1, v0}, Lorg/readium/r2/navigator/epub/css/PropertiesKt;->access$toCss(DLjava/lang/String;)Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public static toString-impl(D)Ljava/lang/String;
+    .locals 2
+
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "VMax(value="
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, p0, p1}, Ljava/lang/StringBuilder;->append(D)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    const-string v1, ")"
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+
+# virtual methods
+.method public equals(Ljava/lang/Object;)Z
+    .locals 2
+
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    invoke-static {v0, v1, p1}, Lorg/readium/r2/navigator/epub/css/Length$VMax;->equals-impl(DLjava/lang/Object;)Z
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public final getValue()D
+    .locals 2
+
+    .line 482
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    return-wide v0
+.end method
+
+.method public hashCode()I
+    .locals 2
+
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    invoke-static {v0, v1}, Lorg/readium/r2/navigator/epub/css/Length$VMax;->hashCode-impl(D)I
+
+    move-result v0
+
+    return v0
+.end method
+
+.method public toCss()Ljava/lang/String;
+    .locals 2
+
+    .line 483
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    invoke-static {v0, v1}, Lorg/readium/r2/navigator/epub/css/Length$VMax;->toCss-impl(D)Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public toString()Ljava/lang/String;
+    .locals 2
+
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    invoke-static {v0, v1}, Lorg/readium/r2/navigator/epub/css/Length$VMax;->toString-impl(D)Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public final synthetic unbox-impl()D
+    .locals 2
+
+    iget-wide v0, p0, Lorg/readium/r2/navigator/epub/css/Length$VMax;->value:D
+
+    return-wide v0
+.end method

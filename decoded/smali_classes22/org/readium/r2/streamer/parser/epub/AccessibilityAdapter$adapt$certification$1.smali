@@ -1,0 +1,164 @@
+.class final synthetic Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter$adapt$certification$1;
+.super Ljava/lang/Object;
+.source "AccessibilityAdapter.kt"
+
+# interfaces
+.implements Lorg/readium/r2/streamer/parser/epub/MetadataItemsAdapter;
+.implements Lkotlin/jvm/internal/FunctionAdapter;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingMethod;
+    value = Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;->adapt(Ljava/util/List;)Lkotlin/Pair;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x1018
+    name = null
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    k = 0x3
+    mv = {
+        0x2,
+        0x3,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+
+# instance fields
+.field final synthetic $tmp0:Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;
+
+
+# direct methods
+.method constructor <init>(Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;)V
+    .locals 0
+
+    iput-object p1, p0, Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter$adapt$certification$1;->$tmp0:Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final adapt(Ljava/util/List;)Lkotlin/Pair;
+    .locals 1
+    .param p1, "p0"    # Ljava/util/List;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/util/List<",
+            "+",
+            "Lorg/readium/r2/streamer/parser/epub/MetadataItem;",
+            ">;)",
+            "Lkotlin/Pair<",
+            "Lorg/readium/r2/shared/publication/Accessibility$Certification;",
+            "Ljava/util/List<",
+            "Lorg/readium/r2/streamer/parser/epub/MetadataItem;",
+            ">;>;"
+        }
+    .end annotation
+
+    const-string v0, "p0"
+
+    invoke-static {p1, v0}, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object;Ljava/lang/String;)V
+
+    .line 48
+    iget-object v0, p0, Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter$adapt$certification$1;->$tmp0:Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;
+
+    invoke-static {v0, p1}, Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;->access$adaptCertification(Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;Ljava/util/List;)Lkotlin/Pair;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public final equals(Ljava/lang/Object;)Z
+    .locals 2
+
+    instance-of v0, p1, Lorg/readium/r2/streamer/parser/epub/MetadataItemsAdapter;
+
+    const/4 v1, 0x0
+
+    if-eqz v0, :cond_0
+
+    instance-of v0, p1, Lkotlin/jvm/internal/FunctionAdapter;
+
+    if-eqz v0, :cond_0
+
+    move-object v0, p0
+
+    check-cast v0, Lkotlin/jvm/internal/FunctionAdapter;
+
+    invoke-interface {v0}, Lkotlin/jvm/internal/FunctionAdapter;->getFunctionDelegate()Lkotlin/Function;
+
+    move-result-object v0
+
+    move-object v1, p1
+
+    check-cast v1, Lkotlin/jvm/internal/FunctionAdapter;
+
+    invoke-interface {v1}, Lkotlin/jvm/internal/FunctionAdapter;->getFunctionDelegate()Lkotlin/Function;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    move-result v1
+
+    :cond_0
+    return v1
+.end method
+
+.method public final getFunctionDelegate()Lkotlin/Function;
+    .locals 7
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "()",
+            "Lkotlin/Function<",
+            "*>;"
+        }
+    .end annotation
+
+    new-instance v0, Lkotlin/jvm/internal/FunctionReferenceImpl;
+
+    iget-object v2, p0, Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter$adapt$certification$1;->$tmp0:Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;
+
+    const-class v3, Lorg/readium/r2/streamer/parser/epub/AccessibilityAdapter;
+
+    const-string v5, "adaptCertification(Ljava/util/List;)Lkotlin/Pair;"
+
+    const/4 v6, 0x0
+
+    const/4 v1, 0x1
+
+    const-string v4, "adaptCertification"
+
+    invoke-direct/range {v0 .. v6}, Lkotlin/jvm/internal/FunctionReferenceImpl;-><init>(ILjava/lang/Object;Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;I)V
+
+    check-cast v0, Lkotlin/Function;
+
+    return-object v0
+.end method
+
+.method public final hashCode()I
+    .locals 1
+
+    move-object v0, p0
+
+    check-cast v0, Lkotlin/jvm/internal/FunctionAdapter;
+
+    invoke-interface {v0}, Lkotlin/jvm/internal/FunctionAdapter;->getFunctionDelegate()Lkotlin/Function;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/Object;->hashCode()I
+
+    move-result v0
+
+    return v0
+.end method

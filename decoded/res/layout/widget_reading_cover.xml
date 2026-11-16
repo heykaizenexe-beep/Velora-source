@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@id/widget_root" android:background="@drawable/widget_background" android:padding="8.0dp" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/widget_cover" android:background="@drawable/widget_cover_background" android:padding="2.0dp" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:adjustViewBounds="true" android:contentDescription="@string/widget_cover_description" />
+    <TextView android:textSize="11.0sp" android:textStyle="bold" android:textColor="@color/widget_on_accent" android:gravity="center" android:layout_gravity="center" android:id="@id/widget_empty_hint" android:background="@drawable/widget_action_background" android:paddingTop="7.0dp" android:paddingBottom="7.0dp" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_open_velora" android:maxLines="2" android:fontFamily="@font/velora_pixel" android:paddingStart="12.0dp" android:paddingEnd="12.0dp" />
+</FrameLayout>

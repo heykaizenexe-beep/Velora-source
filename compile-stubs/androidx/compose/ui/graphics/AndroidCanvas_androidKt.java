@@ -1,0 +1,1 @@
+package androidx.compose.ui.graphics; public class AndroidCanvas_androidKt {public static android.graphics.Canvas getNativeCanvas(Canvas c){return null;}}

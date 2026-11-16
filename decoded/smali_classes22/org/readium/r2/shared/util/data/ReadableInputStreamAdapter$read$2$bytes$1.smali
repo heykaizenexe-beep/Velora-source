@@ -1,0 +1,277 @@
+.class final Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;
+.super Lkotlin/coroutines/jvm/internal/SuspendLambda;
+.source "InputStream.kt"
+
+# interfaces
+.implements Lkotlin/jvm/functions/Function2;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingMethod;
+    value = Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;->read([BII)I
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x18
+    name = null
+.end annotation
+
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Lkotlin/coroutines/jvm/internal/SuspendLambda;",
+        "Lkotlin/jvm/functions/Function2<",
+        "Lkotlinx/coroutines/CoroutineScope;",
+        "Lkotlin/coroutines/Continuation<",
+        "-[B>;",
+        "Ljava/lang/Object;",
+        ">;"
+    }
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    d1 = {
+        "\u0000\n\n\u0000\n\u0002\u0010\u0012\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"
+    }
+    d2 = {
+        "<anonymous>",
+        "",
+        "Lkotlinx/coroutines/CoroutineScope;"
+    }
+    k = 0x3
+    mv = {
+        0x2,
+        0x3,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+.annotation runtime Lkotlin/coroutines/jvm/internal/DebugMetadata;
+    c = "org.readium.r2.shared.util.data.ReadableInputStreamAdapter$read$2$bytes$1"
+    f = "InputStream.kt"
+    i = {}
+    l = {
+        0x61
+    }
+    m = "invokeSuspend"
+    n = {}
+    nl = {
+        0x62
+    }
+    s = {}
+    v = 0x2
+.end annotation
+
+
+# instance fields
+.field final synthetic $bytesToRead:I
+
+.field L$0:Ljava/lang/Object;
+
+.field label:I
+
+.field final synthetic this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+
+# direct methods
+.method constructor <init>(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;ILkotlin/coroutines/Continuation;)V
+    .locals 1
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;",
+            "I",
+            "Lkotlin/coroutines/Continuation<",
+            "-",
+            "Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;",
+            ">;)V"
+        }
+    .end annotation
+
+    iput-object p1, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    iput p2, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->$bytesToRead:I
+
+    const/4 v0, 0x2
+
+    invoke-direct {p0, v0, p3}, Lkotlin/coroutines/jvm/internal/SuspendLambda;-><init>(ILkotlin/coroutines/Continuation;)V
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final create(Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Lkotlin/coroutines/Continuation;
+    .locals 3
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/lang/Object;",
+            "Lkotlin/coroutines/Continuation<",
+            "*>;)",
+            "Lkotlin/coroutines/Continuation<",
+            "Lkotlin/Unit;",
+            ">;"
+        }
+    .end annotation
+
+    new-instance v0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;
+
+    iget-object v1, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    iget v2, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->$bytesToRead:I
+
+    invoke-direct {v0, v1, v2, p2}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;-><init>(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;ILkotlin/coroutines/Continuation;)V
+
+    check-cast v0, Lkotlin/coroutines/Continuation;
+
+    return-object v0
+.end method
+
+.method public bridge synthetic invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 1
+
+    check-cast p1, Lkotlinx/coroutines/CoroutineScope;
+
+    check-cast p2, Lkotlin/coroutines/Continuation;
+
+    invoke-virtual {p0, p1, p2}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->invoke(Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public final invoke(Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+    .locals 2
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Lkotlinx/coroutines/CoroutineScope;",
+            "Lkotlin/coroutines/Continuation<",
+            "-[B>;)",
+            "Ljava/lang/Object;"
+        }
+    .end annotation
+
+    invoke-virtual {p0, p1, p2}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->create(Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Lkotlin/coroutines/Continuation;
+
+    move-result-object v0
+
+    check-cast v0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;
+
+    sget-object v1, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;
+
+    invoke-virtual {v0, v1}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public final invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
+    .locals 9
+    .param p1, "$result"    # Ljava/lang/Object;
+
+    invoke-static {}, Lkotlin/coroutines/intrinsics/IntrinsicsKt;->getCOROUTINE_SUSPENDED()Ljava/lang/Object;
+
+    move-result-object v0
+
+    .line 96
+    iget v1, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->label:I
+
+    packed-switch v1, :pswitch_data_0
+
+    new-instance v0, Ljava/lang/IllegalStateException;
+
+    const-string v1, "call to \'resume\' before \'invoke\' with coroutine"
+
+    invoke-direct {v0, v1}, Ljava/lang/IllegalStateException;-><init>(Ljava/lang/String;)V
+
+    throw v0
+
+    :pswitch_0
+    iget-object v0, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->L$0:Ljava/lang/Object;
+
+    check-cast v0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    invoke-static {p1}, Lkotlin/ResultKt;->throwOnFailure(Ljava/lang/Object;)V
+
+    move-object v2, p1
+
+    goto :goto_0
+
+    :pswitch_1
+    invoke-static {p1}, Lkotlin/ResultKt;->throwOnFailure(Ljava/lang/Object;)V
+
+    .line 97
+    iget-object v1, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    iget-object v2, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    invoke-static {v2}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;->access$getReadable$p(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;)Lorg/readium/r2/shared/util/data/Readable;
+
+    move-result-object v2
+
+    iget-object v3, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    invoke-static {v3}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;->access$getPosition$p(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;)J
+
+    move-result-wide v3
+
+    iget-object v5, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->this$0:Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;
+
+    invoke-static {v5}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;->access$getPosition$p(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;)J
+
+    move-result-wide v5
+
+    iget v7, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->$bytesToRead:I
+
+    int-to-long v7, v7
+
+    add-long/2addr v5, v7
+
+    invoke-static {v3, v4, v5, v6}, Lkotlin/ranges/RangesKt;->until(JJ)Lkotlin/ranges/LongRange;
+
+    move-result-object v3
+
+    move-object v4, p0
+
+    check-cast v4, Lkotlin/coroutines/Continuation;
+
+    iput-object v1, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->L$0:Ljava/lang/Object;
+
+    const/4 v5, 0x1
+
+    iput v5, p0, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter$read$2$bytes$1;->label:I
+
+    invoke-interface {v2, v3, v4}, Lorg/readium/r2/shared/util/data/Readable;->read(Lkotlin/ranges/LongRange;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+
+    move-result-object v2
+
+    if-ne v2, v0, :cond_0
+
+    .line 96
+    return-object v0
+
+    .line 97
+    :cond_0
+    move-object v0, v1
+
+    .line 96
+    :goto_0
+    check-cast v2, Lorg/readium/r2/shared/util/Try;
+
+    .line 98
+    invoke-static {v0, v2}, Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;->access$recover(Lorg/readium/r2/shared/util/data/ReadableInputStreamAdapter;Lorg/readium/r2/shared/util/Try;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    return-object v0
+
+    :pswitch_data_0
+    .packed-switch 0x0
+        :pswitch_1
+        :pswitch_0
+    .end packed-switch
+.end method

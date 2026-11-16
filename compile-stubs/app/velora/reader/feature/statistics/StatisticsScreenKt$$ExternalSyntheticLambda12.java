@@ -1,0 +1,1 @@
+package app.velora.reader.feature.statistics; public class StatisticsScreenKt$$ExternalSyntheticLambda12 {public kotlin.jvm.functions.Function0 f$0; public androidx.compose.runtime.State f$5;}

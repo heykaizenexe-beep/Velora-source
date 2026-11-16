@@ -1,0 +1,58 @@
+.class public final synthetic Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt$$ExternalSyntheticLambda17;
+.super Ljava/lang/Object;
+.source "D8$$SyntheticClass"
+
+# interfaces
+.implements Lkotlin/jvm/functions/Function0;
+
+
+# annotations
+.annotation runtime Lcom/android/tools/r8/annotations/LambdaMethod;
+    holder = "Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt;"
+    method = "ReadingAtmosphereDialog$lambda$3$0$0$0$1$0$0$0$0$0"
+    proto = "(Landroid/content/Context;Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;)Lkotlin/Unit;"
+.end annotation
+
+.annotation build Lcom/android/tools/r8/annotations/SynthesizedClassV2;
+    apiLevel = -0x2
+    kind = 0x13
+    versionHash = "4b55be2c9864cfa0f3e2262a2208567ab6bc862a59e7853c580a1f24fbae9ba1"
+.end annotation
+
+
+# instance fields
+.field public final synthetic f$0:Landroid/content/Context;
+
+.field public final synthetic f$1:Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;
+
+
+# direct methods
+.method public synthetic constructor <init>(Landroid/content/Context;Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;)V
+    .locals 0
+
+    .line 0
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt$$ExternalSyntheticLambda17;->f$0:Landroid/content/Context;
+
+    iput-object p2, p0, Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt$$ExternalSyntheticLambda17;->f$1:Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final invoke()Ljava/lang/Object;
+    .locals 2
+
+    .line 0
+    iget-object v0, p0, Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt$$ExternalSyntheticLambda17;->f$0:Landroid/content/Context;
+
+    iget-object v1, p0, Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt$$ExternalSyntheticLambda17;->f$1:Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;
+
+    invoke-static {v0, v1}, Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereKt;->$r8$lambda$dMqe6X-mfMt01hTc4D3wMoihuvU(Landroid/content/Context;Lapp/velora/reader/feature/reader/atmosphere/ReadingAtmosphereSound;)Lkotlin/Unit;
+
+    move-result-object v0
+
+    return-object v0
+.end method

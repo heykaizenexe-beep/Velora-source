@@ -1,0 +1,1 @@
+package androidx.compose.foundation.layout; public class Arrangement {public interface Vertical{}}

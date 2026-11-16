@@ -1,0 +1,1 @@
+package app.velora.reader.core.document; public class TocItem {private final String title,anchor;private final int index,depth;public TocItem(String t,int i,String a,int d){title=t;index=i;anchor=a;depth=d;}public String getTitle(){return title;}public String getAnchor(){return anchor;}public int getDepth(){return depth;}public int getChapterIndex(){return index;}}

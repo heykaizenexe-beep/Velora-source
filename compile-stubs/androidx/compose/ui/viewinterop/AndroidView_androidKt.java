@@ -1,0 +1,1 @@
+package androidx.compose.ui.viewinterop; public class AndroidView_androidKt {public static void AndroidView(kotlin.jvm.functions.Function1 f,androidx.compose.ui.Modifier m,kotlin.jvm.functions.Function1 u,androidx.compose.runtime.Composer c,int flags,int defaults){}}

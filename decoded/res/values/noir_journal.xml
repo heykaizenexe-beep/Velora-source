@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Velora.NoirJournal" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#1c1b1c</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:navigationBarColor">#1c1b1c</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

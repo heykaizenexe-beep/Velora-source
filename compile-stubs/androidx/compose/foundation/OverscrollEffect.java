@@ -1,0 +1,1 @@
+package androidx.compose.foundation; public interface OverscrollEffect {}

@@ -1,0 +1,1 @@
+package androidx.compose.ui.graphics.vector; public class PathBuilder {public PathBuilder moveTo(float a,float b){return this;}public PathBuilder lineTo(float a,float b){return this;}public PathBuilder close(){return this;}}

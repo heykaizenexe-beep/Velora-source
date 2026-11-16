@@ -1,0 +1,480 @@
+.class public final Lorg/readium/r2/shared/opds/Holds;
+.super Ljava/lang/Object;
+.source "Holds.kt"
+
+# interfaces
+.implements Lorg/readium/r2/shared/JSONable;
+.implements Landroid/os/Parcelable;
+
+
+# annotations
+.annotation system Ldalvik/annotation/MemberClasses;
+    value = {
+        Lorg/readium/r2/shared/opds/Holds$Companion;
+    }
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    d1 = {
+        "\u0000@\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0008\n\u0002\u0008\u0008\n\u0002\u0018\u0002\n\u0002\u0008\u0006\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0000\n\u0002\u0008\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0008\u0003\u0008\u0087\u0008\u0018\u0000 \u001f2\u00020\u00012\u00020\u0002:\u0001\u001fB\u001f\u0012\n\u0008\u0002\u0010\u0003\u001a\u0004\u0018\u00010\u0004\u0012\n\u0008\u0002\u0010\u0005\u001a\u0004\u0018\u00010\u0004\u00a2\u0006\u0004\u0008\u0006\u0010\u0007J\u0008\u0010\u000c\u001a\u00020\rH\u0016J\u0010\u0010\u000e\u001a\u0004\u0018\u00010\u0004H\u00c6\u0003\u00a2\u0006\u0002\u0010\tJ\u0010\u0010\u000f\u001a\u0004\u0018\u00010\u0004H\u00c6\u0003\u00a2\u0006\u0002\u0010\tJ&\u0010\u0010\u001a\u00020\u00002\n\u0008\u0002\u0010\u0003\u001a\u0004\u0018\u00010\u00042\n\u0008\u0002\u0010\u0005\u001a\u0004\u0018\u00010\u0004H\u00c6\u0001\u00a2\u0006\u0002\u0010\u0011J\u0006\u0010\u0012\u001a\u00020\u0004J\u0014\u0010\u0013\u001a\u00020\u00142\u0008\u0010\u0015\u001a\u0004\u0018\u00010\u0016H\u00d6\u0083\u0004J\n\u0010\u0017\u001a\u00020\u0004H\u00d6\u0081\u0004J\n\u0010\u0018\u001a\u00020\u0019H\u00d6\u0081\u0004J\u0016\u0010\u001a\u001a\u00020\u001b2\u0006\u0010\u001c\u001a\u00020\u001d2\u0006\u0010\u001e\u001a\u00020\u0004R\u0015\u0010\u0003\u001a\u0004\u0018\u00010\u0004\u00a2\u0006\n\n\u0002\u0010\n\u001a\u0004\u0008\u0008\u0010\tR\u0015\u0010\u0005\u001a\u0004\u0018\u00010\u0004\u00a2\u0006\n\n\u0002\u0010\n\u001a\u0004\u0008\u000b\u0010\t\u00a8\u0006 "
+    }
+    d2 = {
+        "Lorg/readium/r2/shared/opds/Holds;",
+        "Lorg/readium/r2/shared/JSONable;",
+        "Landroid/os/Parcelable;",
+        "total",
+        "",
+        "position",
+        "<init>",
+        "(Ljava/lang/Integer;Ljava/lang/Integer;)V",
+        "getTotal",
+        "()Ljava/lang/Integer;",
+        "Ljava/lang/Integer;",
+        "getPosition",
+        "toJSON",
+        "Lorg/json/JSONObject;",
+        "component1",
+        "component2",
+        "copy",
+        "(Ljava/lang/Integer;Ljava/lang/Integer;)Lorg/readium/r2/shared/opds/Holds;",
+        "describeContents",
+        "equals",
+        "",
+        "other",
+        "",
+        "hashCode",
+        "toString",
+        "",
+        "writeToParcel",
+        "",
+        "dest",
+        "Landroid/os/Parcel;",
+        "flags",
+        "Companion",
+        "readium-shared"
+    }
+    k = 0x1
+    mv = {
+        0x2,
+        0x3,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+
+# static fields
+.field public static final CREATOR:Landroid/os/Parcelable$Creator;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Landroid/os/Parcelable$Creator<",
+            "Lorg/readium/r2/shared/opds/Holds;",
+            ">;"
+        }
+    .end annotation
+.end field
+
+.field public static final Companion:Lorg/readium/r2/shared/opds/Holds$Companion;
+
+
+# instance fields
+.field private final position:Ljava/lang/Integer;
+
+.field private final total:Ljava/lang/Integer;
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .locals 2
+
+    new-instance v0, Lorg/readium/r2/shared/opds/Holds$Companion;
+
+    const/4 v1, 0x0
+
+    invoke-direct {v0, v1}, Lorg/readium/r2/shared/opds/Holds$Companion;-><init>(Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+
+    sput-object v0, Lorg/readium/r2/shared/opds/Holds;->Companion:Lorg/readium/r2/shared/opds/Holds$Companion;
+
+    new-instance v0, Lorg/readium/r2/shared/opds/Holds$Creator;
+
+    invoke-direct {v0}, Lorg/readium/r2/shared/opds/Holds$Creator;-><init>()V
+
+    check-cast v0, Landroid/os/Parcelable$Creator;
+
+    sput-object v0, Lorg/readium/r2/shared/opds/Holds;->CREATOR:Landroid/os/Parcelable$Creator;
+
+    return-void
+.end method
+
+.method public constructor <init>()V
+    .locals 2
+
+    const/4 v0, 0x0
+
+    const/4 v1, 0x3
+
+    invoke-direct {p0, v0, v0, v1, v0}, Lorg/readium/r2/shared/opds/Holds;-><init>(Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+
+    return-void
+.end method
+
+.method public constructor <init>(Ljava/lang/Integer;Ljava/lang/Integer;)V
+    .locals 0
+    .param p1, "total"    # Ljava/lang/Integer;
+    .param p2, "position"    # Ljava/lang/Integer;
+
+    .line 26
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 28
+    iput-object p1, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    .line 29
+    iput-object p2, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    .line 27
+    return-void
+.end method
+
+.method public synthetic constructor <init>(Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+    .locals 1
+
+    .line 27
+    and-int/lit8 p4, p3, 0x1
+
+    const/4 v0, 0x0
+
+    if-eqz p4, :cond_0
+
+    .line 28
+    move-object p1, v0
+
+    .line 27
+    :cond_0
+    and-int/lit8 p3, p3, 0x2
+
+    if-eqz p3, :cond_1
+
+    .line 29
+    move-object p2, v0
+
+    .line 27
+    :cond_1
+    invoke-direct {p0, p1, p2}, Lorg/readium/r2/shared/opds/Holds;-><init>(Ljava/lang/Integer;Ljava/lang/Integer;)V
+
+    .line 30
+    return-void
+.end method
+
+.method public static synthetic copy$default(Lorg/readium/r2/shared/opds/Holds;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lorg/readium/r2/shared/opds/Holds;
+    .locals 0
+
+    and-int/lit8 p4, p3, 0x1
+
+    if-eqz p4, :cond_0
+
+    iget-object p1, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    :cond_0
+    and-int/lit8 p3, p3, 0x2
+
+    if-eqz p3, :cond_1
+
+    iget-object p2, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    :cond_1
+    invoke-virtual {p0, p1, p2}, Lorg/readium/r2/shared/opds/Holds;->copy(Ljava/lang/Integer;Ljava/lang/Integer;)Lorg/readium/r2/shared/opds/Holds;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+
+# virtual methods
+.method public final component1()Ljava/lang/Integer;
+    .locals 1
+
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    return-object v0
+.end method
+
+.method public final component2()Ljava/lang/Integer;
+    .locals 1
+
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    return-object v0
+.end method
+
+.method public final copy(Ljava/lang/Integer;Ljava/lang/Integer;)Lorg/readium/r2/shared/opds/Holds;
+    .locals 1
+
+    new-instance v0, Lorg/readium/r2/shared/opds/Holds;
+
+    invoke-direct {v0, p1, p2}, Lorg/readium/r2/shared/opds/Holds;-><init>(Ljava/lang/Integer;Ljava/lang/Integer;)V
+
+    return-object v0
+.end method
+
+.method public final describeContents()I
+    .locals 1
+
+    .line 26
+    nop
+
+    .line 53
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public equals(Ljava/lang/Object;)Z
+    .locals 5
+
+    const/4 v0, 0x1
+
+    if-ne p0, p1, :cond_0
+
+    return v0
+
+    :cond_0
+    instance-of v1, p1, Lorg/readium/r2/shared/opds/Holds;
+
+    const/4 v2, 0x0
+
+    if-nez v1, :cond_1
+
+    return v2
+
+    :cond_1
+    move-object v1, p1
+
+    check-cast v1, Lorg/readium/r2/shared/opds/Holds;
+
+    iget-object v3, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    iget-object v4, v1, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    invoke-static {v3, v4}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    move-result v3
+
+    if-nez v3, :cond_2
+
+    return v2
+
+    :cond_2
+    iget-object v3, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    iget-object v1, v1, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    invoke-static {v3, v1}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_3
+
+    return v2
+
+    :cond_3
+    return v0
+.end method
+
+.method public final getPosition()Ljava/lang/Integer;
+    .locals 1
+
+    .line 29
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    return-object v0
+.end method
+
+.method public final getTotal()Ljava/lang/Integer;
+    .locals 1
+
+    .line 28
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    return-object v0
+.end method
+
+.method public hashCode()I
+    .locals 4
+
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    const/4 v1, 0x0
+
+    if-nez v0, :cond_0
+
+    move v0, v1
+
+    goto :goto_0
+
+    :cond_0
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    invoke-virtual {v0}, Ljava/lang/Object;->hashCode()I
+
+    move-result v0
+
+    :goto_0
+    mul-int/lit8 v2, v0, 0x1f
+
+    iget-object v3, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    if-nez v3, :cond_1
+
+    goto :goto_1
+
+    :cond_1
+    iget-object v1, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    invoke-virtual {v1}, Ljava/lang/Object;->hashCode()I
+
+    move-result v1
+
+    :goto_1
+    add-int/2addr v2, v1
+
+    return v2
+.end method
+
+.method public toJSON()Lorg/json/JSONObject;
+    .locals 5
+
+    .line 35
+    new-instance v0, Lorg/json/JSONObject;
+
+    invoke-direct {v0}, Lorg/json/JSONObject;-><init>()V
+
+    move-object v1, v0
+
+    .local v1, "$this$toJSON_u24lambda_u240":Lorg/json/JSONObject;
+    const/4 v2, 0x0
+
+    .line 36
+    .local v2, "$i$a$-apply-Holds$toJSON$1":I
+    const-string v3, "total"
+
+    iget-object v4, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    invoke-virtual {v1, v3, v4}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
+
+    .line 37
+    const-string v3, "position"
+
+    iget-object v4, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    invoke-virtual {v1, v3, v4}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
+
+    .line 38
+    nop
+
+    .line 35
+    .end local v1    # "$this$toJSON_u24lambda_u240":Lorg/json/JSONObject;
+    .end local v2    # "$i$a$-apply-Holds$toJSON$1":I
+    nop
+
+    .line 38
+    return-object v0
+.end method
+
+.method public toString()Ljava/lang/String;
+    .locals 4
+
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    iget-object v1, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    new-instance v2, Ljava/lang/StringBuilder;
+
+    invoke-direct {v2}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v3, "Holds(total="
+
+    invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    const-string v2, ", position="
+
+    invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    const-string v1, ")"
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    return-object v0
+.end method
+
+.method public final writeToParcel(Landroid/os/Parcel;I)V
+    .locals 3
+    .param p1, "dest"    # Landroid/os/Parcel;
+    .param p2, "flags"    # I
+
+    const-string v0, "dest"
+
+    invoke-static {p1, v0}, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object;Ljava/lang/String;)V
+
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->total:Ljava/lang/Integer;
+
+    const/4 v1, 0x0
+
+    const/4 v2, 0x1
+
+    if-nez v0, :cond_0
+
+    invoke-virtual {p1, v1}, Landroid/os/Parcel;->writeInt(I)V
+
+    goto :goto_0
+
+    :cond_0
+    invoke-virtual {p1, v2}, Landroid/os/Parcel;->writeInt(I)V
+
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+
+    move-result v0
+
+    invoke-virtual {p1, v0}, Landroid/os/Parcel;->writeInt(I)V
+
+    :goto_0
+    iget-object v0, p0, Lorg/readium/r2/shared/opds/Holds;->position:Ljava/lang/Integer;
+
+    if-nez v0, :cond_1
+
+    invoke-virtual {p1, v1}, Landroid/os/Parcel;->writeInt(I)V
+
+    goto :goto_1
+
+    :cond_1
+    invoke-virtual {p1, v2}, Landroid/os/Parcel;->writeInt(I)V
+
+    invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+
+    move-result v0
+
+    invoke-virtual {p1, v0}, Landroid/os/Parcel;->writeInt(I)V
+
+    .line 53
+    :goto_1
+    return-void
+.end method

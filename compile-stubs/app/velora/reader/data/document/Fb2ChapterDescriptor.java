@@ -1,0 +1,1 @@
+package app.velora.reader.data.document; public class Fb2ChapterDescriptor {private final java.io.File file;public Fb2ChapterDescriptor(java.io.File f){file=f;}public java.io.File getFile(){return file;}}

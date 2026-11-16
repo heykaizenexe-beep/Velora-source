@@ -1,0 +1,1 @@
+package androidx.compose.ui.text.font; public final class AndroidTypeface_androidKt { public static FontFamily FontFamily(android.graphics.Typeface value) {return null;} }

@@ -1,0 +1,1 @@
+package app.velora.reader.data.local.database; public class DailyReadingStatEntity {public long read,audio;public int pages,finished;public long getReadingSeconds(){return read;}public long getAudioSeconds(){return audio;}public int getPagesRead(){return pages;}public int getCompletedBooks(){return finished;}}

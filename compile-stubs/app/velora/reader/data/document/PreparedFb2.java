@@ -1,0 +1,1 @@
+package app.velora.reader.data.document; public class PreparedFb2 {private final java.util.List<Fb2ChapterDescriptor> chapters;public PreparedFb2(java.util.List<Fb2ChapterDescriptor> c){chapters=c;}public java.util.List<Fb2ChapterDescriptor> getChapters(){return chapters;}}

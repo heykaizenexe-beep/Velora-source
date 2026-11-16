@@ -1,0 +1,1 @@
+package androidx.compose.ui.graphics.drawscope; public interface DrawScope {DrawContext getDrawContext();}
