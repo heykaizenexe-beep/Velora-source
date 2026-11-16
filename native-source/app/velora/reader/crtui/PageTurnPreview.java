@@ -32,9 +32,8 @@ import org.readium.r2.navigator.pager.R2PagerAdapter;
 import org.readium.r2.shared.publication.Locator;
 
 /**
- * A transient second Readium navigator. Only this navigator moves while a sheet
- * is being held. Its callbacks never reach the application's reading tracker.
- * The live navigator is read solely to key this small, disposable bitmap cache.
+ * A transient second Readium navigator. Its callbacks never reach the reading
+ * tracker. The live page keys up to two forward snapshots and one backward snapshot.
  */
 public final class PageTurnPreview {
     public interface Callback { void onReady(PageTurnCache.Image<Bitmap> image); }
@@ -45,24 +44,45 @@ public final class PageTurnPreview {
     private static final long ORIGIN_TIMEOUT_MS = 12000L;
     private static final long MOVE_TIMEOUT_MS = 15000L;
     private static final long DRAW_TIMEOUT_MS = 8000L;
+    private static final PageTurnCache.Disposer<Bitmap> BITMAP_DISPOSER = PageTurnPreview::recycle;
+
+    static final class PagePosition {
+        final Locator locator;
+        final int resource, page;
+        final boolean allowsLookahead;
+
+        PagePosition(Locator locator, int resource, int page, int pagesInResource) {
+            this.locator = locator;
+            this.resource = resource;
+            this.page = page;
+            allowsLookahead = !PageTurnController.exceedsPreviewBudget(pagesInResource);
+        }
+
+        boolean matches(Object locator, int resource, int page) {
+            return locator instanceof Locator && this.resource == resource && this.page == page
+                    && this.locator.getHref().equals(((Locator) locator).getHref());
+        }
+    }
+
     private final VeloraEpubReaderFragment owner;
     private final FrameLayout root;
     private final View target;
     private final EpubNavigatorFragment live;
-    private final PageTurnCache<Bitmap> cache = new PageTurnCache<Bitmap>(new PageTurnCache.Disposer<Bitmap>() {
-        @Override public void dispose(Bitmap bitmap) { recycle(bitmap); }
-    });
+    private final PageTurnCache<Bitmap> cache = new PageTurnCache<Bitmap>(BITMAP_DISPOSER);
     private final boolean[] completed = new boolean[2];
     // Reused preview navigators must not retain discarded chapter WebViews.
     private final WeakHashMap<R2WebView, Integer> bionic = new WeakHashMap<R2WebView, Integer>();
     private EpubNavigatorFragment navigator;
     private FragmentManager manager;
     private FrameLayout container;
-    private Locator source, moveOrigin;
+    private PagePosition source, nextForwardPosition, secondForwardPosition;
+    private PageTurnCache.Image<Bitmap> secondForwardImage;
+    private boolean warmingSecondForward, attemptedSecondForward;
+    private Locator moveOrigin;
     private EpubPreferences sourcePreferences;
     private boolean sourceBionic, disposed, originPositioned, javascriptPending;
     private boolean needsCleanup, removeQueued, warmFailed;
-    private int sourceResource, sourcePage, width, height, left, top;
+    private int width, height, left, top;
     private int phase, direction, generation, command, navigatorGeneration;
     private boolean busy;
     private Runnable deferredDraw;
@@ -139,13 +159,15 @@ public final class PageTurnPreview {
 
     private boolean mayDoWork() {
         return !disposed && (!busy || (pending != null
-                && (phase == IDLE || direction == pendingDirection)));
+                && (phase == IDLE || (!warmingSecondForward && direction == pendingDirection))));
     }
 
     /** Retire an opposite warm job, including any outstanding visual-state callback. */
     private void prioritizeRequestedDirection() {
-        if (pending == null || phase == IDLE || direction == pendingDirection) return;
-        completed[direction] = false;
+        if (pending == null || phase == IDLE || (!warmingSecondForward && direction == pendingDirection)) return;
+        if (warmingSecondForward) attemptedSecondForward = false;
+        else completed[direction] = false;
+        warmingSecondForward = false;
         command++;
         phase = IDLE;
         root.removeCallbacks(pump);
@@ -170,17 +192,32 @@ public final class PageTurnPreview {
         }
     }
 
-    /** Roll over a confirmed turn. The old live snapshot is now the opposite neighbor. */
+    /** Promote the lookahead only after Readium lands on its expected source page. */
     boolean rebase(boolean forward, Object previousLocator, PageTurnCache.Image<Bitmap> previousPage) {
-        if (disposed || source == null || !source.equals(previousLocator) || !sameEnvironment()) return false;
-        resetSource(true);
-        if (!anchor()) { schedule(0L); return false; }
-        int opposite = forward ? 0 : 1;
-        cache.putImage(opposite, previousPage);
-        completed[opposite] = true;
-        trace("rebase_reuse");
-        schedule(0L);
-        return true;
+        if (disposed || source == null || !source.locator.equals(previousLocator) || !sameEnvironment()) return false;
+        PagePosition predictedSource = nextForwardPosition;
+        PagePosition predictedNext = secondForwardPosition;
+        PageTurnCache.Image<Bitmap> lookahead = forward && secondForwardImage != null
+                ? secondForwardImage.retain() : null;
+        try {
+            resetSource(true);
+            if (!anchor()) { schedule(0L); return false; }
+            int opposite = forward ? 0 : 1;
+            cache.putImage(opposite, previousPage);
+            completed[opposite] = true;
+            if (lookahead != null && predictedSource != null
+                    && predictedSource.matches(source.locator, source.resource, source.page)) {
+                cache.putImage(1, lookahead);
+                nextForwardPosition = predictedNext;
+                completed[1] = true;
+                trace("lookahead_promoted");
+            }
+            trace("rebase_reuse");
+            schedule(0L);
+            return true;
+        } finally {
+            if (lookahead != null) lookahead.release();
+        }
     }
 
     /** Preferences or geometry replace the navigator; page changes reuse its loaded WebViews. */
@@ -225,16 +262,13 @@ public final class PageTurnPreview {
     }
 
     private boolean sourceMatches() {
-        Object locator = live.getCurrentLocator().getValue();
-        if (source == null || !(locator instanceof Locator) || !sameEnvironment()
-                || !source.getHref().equals(((Locator) locator).getHref())) return false;
+        if (source == null || !sameEnvironment()) return false;
         // A locator can change within one physical page; reflow can do the inverse.
         try {
             R2EpubPageFragment page = pageFragment(live);
             R2WebView web = page == null ? null : page.getWebView();
             return page != null && web != null && Boolean.TRUE.equals(page.isLoaded().getValue())
-                    && live.getCurrentPagerPosition$readium_navigator() == sourceResource
-                    && web.getMCurItem$readium_navigator() == sourcePage;
+                    && atPosition(live, web, source);
         } catch (RuntimeException notReady) {
             return false;
         }
@@ -248,11 +282,9 @@ public final class PageTurnPreview {
         if (!(value instanceof Locator) || web == null || !loaded(live)) return false;
         EpubPreferences currentPreferences = VeloraEpubReaderFragment.access$getReaderPreferences(owner);
         if (currentPreferences == null) return false;
-        source = (Locator) value;
+        source = pagePosition(live, web, (Locator) value);
         sourcePreferences = currentPreferences;
         sourceBionic = VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner);
-        sourceResource = live.getCurrentPagerPosition$readium_navigator();
-        sourcePage = web.getMCurItem$readium_navigator();
         width = target.getWidth(); height = target.getHeight();
         left = target.getLeft(); top = target.getTop();
         anchorDeadline = 0L;
@@ -280,9 +312,13 @@ public final class PageTurnPreview {
                     finishPending(cache.acquire(pendingDirection));
                     if (disposed || busy) return;
                 }
-                direction = pending != null ? pendingDirection : (!completed[1] ? 1 : (!completed[0] ? 0 : -1));
+                warmingSecondForward = pending == null && completed[1] && !attemptedSecondForward
+                        && nextForwardPosition != null && nextForwardPosition.allowsLookahead;
+                direction = pending != null ? pendingDirection
+                        : (!completed[1] || warmingSecondForward ? 1 : (!completed[0] ? 0 : -1));
                 if (direction < 0) return;
-                completed[direction] = true;
+                if (warmingSecondForward) attemptedSecondForward = true;
+                else completed[direction] = true;
                 command++;
                 startedAt = SystemClock.uptimeMillis();
                 originDeadline = moveDeadline = drawDeadline = 0L;
@@ -305,19 +341,22 @@ public final class PageTurnPreview {
                 waitFor("container_bounds"); schedule(100L); return;
             }
             if (phase == LOADING) { enterPhase(ORIGIN); trace("loaded"); }
+            PagePosition origin = warmingSecondForward ? nextForwardPosition : source;
             if (!ensureBionic(web)) { waitFor("bionic_dom"); schedule(100L); return; }
             if (phase == ORIGIN) {
                 // Reposition after the complete bionic DOM transformation, too.
                 if (!originPositioned) {
                     originPositioned = true;
-                    if (!atSourcePage(web)) {
-                        navigator.go(source, false);
+                    if (!atPosition(navigator, web, origin)) {
+                        navigator.go(origin.locator, false);
                         waitFor("source_position");
                         schedule(16L); return;
                     }
                 }
-                if (!atSourcePage(web)) { waitFor("source_page_match"); schedule(100L); return; }
-                if (atChapterBoundary(web)) { trace("chapter_boundary"); finishJob(null); return; }
+                if (!atPosition(navigator, web, origin)) { waitFor("source_page_match"); schedule(100L); return; }
+                if (!PageTurnController.hasPageInDirection(navigator, web, direction == 1)) {
+                    trace("publication_boundary"); finishJob(null); return;
+                }
                 Object locator = navigator.getCurrentLocator().getValue();
                 if (!(locator instanceof Locator)) { waitFor("source_locator"); schedule(100L); return; }
                 moveOrigin = (Locator) locator;
@@ -330,7 +369,7 @@ public final class PageTurnPreview {
                 if (!(now instanceof Locator) || moveOrigin == null || moveOrigin.equals(now)) {
                     waitFor("neighbor_locator"); schedule(100L); return;
                 }
-                if (atSourcePage(web)) { waitFor("neighbor_page_match"); schedule(100L); return; }
+                if (atPosition(navigator, web, origin)) { waitFor("neighbor_page_match"); schedule(100L); return; }
                 awaitDraw(web, (Locator) now);
             }
             schedule(100L);
@@ -360,7 +399,7 @@ public final class PageTurnPreview {
             @Override public void onPageLoaded() { wake(birth); }
         };
         FragmentFactory factory = session.getNavigatorFactory().createFragmentFactory(
-                source, null, sourcePreferences, null, listener, configuration);
+                source.locator, null, sourcePreferences, null, listener, configuration);
         navigator = (EpubNavigatorFragment) factory.instantiate(root.getContext().getClassLoader(),
                 EpubNavigatorFragment.class.getName());
         container = new FrameLayout(root.getContext());
@@ -394,18 +433,14 @@ public final class PageTurnPreview {
         });
     }
 
-    private boolean atSourcePage(R2WebView web) {
-        Object now = navigator.getCurrentLocator().getValue();
-        return now instanceof Locator && source.getHref().equals(((Locator) now).getHref())
-                && navigator.getCurrentPagerPosition$readium_navigator() == sourceResource
-                && web.getMCurItem$readium_navigator() == sourcePage;
+    private static PagePosition pagePosition(EpubNavigatorFragment navigator, R2WebView web, Locator locator) {
+        return new PagePosition(locator, navigator.getCurrentPagerPosition$readium_navigator(),
+                web.getMCurItem$readium_navigator(), web.getNumPages$readium_navigator());
     }
 
-    private boolean atChapterBoundary(R2WebView web) {
-        // Let the live reader load adjacent chapters without speculative WebView work.
-        int page = Math.abs(web.getMCurItem$readium_navigator());
-        int pages = web.getNumPages$readium_navigator();
-        return direction == 0 ? page <= 0 : pages > 0 && page >= pages - 1;
+    private static boolean atPosition(EpubNavigatorFragment navigator, R2WebView web, PagePosition position) {
+        return position.matches(navigator.getCurrentLocator().getValue(),
+                navigator.getCurrentPagerPosition$readium_navigator(), web.getMCurItem$readium_navigator());
     }
 
     private boolean ensureBionic(final R2WebView web) {
@@ -431,7 +466,8 @@ public final class PageTurnPreview {
                                 bionic.put(web, Integer.valueOf(2));
                                 if (phase == ORIGIN) originPositioned = false;
                                 // A preceding chapter's end changes after its DOM is transformed.
-                                if (phase == MOVING && navigator.getCurrentPagerPosition$readium_navigator() != sourceResource) {
+                                PagePosition origin = warmingSecondForward ? nextForwardPosition : source;
+                                if (phase == MOVING && navigator.getCurrentPagerPosition$readium_navigator() != origin.resource) {
                                     if (direction == 0) web.scrollToEnd(); else web.scrollToStart();
                                 }
                             }
@@ -476,7 +512,12 @@ public final class PageTurnPreview {
                     // Queue the texture upload as soon as a cached page is ready,
                     // rather than leaving it to the first visible curl frame.
                     bitmap.prepareToDraw();
-                    trace("ready");
+                    if (direction == 1) {
+                        PagePosition readyPage = pagePosition(navigator, web, readyLocator);
+                        if (warmingSecondForward) secondForwardPosition = readyPage;
+                        else nextForwardPosition = readyPage;
+                    }
+                    trace(warmingSecondForward ? "lookahead_ready" : "ready");
                     Bitmap result = bitmap;
                     bitmap = null; // Ownership moves before any user callback can run.
                     finishJob(result);
@@ -490,6 +531,7 @@ public final class PageTurnPreview {
         final Runnable frames = new Runnable() {
             @Override public void run() {
                 if (!valid(birth, job)) return;
+                if (!mayDoWork()) { deferredDraw = this; return; }
                 waitFor("display_frames");
                 container.postOnAnimation(new Runnable() {
                     @Override public void run() {
@@ -499,22 +541,28 @@ public final class PageTurnPreview {
             }
         };
         web.runJavaScript(PageTurnRenderState.contentReady(sourceBionic), new Function1() {
-            @Override public Object invoke(Object value) {
+            @Override public Object invoke(Object ready) {
                 if (!valid(birth, job)) return Unit.INSTANCE;
-                if (!"true".equals(value)) {
+                if ("true".equals(ready)) awaitVisualState(web, job, frames);
+                else {
                     enterPhase(MOVING);
-                    schedule(48L);
-                } else if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
-                    waitFor("visual_state_callback");
-                    WebViewCompat.postVisualStateCallback(web, job, new WebViewCompat.VisualStateCallback() {
-                        @Override public void onComplete(long id) { root.post(frames); }
-                    });
-                } else {
-                    root.postOnAnimation(frames);
+                    schedule(64L);
                 }
                 return Unit.INSTANCE;
             }
         });
+    }
+
+    private void awaitVisualState(R2WebView web, int job, final Runnable frames) {
+        if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
+            WebViewCompat.postVisualStateCallback(web, job, new WebViewCompat.VisualStateCallback() {
+                @Override public void onComplete(long id) { root.post(frames); }
+            });
+        } else {
+            web.runJavaScript("true", new Function1() {
+                @Override public Object invoke(Object value) { root.postDelayed(frames, 200L); return Unit.INSTANCE; }
+            });
+        }
     }
 
     private boolean valid(int birth, int job) {
@@ -527,7 +575,10 @@ public final class PageTurnPreview {
         command++;
         javascriptPending = false;
         root.removeCallbacks(pump);
-        if (bitmap != null) {
+        if (warmingSecondForward) {
+            warmingSecondForward = false;
+            if (bitmap != null) secondForwardImage = new PageTurnCache.Image<Bitmap>(bitmap, BITMAP_DISPOSER);
+        } else if (bitmap != null) {
             cache.put(finishedDirection, bitmap);
             if (pending != null && pendingDirection == finishedDirection)
                 finishPending(cache.acquire(finishedDirection));
@@ -556,6 +607,10 @@ public final class PageTurnPreview {
         anchorDeadline = 0L;
         if (!reuseNavigator) bionic.clear();
         cache.clear();
+        if (secondForwardImage != null) secondForwardImage.release();
+        secondForwardImage = null;
+        nextForwardPosition = secondForwardPosition = null;
+        attemptedSecondForward = warmingSecondForward = false;
         completed[0] = completed[1] = false;
         needsCleanup = !reuseNavigator && (navigator != null || container != null);
         root.removeCallbacks(teardown);

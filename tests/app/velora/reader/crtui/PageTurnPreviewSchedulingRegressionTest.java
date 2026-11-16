@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.widget.FrameLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import org.readium.r2.shared.publication.Locator;
+import org.readium.r2.shared.util.Url;
 
 /** Exercises the production preview's queue/token transitions; no Android rendering is simulated. */
 public final class PageTurnPreviewSchedulingRegressionTest {
@@ -123,6 +125,32 @@ public final class PageTurnPreviewSchedulingRegressionTest {
         set(preview, "disposed", true);
         preview.setBusy(false);
         check(queue.delayedPosts == beforeFinish + 1, "disposed preview cannot be revived by idle notification");
+        set(preview, "disposed", false);
+        set(preview, "phase", 4);
+        set(preview, "direction", 1);
+        set(preview, "warmingSecondForward", true);
+        set(preview, "attemptedSecondForward", true);
+        set(preview, "completed", new boolean[]{false, true});
+        set(preview, "pending", new Result());
+        set(preview, "pendingDirection", 1);
+        preview.setBusy(true);
+        check(Boolean.FALSE.equals(call(preview, "mayDoWork", new Class<?>[0])),
+                "idle lookahead cannot run for a held neighbor request");
+        check(queue.delayedPosts == beforeFinish + 1, "touch pauses second-forward work");
+        call(preview, "prioritizeRequestedDirection");
+        check(get(preview, "warmingSecondForward").equals(false), "an explicit request retires lookahead");
+        check(get(preview, "attemptedSecondForward").equals(false), "retired lookahead can retry once idle");
+        check(((boolean[]) get(preview, "completed"))[1], "preemption preserves the ready nearest page");
+
+        Url href = Url.Companion.invoke("chapter.xhtml");
+        Locator locator = new Locator() { @Override public Url getHref() { return href; } };
+        PageTurnPreview.PagePosition position = new PageTurnPreview.PagePosition(locator, 2, 3, 48);
+        check(position.matches(locator, 2, 3), "matching chapter and page may reuse its staged snapshot");
+        check(!position.matches(locator, 3, 3), "a different chapter cannot reuse the snapshot");
+        check(!position.matches(locator, 2, 4), "an unexpected page cannot reuse the snapshot");
+        check(position.allowsLookahead, "short chapters can fill the forward buffer");
+        check(!new PageTurnPreview.PagePosition(locator, 2, 3, 500).allowsLookahead,
+                "large chapters cannot start another speculative page");
         System.out.println("PASS: " + checks + " production preview queue, request priority, cancellation and callback-token checks");
     }
 }

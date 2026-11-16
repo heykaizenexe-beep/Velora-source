@@ -54,7 +54,7 @@ public final class PageCurlView extends View {
     private final float[] scratchX = new float[12], scratchY = new float[12];
     private Bitmap page, underPage;
     private int paperColor = CrtTheme.background();
-    private boolean livePageReady, dragging;
+    private boolean dragging;
     private float grabX, grabY, fingerX, fingerY;
 
     public PageCurlView(Context context) {
@@ -69,7 +69,7 @@ public final class PageCurlView extends View {
         releaseMeshImage();
         page = oldPage;
         underPage = null;
-        livePageReady = dragging = false;
+        dragging = false;
         this.paperColor = paperColor | 0xff000000;
         backShade = new LinearGradient(0f,0f,1f,0f,
                 paperTone(.96f),paperTone(.84f),Shader.TileMode.CLAMP);
@@ -95,14 +95,11 @@ public final class PageCurlView extends View {
 
     void setSurface(PageTurnSurface surface){this.surface=surface;}
 
-    /** Permit the destination WebView to show through after its first ready frame. */
-    public void revealLivePage() { livePageReady = true; invalidate(); }
-
     public void setDrag(float grabX, float grabY, float fingerX, float fingerY) {
         setMotionDrag(grabX,grabY,fingerX,fingerY);
     }
 
-    /** Continue finger-shaped geometry without hiding an already fenced live page. */
+    /** Continue the same geometry from the finger-driven drag. */
     public void setMotionDrag(float grabX, float grabY, float fingerX, float fingerY) {
         this.grabX = grabX+(surface==null?0:surface.left);
         this.grabY = grabY+(surface==null?0:surface.top);
@@ -133,7 +130,7 @@ public final class PageCurlView extends View {
         underlay.clear();
         releaseMeshImage();
         page = underPage = null;
-        livePageReady = dragging = false;
+        dragging = false;
         geometry.setProgress(0f);
         invalidate();
     }
@@ -167,17 +164,18 @@ public final class PageCurlView extends View {
         ensureSize();
         Bitmap bitmap = page;
         if (bitmap == null || bitmap.isRecycled() || getWidth() < 1 || getHeight() < 1) return;
-        boolean hasUnderPage = underPage != null && !underPage.isRecycled();
-        if (geometry.progress <= 0f || (!hasUnderPage && !livePageReady)) {
+        if (geometry.progress <= 0f || underPage == null || underPage.isRecycled()) {
             drawBitmap(canvas, bitmap);
             return;
         }
         final boolean hasRidge=geometry.ridgeSpan(ridgeSpan);
         final float effect=hasRidge?geometry.effectStrength():0f;
-        if (hasUnderPage) {
-            float edge=geometry.origin+geometry.radius*(float)Math.sin(Math.max(0f,Math.min(Math.PI/2,(geometry.maxU-geometry.origin)/geometry.radius)));
-            if(geometry.progress>=1f||!underlay.draw(canvas,geometry.width,geometry.height,geometry.nx,geometry.ny,edge,Math.min(geometry.width*.07f,40f*getResources().getDisplayMetrics().density),effect,ridgeSpan[0],ridgeSpan[1]))drawBitmap(canvas,underPage);
-        }
+        float underEdge = geometry.origin + geometry.radius * (float) Math.sin(
+                Math.max(0f, Math.min(Math.PI / 2, (geometry.maxU - geometry.origin) / geometry.radius)));
+        if (geometry.progress >= 1f || !underlay.draw(canvas, geometry.width, geometry.height,
+                geometry.nx, geometry.ny, underEdge,
+                Math.min(geometry.width * .07f, 40f * getResources().getDisplayMetrics().density),
+                effect, ridgeSpan[0], ridgeSpan[1])) drawBitmap(canvas, underPage);
         if (geometry.progress >= 1f) return;
 
         final float origin = geometry.origin, radius = geometry.radius;
