@@ -317,7 +317,9 @@ public final class PageTurnPreview {
                     }
                 }
                 if (!atSourcePage(web)) { waitFor("source_page_match"); schedule(100L); return; }
-                if (atChapterBoundary(web)) { trace("chapter_boundary"); finishJob(null); return; }
+                if (!PageTurnController.hasPageInDirection(navigator, web, direction == 1)) {
+                    trace("publication_boundary"); finishJob(null); return;
+                }
                 Object locator = navigator.getCurrentLocator().getValue();
                 if (!(locator instanceof Locator)) { waitFor("source_locator"); schedule(100L); return; }
                 moveOrigin = (Locator) locator;
@@ -399,13 +401,6 @@ public final class PageTurnPreview {
         return now instanceof Locator && source.getHref().equals(((Locator) now).getHref())
                 && navigator.getCurrentPagerPosition$readium_navigator() == sourceResource
                 && web.getMCurItem$readium_navigator() == sourcePage;
-    }
-
-    private boolean atChapterBoundary(R2WebView web) {
-        // Let the live reader load adjacent chapters without speculative WebView work.
-        int page = Math.abs(web.getMCurItem$readium_navigator());
-        int pages = web.getNumPages$readium_navigator();
-        return direction == 0 ? page <= 0 : pages > 0 && page >= pages - 1;
     }
 
     private boolean ensureBionic(final R2WebView web) {
@@ -503,6 +498,24 @@ public final class PageTurnPreview {
                 });
             }
         };
+        if (resource != sourceResource) {
+            web.runJavaScript(PageTurnController.VISIBLE_PAGE_READY_SCRIPT, new Function1() {
+                @Override public Object invoke(Object ready) {
+                    if (!valid(birth, job)) return Unit.INSTANCE;
+                    if ("true".equals(ready)) awaitVisualState(web, job, frames);
+                    else {
+                        enterPhase(MOVING);
+                        schedule(64L);
+                    }
+                    return Unit.INSTANCE;
+                }
+            });
+        } else {
+            awaitVisualState(web, job, frames);
+        }
+    }
+
+    private void awaitVisualState(R2WebView web, int job, final Runnable frames) {
         if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
             WebViewCompat.postVisualStateCallback(web, job, new WebViewCompat.VisualStateCallback() {
                 @Override public void onComplete(long id) { root.post(frames); }

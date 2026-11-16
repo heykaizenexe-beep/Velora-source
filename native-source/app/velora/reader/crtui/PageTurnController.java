@@ -47,6 +47,13 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private static final long PREVIEW_IDLE_MS = 1100L;
     private static final long REUSE_PREVIEW_IDLE_MS = 220L;
     private static final long TURN_READY_TIMEOUT_MS = 8000L;
+    static final String VISIBLE_PAGE_READY_SCRIPT =
+            "(function(){if(document.readyState!=='complete'||"
+            + "(document.fonts&&document.fonts.status==='loading'))return false;"
+            + "for(var i=0;i<document.images.length;i++){var image=document.images[i];"
+            + "if(!image.complete){var r=image.getBoundingClientRect();"
+            + "if(r.right>0&&r.bottom>0&&r.left<innerWidth&&r.top<innerHeight)return false;}}"
+            + "return true;})()";
     private static final WeakHashMap<View, Boolean> CONTROL_VIEWS = new WeakHashMap<View, Boolean>();
     private enum Phase { IDLE, ARMED, DRAGGING, RETURNING, COMMITTING, AUTO_WAIT, AUTO_ANIMATING, DESTROYED }
 
@@ -197,6 +204,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 return;
             }
             final int resource = navigator.getCurrentPagerPosition$readium_navigator();
+            final boolean chapterChanged = sourcePosition.resource != resource;
             recordLocationChange(navigator.getCurrentLocator().getValue());
             if (sourcePosition.resource == resource && sourcePosition.web == web) {
                 long distance = Math.abs((long) web.getScrollX() - sourcePosition.scrollX);
@@ -229,14 +237,18 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                     target.postOnAnimation(secondFrame);
                 }
             };
-            if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
-                WebViewCompat.postVisualStateCallback(web, renderGeneration, new WebViewCompat.VisualStateCallback() {
-                    @Override public void onComplete(long id) { drawReady.run(); }
+            if (chapterChanged) {
+                web.runJavaScript(VISIBLE_PAGE_READY_SCRIPT, new Function1() {
+                    @Override public Object invoke(Object ready) {
+                        if (generation != renderGeneration || !navigationOutstanding()) return Unit.INSTANCE;
+                        if (!"true".equals(ready) || !isAt(destination))
+                            target.postDelayed(firstFrame, 48L);
+                        else awaitVisualState(web, renderGeneration, drawReady);
+                        return Unit.INSTANCE;
+                    }
                 });
             } else {
-                web.runJavaScript("true", new Function1() {
-                    @Override public Object invoke(Object result) { drawReady.run(); return Unit.INSTANCE; }
-                });
+                awaitVisualState(web, renderGeneration, drawReady);
             }
         }
     };
@@ -297,6 +309,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             cancel(controller);
             return move(navigator, forward, controller == null || !controller.isLargeChapter());
         }
+        if (!hasPageInDirection(navigator, controller.currentWebView(), forward)) return false;
         controller.clearVisual();
         controller.logicalForward = forward;
         boolean right = forward != controller.isRtl();
@@ -354,6 +367,21 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private boolean isRtl() {
         EpubSettings current = settings();
         return current != null && current.getReadingProgression() == ReadingProgression.RTL;
+    }
+
+    /** Readium can accept an asynchronous scroll even when the publication has no next page. */
+    static boolean hasPageInDirection(EpubNavigatorFragment navigator, R2WebView web, boolean forward) {
+        if (web == null) return true;
+        Object value = navigator.getSettings().getValue();
+        boolean rtl = value instanceof EpubSettings
+                && ((EpubSettings) value).getReadingProgression() == ReadingProgression.RTL;
+        if (web.canScrollHorizontally(forward != rtl ? 1 : -1)) return true;
+
+        R2PagerAdapter adapter = navigator.getAdapterOrNull$velora();
+        int count = adapter == null ? 0 : adapter.getCount();
+        int chapter = navigator.getCurrentPagerPosition$readium_navigator();
+        if (chapter < 0 || chapter >= count) return true;
+        return forward ? chapter < count - 1 : chapter > 0;
     }
 
     private boolean canAnimate() {
@@ -629,6 +657,18 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         target.postOnAnimation(firstFrame);
     }
 
+    private void awaitVisualState(R2WebView web, long generation, final Runnable drawReady) {
+        if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
+            WebViewCompat.postVisualStateCallback(web, generation, new WebViewCompat.VisualStateCallback() {
+                @Override public void onComplete(long id) { drawReady.run(); }
+            });
+        } else {
+            web.runJavaScript("true", new Function1() {
+                @Override public Object invoke(Object result) { drawReady.run(); return Unit.INSTANCE; }
+            });
+        }
+    }
+
     private void framesReady() {
         if (!navigationOutstanding() || !accepted || !sameBounds()
                 || !target.isShown() || !sameSettings()) {
@@ -700,7 +740,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
 
     private void commitDrag(float velocityX, float velocityY) {
         if (phase != Phase.DRAGGING || !sameBounds() || !sameSettings() || !canAnimate()
-                || !isAt(sourcePosition)) {
+                || !isAt(sourcePosition) || !hasPageInDirection(navigator, sourcePosition.web, logicalForward)) {
             returnPage(velocityX, velocityY);
             return;
         }
@@ -864,6 +904,13 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         }
         if (phase == Phase.ARMED) {
             logicalForward = gesture.physicalRight() != isRtl();
+            if (!hasPageInDirection(navigator, armedPosition == null ? null : armedPosition.web, logicalForward)) {
+                gesture.abort();
+                phase = Phase.IDLE;
+                touchOwned = blockedTouch = true;
+                releaseVelocity();
+                return true;
+            }
             grabX = gesture.grabX();
             grabY = gesture.grabY();
             if (!prepare(gesture.physicalRight(), true)) {
