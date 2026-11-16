@@ -45,8 +45,8 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
     private static final int MAX_SNAPSHOT_PIXELS = 1500000;
     private static final int MAX_PREVIEW_CHAPTER_PAGES = 48;
-    private static final long PREVIEW_IDLE_MS = 1100L;
-    private static final long REUSE_PREVIEW_IDLE_MS = 220L;
+    private static final long PREVIEW_IDLE_MS = 120L;
+    private static final long REUSE_PREVIEW_IDLE_MS = 48L;
     private static final long TURN_READY_TIMEOUT_MS = 8000L;
     private static final WeakHashMap<View, Boolean> CONTROL_VIEWS = new WeakHashMap<View, Boolean>();
     private enum Phase { IDLE, ARMED, DRAGGING, RETURNING, COMMITTING, AUTO_WAIT, AUTO_ANIMATING, DESTROYED }
@@ -76,16 +76,18 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
 
     private static final class PagePosition {
         final R2WebView web;
-        final int resource, scrollX;
+        final int resource, page, scrollX;
 
         PagePosition(R2WebView web, int resource) {
             this.web = web;
             this.resource = resource;
+            page = web.getMCurItem$readium_navigator();
             scrollX = web.getScrollX();
         }
 
         boolean matches(R2WebView current, int currentResource) {
-            return web == current && resource == currentResource && scrollX == current.getScrollX();
+            return web == current && resource == currentResource && scrollX == current.getScrollX()
+                    && page == current.getMCurItem$readium_navigator();
         }
     }
 
@@ -223,34 +225,45 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             }
             final long renderGeneration = generation;
             final PagePosition destination = new PagePosition(web, resource);
-            final Runnable drawReady = new Runnable() {
-                @Override public void run() {
-                    if (generation != renderGeneration || !navigationOutstanding()) return;
-                    secondFrame = new Runnable() {
-                        @Override public void run() {
-                            secondFrame = null;
-                            if (generation != renderGeneration || !navigationOutstanding()) return;
-                            if (!web.isShown() || !isAt(destination)) {
-                                target.postOnAnimation(firstFrame);
-                                return;
-                            }
-                            framesReady();
-                        }
-                    };
-                    target.postOnAnimation(secondFrame);
+            web.runJavaScript(PageTurnRenderState.contentReady(
+                    VeloraEpubReaderFragment.access$getBionicReadingEnabled$p(owner)), new Function1() {
+                @Override public Object invoke(Object result) {
+                    if (generation != renderGeneration || !navigationOutstanding()) return Unit.INSTANCE;
+                    if (!"true".equals(result) || !isAt(destination)) target.postDelayed(firstFrame, 48L);
+                    else awaitDestinationDraw(destination, renderGeneration);
+                    return Unit.INSTANCE;
                 }
-            };
-            if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
-                WebViewCompat.postVisualStateCallback(web, renderGeneration, new WebViewCompat.VisualStateCallback() {
-                    @Override public void onComplete(long id) { drawReady.run(); }
-                });
-            } else {
-                web.runJavaScript("true", new Function1() {
-                    @Override public Object invoke(Object result) { drawReady.run(); return Unit.INSTANCE; }
-                });
-            }
+            });
         }
     };
+
+    private void awaitDestinationDraw(final PagePosition destination, final long renderGeneration) {
+        final R2WebView web = destination.web;
+        final Runnable drawReady = new Runnable() {
+            @Override public void run() {
+                if (generation != renderGeneration || !navigationOutstanding()) return;
+                secondFrame = new Runnable() {
+                    @Override public void run() {
+                        secondFrame = null;
+                        if (generation != renderGeneration || !navigationOutstanding()) return;
+                        if (!web.isShown() || !isAt(destination)) {
+                            target.postOnAnimation(firstFrame);
+                            return;
+                        }
+                        framesReady();
+                    }
+                };
+                target.postOnAnimation(secondFrame);
+            }
+        };
+        if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
+            WebViewCompat.postVisualStateCallback(web, renderGeneration, new WebViewCompat.VisualStateCallback() {
+                @Override public void onComplete(long id) { drawReady.run(); }
+            });
+        } else {
+            target.postOnAnimation(drawReady);
+        }
+    }
 
     private PageTurnController(VeloraEpubReaderFragment owner, FrameLayout root,
             View target, EpubNavigatorFragment navigator) {
@@ -308,6 +321,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             cancel(controller);
             return move(navigator, forward, controller == null || !controller.isLargeChapter());
         }
+        if (controller.atBookEdge(forward)) return false;
         controller.clearVisual();
         controller.logicalForward = forward;
         boolean right = forward != controller.isRtl();
@@ -328,7 +342,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         controller.trace("accepted");
         if (!moved) controller.clearVisual();
         else {
-            controller.startAutomaticAnimation();
+            if (controller.underSnapshot != null) controller.startAutomaticAnimation();
             controller.scheduleWhenReady();
         }
         return moved;
@@ -385,6 +399,15 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private boolean isLargeChapter() {
         R2WebView web = currentWebView();
         return web != null && exceedsPreviewBudget(web.getNumPages$readium_navigator());
+    }
+
+    private boolean atBookEdge(boolean forward) {
+        R2WebView web = currentWebView();
+        R2PagerAdapter adapter = navigator.getAdapterOrNull$velora();
+        return web != null && adapter != null && PageTurnRenderState.atBookEdge(forward,
+                navigator.getCurrentPagerPosition$readium_navigator(), adapter.getCount(),
+                web.getScrollX(), web.getNumPages$readium_navigator(),
+                web.getWidth() - web.getPaddingLeft() - web.getPaddingRight());
     }
 
     public static void selectionChanged(PageTurnController controller, ActionMode mode, boolean active) {
@@ -716,12 +739,13 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         target.removeCallbacks(timeout);
         frameReady = true;
         if (underSnapshot == null && overlay != null) overlay.revealLivePage();
+        if (phase == Phase.AUTO_WAIT) startAutomaticAnimation();
         finishCommittedIfReady();
     }
 
     private void startAutomaticAnimation() {
         phase = Phase.AUTO_ANIMATING;
-        // Taps use the same sheet/finger model as a held turn, beginning at rest.
+        // A tap or an unprepared swipe starts flat, after its destination is available.
         boolean right = logicalForward != isRtl();
         grabX = (right ? surface.width : 0f) - surface.left;
         grabY = surface.height * .5f - surface.top;
@@ -780,6 +804,10 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             returnPage(velocityX, velocityY);
             return;
         }
+        if (atBookEdge(logicalForward)) {
+            returnPage(velocityX, velocityY);
+            return;
+        }
         phase = Phase.COMMITTING;
         if (preview != null) preview.cancelRequest();
         commitTicket = new CommitTicket(logicalForward);
@@ -799,7 +827,8 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             return;
         }
         scheduleWhenReady();
-        animateMotion(planMotion(true, velocityX, velocityY), true);
+        if (underSnapshot != null) animateMotion(planMotion(true, velocityX, velocityY), true);
+        else phase = Phase.AUTO_WAIT;
     }
 
     private void finishCommittedIfReady() {
@@ -940,6 +969,13 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         }
         if (phase == Phase.ARMED) {
             logicalForward = gesture.physicalRight() != isRtl();
+            if (atBookEdge(logicalForward)) {
+                gesture.abort();
+                touchOwned = blockedTouch = true;
+                phase = Phase.IDLE;
+                releaseVelocity();
+                return true;
+            }
             grabX = gesture.grabX();
             grabY = gesture.grabY();
             if (!prepare(gesture.physicalRight(), true)) {
@@ -951,14 +987,18 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             touchOwned = true;
             dragX = gesture.mapX(x);
             dragY = y;
-            overlay.setDrag(grabX, grabY, dragX, dragY);
             useCachedUnderPage();
+            updateDragVisual();
         } else if (phase == Phase.DRAGGING) {
             dragX = gesture.mapX(x);
             dragY = y;
-            if (overlay != null) overlay.setDrag(grabX, grabY, dragX, dragY);
+            updateDragVisual();
         }
         return touchOwned;
+    }
+
+    private void updateDragVisual() {
+        if (overlay != null && underSnapshot != null) overlay.setDrag(grabX, grabY, dragX, dragY);
     }
 
     public boolean onTouch(MotionEvent event) {
@@ -997,7 +1037,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                     releaseY = event.getY(index) - target.getTop();
                     dragX = gesture.mapX(releaseX);
                     dragY = releaseY;
-                    if (overlay != null) overlay.setDrag(grabX, grabY, dragX, dragY);
+                    updateDragVisual();
                 }
                 int decision = gesture.finish(releaseX, releaseY, speed, allowed);
                 finishTouch();

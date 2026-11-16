@@ -19,6 +19,7 @@
     const TEXT_CHUNK_SIZE = 4096;
     const LETTER = /[A-Za-z\u00C0-\u024F\u0400-\u04FF]/;
     let enabled = false;
+    let processing = false;
     let touching = false;
     let touchEndedAt = -Infinity;
     window.addEventListener("touchstart", function () { touching = true; }, { passive: true, capture: true });
@@ -129,6 +130,8 @@
             }
             if (index < nodes.length) {
                 window.setTimeout(processBatch, 0);
+            } else {
+                processing = false;
             }
         }
         window.setTimeout(processBatch, 0);
@@ -161,15 +164,18 @@
             } else {
                 const style = document.getElementById(STYLE_ID);
                 if (style) style.remove();
+                processing = false;
             }
         }
         window.setTimeout(processBatch, 0);
     }
 
     window.__veloraBionicReading = {
+        isReady: function (value) { return !processing && enabled === value; },
         setEnabled: function (value) {
             if (enabled === value) return true;
             enabled = value;
+            processing = true;
             generation++;
             const token = generation;
             if (enabled) enable(token); else disable(token);

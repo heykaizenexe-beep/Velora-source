@@ -15,6 +15,20 @@ public final class PageTurnModeRegressionTest {
     private static boolean near(float first, float second) { return Math.abs(first - second) < .01f; }
 
     public static void main(String[] args) {
+        for (int direction : new int[]{1, -1}) {
+            check(PageTurnRenderState.atBookEdge(false, 0, 3, 0, 8, 400),
+                    "backward at the first page does not wait for a nonexistent destination");
+            check(!PageTurnRenderState.atBookEdge(false, 1, 3, 0, 8, 400),
+                    "backward at the second chapter can load the previous chapter");
+            check(!PageTurnRenderState.atBookEdge(false, 0, 3, direction * 400, 8, 400),
+                    "backward inside the first chapter remains available");
+            check(!PageTurnRenderState.atBookEdge(true, 1, 3, direction * 2800, 8, 400),
+                    "forward at the end of a chapter can load the next chapter");
+            check(PageTurnRenderState.atBookEdge(true, 2, 3, direction * 2800, 8, 400),
+                    "forward at the last page does not wait for a nonexistent destination");
+            check(!PageTurnRenderState.atBookEdge(true, 2, 3, direction * 2400, 8, 400),
+                    "forward to the last page remains available");
+        }
         for (float[] viewport : new float[][]{{360, 800, 1}, {800, 1280, 1}, {1280, 800, 2}}) {
             float width = viewport[0], height = viewport[1], density = viewport[2];
             float edge = Math.min(width * .25f,

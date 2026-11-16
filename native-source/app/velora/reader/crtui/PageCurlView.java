@@ -167,13 +167,17 @@ public final class PageCurlView extends View {
         ensureSize();
         Bitmap bitmap = page;
         if (bitmap == null || bitmap.isRecycled() || getWidth() < 1 || getHeight() < 1) return;
-        if (geometry.progress <= 0f) { drawBitmap(canvas, bitmap); return; }
+        boolean hasUnderPage = underPage != null && !underPage.isRecycled();
+        if (geometry.progress <= 0f || (!hasUnderPage && !livePageReady)) {
+            drawBitmap(canvas, bitmap);
+            return;
+        }
         final boolean hasRidge=geometry.ridgeSpan(ridgeSpan);
         final float effect=hasRidge?geometry.effectStrength():0f;
-        if (underPage != null && !underPage.isRecycled()) {
+        if (hasUnderPage) {
             float edge=geometry.origin+geometry.radius*(float)Math.sin(Math.max(0f,Math.min(Math.PI/2,(geometry.maxU-geometry.origin)/geometry.radius)));
             if(geometry.progress>=1f||!underlay.draw(canvas,geometry.width,geometry.height,geometry.nx,geometry.ny,edge,Math.min(geometry.width*.07f,40f*getResources().getDisplayMetrics().density),effect,ridgeSpan[0],ridgeSpan[1]))drawBitmap(canvas,underPage);
-        } else if (!livePageReady) drawBitmap(canvas, bitmap);
+        }
         if (geometry.progress >= 1f) return;
 
         final float origin = geometry.origin, radius = geometry.radius;

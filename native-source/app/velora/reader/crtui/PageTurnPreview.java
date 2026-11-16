@@ -417,16 +417,11 @@ public final class PageTurnPreview {
         if (status == null) {
             bionic.put(web, Integer.valueOf(1));
             String script = VeloraEpubReaderFragment.access$getBionicReadingScript(owner);
-            script += "\n(function(){window.__veloraPreviewBionicReady=false;var t;"
-                    + "function done(){o.disconnect();window.__veloraPreviewBionicReady=true;}"
-                    + "var o=new MutationObserver(function(){clearTimeout(t);t=setTimeout(done,160);});"
-                    + "o.observe(document.documentElement,{childList:true,subtree:true,characterData:true});"
-                    + "window.__veloraBionicReading.setEnabled(true);t=setTimeout(done,160);})();";
-            web.runJavaScript(script, null);
+            web.runJavaScript(script + "\nwindow.__veloraBionicReading.setEnabled(true);", null);
         }
         if (!javascriptPending) {
             javascriptPending = true;
-            web.runJavaScript("Boolean(window.__veloraPreviewBionicReady)", new Function1() {
+            web.runJavaScript("!!window.__veloraBionicReading && window.__veloraBionicReading.isReady(true)", new Function1() {
                 @Override public Object invoke(final Object value) {
                     root.post(new Runnable() {
                         @Override public void run() {
@@ -452,7 +447,7 @@ public final class PageTurnPreview {
 
     private void awaitDraw(final R2WebView web, final Locator readyLocator) {
         enterPhase(DRAWING);
-        waitFor("visual_state_callback");
+        waitFor("page_content");
         final int birth = generation, job = command;
         final int resource = navigator.getCurrentPagerPosition$readium_navigator();
         final int page = web.getMCurItem$readium_navigator();
@@ -503,15 +498,23 @@ public final class PageTurnPreview {
                 });
             }
         };
-        if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
-            WebViewCompat.postVisualStateCallback(web, job, new WebViewCompat.VisualStateCallback() {
-                @Override public void onComplete(long id) { root.post(frames); }
-            });
-        } else {
-            web.runJavaScript("true", new Function1() {
-                @Override public Object invoke(Object value) { root.postDelayed(frames, 200L); return Unit.INSTANCE; }
-            });
-        }
+        web.runJavaScript(PageTurnRenderState.contentReady(sourceBionic), new Function1() {
+            @Override public Object invoke(Object value) {
+                if (!valid(birth, job)) return Unit.INSTANCE;
+                if (!"true".equals(value)) {
+                    enterPhase(MOVING);
+                    schedule(48L);
+                } else if (WebViewFeature.isFeatureSupported("VISUAL_STATE_CALLBACK")) {
+                    waitFor("visual_state_callback");
+                    WebViewCompat.postVisualStateCallback(web, job, new WebViewCompat.VisualStateCallback() {
+                        @Override public void onComplete(long id) { root.post(frames); }
+                    });
+                } else {
+                    root.postOnAnimation(frames);
+                }
+                return Unit.INSTANCE;
+            }
+        });
     }
 
     private boolean valid(int birth, int job) {
