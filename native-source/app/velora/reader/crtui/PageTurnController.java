@@ -149,6 +149,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     };
     private PageTurnCache.Image<Bitmap> snapshot, underSnapshot;
     private ValueAnimator animator;
+    private PageTurnRelease waitingRelease;
     private Runnable secondFrame;
     private CommitTicket commitTicket;
     private Object beforeLocator;
@@ -204,10 +205,14 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 return;
             }
             final int resource = navigator.getCurrentPagerPosition$readium_navigator();
-            final boolean chapterChanged = sourcePosition.resource != resource;
             recordLocationChange(navigator.getCurrentLocator().getValue());
             if (sourcePosition.resource == resource && sourcePosition.web == web) {
                 long distance = Math.abs((long) web.getScrollX() - sourcePosition.scrollX);
+                if (distance == 0 && !hasPageInDirection(navigator, web, logicalForward)) {
+                    trace("publication_boundary");
+                    clearVisual();
+                    return;
+                }
                 // Readium updates saved locations after the WebView has already scrolled.
                 if (distance == 0 || (!locationChanged && distance < Math.max(2, web.getWidth() / 4))) {
                     target.postDelayed(this, 32L);
@@ -237,19 +242,15 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                     target.postOnAnimation(secondFrame);
                 }
             };
-            if (chapterChanged) {
-                web.runJavaScript(VISIBLE_PAGE_READY_SCRIPT, new Function1() {
-                    @Override public Object invoke(Object ready) {
-                        if (generation != renderGeneration || !navigationOutstanding()) return Unit.INSTANCE;
-                        if (!"true".equals(ready) || !isAt(destination))
-                            target.postDelayed(firstFrame, 48L);
-                        else awaitVisualState(web, renderGeneration, drawReady);
-                        return Unit.INSTANCE;
-                    }
-                });
-            } else {
-                awaitVisualState(web, renderGeneration, drawReady);
-            }
+            web.runJavaScript(VISIBLE_PAGE_READY_SCRIPT, new Function1() {
+                @Override public Object invoke(Object ready) {
+                    if (generation != renderGeneration || !navigationOutstanding()) return Unit.INSTANCE;
+                    if (!"true".equals(ready) || !isAt(destination))
+                        target.postDelayed(firstFrame, 48L);
+                    else awaitVisualState(web, renderGeneration, drawReady);
+                    return Unit.INSTANCE;
+                }
+            });
         }
     };
 
@@ -331,7 +332,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         controller.trace("accepted");
         if (!moved) controller.clearVisual();
         else {
-            controller.startAutomaticAnimation();
+            controller.releaseAutomaticTurn();
             controller.scheduleWhenReady();
         }
         return moved;
@@ -375,13 +376,18 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         Object value = navigator.getSettings().getValue();
         boolean rtl = value instanceof EpubSettings
                 && ((EpubSettings) value).getReadingProgression() == ReadingProgression.RTL;
-        if (web.canScrollHorizontally(forward != rtl ? 1 : -1)) return true;
-
         R2PagerAdapter adapter = navigator.getAdapterOrNull$velora();
         int count = adapter == null ? 0 : adapter.getCount();
         int chapter = navigator.getCurrentPagerPosition$readium_navigator();
         if (chapter < 0 || chapter >= count) return true;
-        return forward ? chapter < count - 1 : chapter > 0;
+        if (forward ? chapter < count - 1 : chapter > 0) return true;
+        if (!web.canScrollHorizontally(forward != rtl ? 1 : -1)) return false;
+        // An overhanging element or a slight overscroll can keep canScroll true
+        // even when Readium has already reached the first or last logical page.
+        int page = Math.abs(web.getMCurItem$readium_navigator());
+        if (!forward) return page > 0;
+        int pages = web.getNumPages$readium_navigator();
+        return pages <= 0 || page < pages - 1;
     }
 
     private boolean canAnimate() {
@@ -678,20 +684,52 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         target.removeCallbacks(timeout);
         frameReady = true;
         trace("live_frame_ready");
-        if (underSnapshot == null && overlay != null) overlay.revealLivePage();
+        if (waitingRelease != null) {
+            PageTurnRelease release = waitingRelease;
+            waitingRelease = null;
+            try {
+                Bitmap captured = captureTarget();
+                if (captured != null) {
+                    setUnderPage(new PageTurnCache.Image<Bitmap>(captured, BITMAP_DISPOSER));
+                    trace("destination_snapshot");
+                }
+            } catch (RuntimeException | OutOfMemoryError unavailable) {
+                // The live frame is already ready. A failed snapshot falls
+                // back to a single swap rather than playing a misleading fold.
+                Log.d("VeloraPageCurl", "destination_capture_error class=" + unavailable.getClass().getName());
+            }
+            if (underSnapshot == null) {
+                clearVisual();
+                return;
+            }
+            startCommittedMotion(release);
+        }
         finishCommittedIfReady();
     }
 
-    private void startAutomaticAnimation() {
-        phase = Phase.AUTO_ANIMATING;
+    private void releaseAutomaticTurn() {
         // Taps use the same sheet/finger model as a held turn, beginning at rest.
         boolean right = logicalForward != isRtl();
         grabX = (right ? surface.width : 0f) - surface.left;
         grabY = surface.height * .5f - surface.top;
         dragX = grabX;
         dragY = grabY;
+        releaseWhenReady(planMotion(true, 0f, 0f));
+    }
+
+    private void releaseWhenReady(PageTurnRelease motion) {
+        if (underSnapshot == null) {
+            waitingRelease = motion;
+            trace("waiting_for_destination");
+        } else {
+            startCommittedMotion(motion);
+        }
+    }
+
+    private void startCommittedMotion(PageTurnRelease motion) {
+        if (phase == Phase.AUTO_WAIT) phase = Phase.AUTO_ANIMATING;
         trace("animation_start");
-        animateMotion(planMotion(true, 0f, 0f), true);
+        animateMotion(motion, true);
     }
 
     private PageTurnRelease planMotion(boolean complete, float velocityX, float velocityY) {
@@ -763,7 +801,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             return;
         }
         scheduleWhenReady();
-        animateMotion(planMotion(true, velocityX, velocityY), true);
+        releaseWhenReady(planMotion(true, velocityX, velocityY));
     }
 
     private void finishCommittedIfReady() {
@@ -1068,6 +1106,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         target.removeCallbacks(firstFrame);
         if (secondFrame != null) target.removeCallbacks(secondFrame);
         secondFrame = null;
+        waitingRelease = null;
     }
 
     private void clearVisual() {

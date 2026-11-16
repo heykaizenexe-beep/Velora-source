@@ -545,21 +545,17 @@ public final class PageTurnPreview {
                 });
             }
         };
-        if (resource != source.resource) {
-            web.runJavaScript(PageTurnController.VISIBLE_PAGE_READY_SCRIPT, new Function1() {
-                @Override public Object invoke(Object ready) {
-                    if (!valid(birth, job)) return Unit.INSTANCE;
-                    if ("true".equals(ready)) awaitVisualState(web, job, frames);
-                    else {
-                        enterPhase(MOVING);
-                        schedule(64L);
-                    }
-                    return Unit.INSTANCE;
+        web.runJavaScript(PageTurnController.VISIBLE_PAGE_READY_SCRIPT, new Function1() {
+            @Override public Object invoke(Object ready) {
+                if (!valid(birth, job)) return Unit.INSTANCE;
+                if ("true".equals(ready)) awaitVisualState(web, job, frames);
+                else {
+                    enterPhase(MOVING);
+                    schedule(64L);
                 }
-            });
-        } else {
-            awaitVisualState(web, job, frames);
-        }
+                return Unit.INSTANCE;
+            }
+        });
     }
 
     private void awaitVisualState(R2WebView web, int job, final Runnable frames) {
