@@ -371,20 +371,20 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 || selectionMode != null || !owner.isPageTurnAllowed$app() || target.getParent() != root
                 || target.getWidth() <= 0 || target.getHeight() <= 0 || !target.isShown()) return false;
         R2WebView web = currentWebView();
-        if (web == null || requiresNativeTurn(web.getNumPages$readium_navigator())) return false;
+        if (web == null) return false;
         EpubSettings current = settings();
         return current != null && !current.getScroll() && !current.getVerticalText()
                 && EpubNavigatorFragment.access$getPublication(navigator).getMetadata().getLayout() != Layout.FIXED
                 && !hasSelection(target);
     }
 
-    static boolean requiresNativeTurn(int pagesInResource) {
+    static boolean exceedsPreviewBudget(int pagesInResource) {
         return pagesInResource > MAX_PREVIEW_CHAPTER_PAGES;
     }
 
     private boolean isLargeChapter() {
         R2WebView web = currentWebView();
-        return web != null && requiresNativeTurn(web.getNumPages$readium_navigator());
+        return web != null && exceedsPreviewBudget(web.getNumPages$readium_navigator());
     }
 
     public static void selectionChanged(PageTurnController controller, ActionMode mode, boolean active) {
@@ -635,7 +635,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     }
 
     private void useCachedUnderPage() {
-        if (preview == null) return;
+        if (preview == null || isLargeChapter()) return;
         PageTurnCache.Image<Bitmap> image = preview.acquireReady(logicalForward);
         if (image != null) setUnderPage(image);
     }

@@ -18,7 +18,7 @@ public final class PageTurnSettingsRegressionTest {
 
     public static void main(String[] args) {
         FakePreferences fresh = new FakePreferences();
-        check("ordinary".equals(PageTurnSettings.readMode(fresh)), "A fresh install selects ordinary");
+        check("book".equals(PageTurnSettings.readMode(fresh)), "A fresh install selects book mode");
         check(fresh.edits == 0, "Reading the default does not persist an unsolicited choice");
 
         Object[] modes = {null, "ordinary", "book", "", "unknown", "BOOK", Integer.valueOf(7)};
@@ -29,7 +29,7 @@ public final class PageTurnSettingsRegressionTest {
                 if (mode != null) preferences.values.put("page_turn_mode", mode);
                 if (flag != null) preferences.values.put("page_curl_enabled", flag);
                 String expected = "book".equals(mode) ? "book" : "ordinary".equals(mode)
-                        ? "ordinary" : Boolean.TRUE.equals(flag) ? "book" : "ordinary";
+                        ? "ordinary" : flag == null || Boolean.TRUE.equals(flag) ? "book" : "ordinary";
                 check(expected.equals(PageTurnSettings.readMode(preferences)),
                         "Explicit canonical mode or legacy fallback: " + mode + " / " + flag);
                 check(preferences.edits == 0, "Migration reads must not rewrite preferences");

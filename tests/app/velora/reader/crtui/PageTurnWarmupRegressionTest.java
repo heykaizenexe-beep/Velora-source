@@ -65,10 +65,10 @@ public final class PageTurnWarmupRegressionTest {
         check(window.shouldRun(50000, true), "explicit re-enable starts another bounded window");
         window.stop();
         check(!window.shouldRun(50500, true), "destroy/success stop remains terminal until explicit start");
-        check(!PageTurnController.requiresNativeTurn(1), "a short loaded chapter can use previews");
-        check(!PageTurnController.requiresNativeTurn(48), "a chapter at the budget limit can use previews");
-        check(PageTurnController.requiresNativeTurn(49), "the long chapter uses native pagination");
-        check(PageTurnController.requiresNativeTurn(25000), "very large resources take the same bounded path");
+        check(!PageTurnController.exceedsPreviewBudget(1), "a short loaded chapter can use previews");
+        check(!PageTurnController.exceedsPreviewBudget(48), "a chapter at the budget limit can use previews");
+        check(PageTurnController.exceedsPreviewBudget(49), "a long chapter skips hidden previews");
+        check(PageTurnController.exceedsPreviewBudget(25000), "very large resources also skip hidden previews");
         System.out.println("PASS: " + checks + " bounded startup/resume warmup and cancellation checks");
     }
 }

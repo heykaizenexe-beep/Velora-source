@@ -53,14 +53,14 @@ public final class PageTurnSettings {
                 .getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
 
-    /** A valid explicit mode wins; installations with only the old flag retain their choice. */
+    /** A valid explicit mode wins, then the legacy flag. New readers start in book mode. */
     static String readMode(SharedPreferences preferences) {
         String mode;
         try { mode = preferences.getString(MODE, null); }
         catch (ClassCastException malformedMode) { mode = null; }
         if (ORDINARY.equals(mode) || BOOK.equals(mode)) return mode;
         boolean legacyEnabled;
-        try { legacyEnabled = preferences.getBoolean(ENABLED, false); }
+        try { legacyEnabled = preferences.getBoolean(ENABLED, true); }
         catch (ClassCastException malformedLegacyFlag) { legacyEnabled = false; }
         return legacyEnabled ? BOOK : ORDINARY;
     }
