@@ -61,16 +61,33 @@ final class NoirHomeView extends LinearLayout {
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
+        scroll.setBackgroundColor(NoirHomeStyle.WALL);
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
         page.setFocusableInTouchMode(true);
         scroll.addView(page, new ScrollView.LayoutParams(-1, -2));
 
+        // Editorial masthead: traditional newspaper hierarchy above the existing carousel.
+        LinearLayout imprint = new LinearLayout(c);
+        imprint.setGravity(Gravity.CENTER_VERTICAL);
+        TextView imprintLeft = NoirUi.text(c, "VELORA  /  АРХИВ", 9,
+                NoirHomeStyle.RUST, NoirUi.MEDIUM);
+        imprintLeft.setLetterSpacing(.12f);
+        imprint.addView(imprintLeft, new LayoutParams(0, -2, 1f));
+        TextView imprintRight = NoirUi.text(c, "EST. 2026  ·  VOL. 01", 9,
+                NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
+        imprintRight.setLetterSpacing(.07f);
+        imprint.addView(imprintRight, new LayoutParams(-2, -2));
+        LayoutParams imprintSize = new LayoutParams(-1, dp(19));
+        page.addView(imprint, imprintSize);
+
         LinearLayout toolbar = new LinearLayout(c);
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setMinimumHeight(dp(46));
-        sectionLabel = NoirUi.text(c, "Картотека", 15, NoirHomeStyle.INK, NoirUi.SERIF);
+        toolbar.setMinimumHeight(dp(58));
+        sectionLabel = NoirUi.text(c, "Картотека", 24, NoirHomeStyle.INK, NoirUi.HEADLINE);
+        sectionLabel.setAllCaps(true);
+        sectionLabel.setLetterSpacing(-.045f);
         sectionLabel.setGravity(Gravity.CENTER_VERTICAL);
         sectionLabel.setMaxLines(2);
         sectionLabel.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -82,6 +99,17 @@ final class NoirHomeView extends LinearLayout {
         toolbarAction(NoirHomeStyle.Symbol.MENU, "Меню", this::openMenu);
         toolbar.addView(toolbarActions, new LayoutParams(-2, -2));
         page.addView(toolbar, new LayoutParams(-1, -2));
+        TextView deckCaption = NoirUi.text(c, "ЛИЧНАЯ КОЛЛЕКЦИЯ  /  КНИГИ И ИСТОРИИ",
+                9, NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
+        deckCaption.setLetterSpacing(.11f);
+        LayoutParams deckCaptionSize = new LayoutParams(-1, -2);
+        deckCaptionSize.bottomMargin = dp(9);
+        page.addView(deckCaption, deckCaptionSize);
+        View mastheadRule = new View(c);
+        mastheadRule.setBackgroundColor(NoirHomeStyle.INK);
+        LayoutParams ruleSize = new LayoutParams(-1, dp(1));
+        ruleSize.bottomMargin = dp(13);
+        page.addView(mastheadRule, ruleSize);
 
         query = new EditText(c);
         query.setTypeface(NoirUi.themedFont(c, NoirUi.SANS));
@@ -92,7 +120,7 @@ final class NoirHomeView extends LinearLayout {
         query.setTextSize(16);
         query.setPadding(dp(14), 0, dp(14), 0);
         query.setBackgroundDrawable(NoirHomeStyle.control(c, NoirHomeStyle.SURFACE,
-                NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 4));
+                NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 8));
         query.setVisibility(GONE);
         query.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -112,7 +140,9 @@ final class NoirHomeView extends LinearLayout {
                 filter = value;
                 update();
             });
-            tab.setTextSize(13);
+            tab.setTextSize(12);
+            tab.setAllCaps(true);
+            tab.setLetterSpacing(.055f);
             tab.setMinHeight(dp(44));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
@@ -168,10 +198,11 @@ final class NoirHomeView extends LinearLayout {
         entry.setGravity(Gravity.CENTER_VERTICAL);
         entry.setPadding(dp(6), dp(8), dp(6), dp(8));
         entry.setMinimumHeight(dp(52));
-        entry.setBackgroundDrawable(NoirHomeStyle.control(c, Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 4));
+        entry.setBackgroundDrawable(NoirHomeStyle.control(c,
+                NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 7));
         entry.setOnClickListener(v -> openCatalog());
         entry.setFocusable(true);
-        TextView name = NoirUi.text(c, "Библиотека", 15, NoirHomeStyle.INK, NoirUi.SANS);
+        TextView name = NoirUi.text(c, "Библиотека", 14, NoirHomeStyle.INK, NoirUi.MEDIUM);
         Drawable booksIcon = NoirHomeStyle.symbol(c, NoirHomeStyle.Symbol.LIBRARY, NoirHomeStyle.INK_MUTED);
         name.setCompoundDrawablesWithIntrinsicBounds(booksIcon, null, null, null);
         name.setCompoundDrawablePadding(dp(9));
@@ -192,7 +223,7 @@ final class NoirHomeView extends LinearLayout {
 
     private ImageButton toolbarAction(NoirHomeStyle.Symbol symbol, String description, Runnable action) {
         ImageButton button = NoirHomeStyle.icon(getContext(), symbol, description, action);
-        LayoutParams size = new LayoutParams(dp(44), dp(44));
+        LayoutParams size = new LayoutParams(dp(48), dp(48));
         toolbarActions.addView(button, size);
         return button;
     }
@@ -277,11 +308,11 @@ final class NoirHomeView extends LinearLayout {
             boolean active = value == filter;
             TextView tab = filters[value.ordinal()];
             tab.setSelected(active);
-            tab.setTextColor(active ? NoirHomeStyle.INK : NoirHomeStyle.INK_MUTED);
-            int flags = tab.getPaintFlags();
-            tab.setPaintFlags(active ? flags | Paint.UNDERLINE_TEXT_FLAG : flags & ~Paint.UNDERLINE_TEXT_FLAG);
+            tab.setTextColor(active ? 0xffffffff : NoirHomeStyle.INK_MUTED);
             tab.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
-                    Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 5));
+                    active ? NoirHomeStyle.RUST : NoirHomeStyle.SURFACE,
+                    active ? NoirHomeStyle.RUST_DARK : NoirHomeStyle.HIGHLIGHT,
+                    active ? 0 : NoirHomeStyle.EDGE, 20));
         }
     }
 
@@ -490,9 +521,11 @@ final class NoirHomeView extends LinearLayout {
         link.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         link.setTextSize(16);
         link.setSelected(active);
-        link.setTextColor(active ? NoirHomeStyle.INK : NoirHomeStyle.INK_MUTED);
+        link.setTextColor(active ? 0xffffffff : NoirHomeStyle.INK);
         link.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
-                active ? NoirHomeStyle.HIGHLIGHT : Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 9));
+                active ? NoirHomeStyle.RUST : Color.TRANSPARENT,
+                active ? NoirHomeStyle.RUST_DARK : NoirHomeStyle.HIGHLIGHT,
+                active ? 0 : NoirHomeStyle.EDGE, 8));
         panel.addView(link, new LayoutParams(-1, -2));
     }
 
