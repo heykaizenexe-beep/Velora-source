@@ -26,7 +26,7 @@ import java.util.List;
 /** A five-cover window. Repositioning its cards never decodes an image. */
 final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
-    private final NoirSpine spine = new NoirSpine();
+    private final NoirSpine spine;
     private final NoirShelfGlow glow = new NoirShelfGlow();
     private static final float SPINE_WIDTH = 74f, SPINE_HEIGHT = 700f;
     private static final float[] SPINE_PLANE = {0, 0, SPINE_WIDTH, 0, SPINE_WIDTH, SPINE_HEIGHT, 0, SPINE_HEIGHT};
@@ -48,6 +48,7 @@ final class NoirCoverDeck extends View {
 
     NoirCoverDeck(Context c, Runnable selected, Runnable open) {
         super(c);
+        spine = new NoirSpine(c);
         this.selected = selected;
         this.open = open;
         touchSlop = ViewConfiguration.get(c).getScaledTouchSlop();
