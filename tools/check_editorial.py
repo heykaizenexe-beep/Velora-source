@@ -12,6 +12,7 @@ ticket = read("native-source/app/velora/reader/crtui/NoirBookTicket.java")
 style = read("native-source/app/velora/reader/crtui/NoirHomeStyle.java")
 texture = read("native-source/app/velora/reader/crtui/NoirNewspaperPaper.java")
 fonts = read("native-source/app/velora/reader/crtui/NoirUi.java")
+settings = read("native-source/app/velora/reader/crtui/ThemeSettingsActivity.java")
 rebuild = read("rebuild.py")
 manifest = read("decoded/apktool.yml")
 
@@ -25,11 +26,18 @@ checks = {
     "warm paper palette": "0xfff3eee5" in style and "0xffa94f3b" in style,
     "subtle newspaper texture only in cartoteka": "scroll.setBackgroundDrawable(new NoirNewspaperPaper(c));" in home and "new NoirNewspaperPaper(" not in read("native-source/app/velora/reader/crtui/ReaderPaper.java"),
     "fixed-grain tile has no frame flicker": "BitmapShader(texture, Shader.TileMode.REPEAT" in texture and "Fixed-seed noise" in texture and "for (int i = 0; i < pixels.length; i++)" in texture,
-    "light ghost ink only": "int inkAlpha = (11 * alpha + 127) / 255;" in texture and ".17f" in texture,
-    "background keeps central carousel clean": 'bounds.width() * (.22f + block * .26f)' not in texture and "bounds.width() * .17f" in texture,
+    "ghost ink remains translucent at 100%": "Math.min(27, Math.round(11f * strength / DEFAULT_STRENGTH))" in texture and ".17f" in texture,
+    "background keeps central carousel clean": "bounds.width() * .17f" in texture,
+    "0% gives clean paper": "if (strength == 0) return;" in texture,
+    "adjustable alpha without new bitmaps": "grain.setAlpha((strength * alpha + 50) / 100);" in texture and "void setStrength(int value)" in texture,
+    "texture strength shared across app and theme settings": "NoirNewspaperPaper.PREF_STRENGTH" in home and "NoirNewspaperPaper.PREF_STRENGTH" in settings,
+    "texture prefs persist": 'putInt(NoirNewspaperPaper.PREF_STRENGTH,value).apply()' in settings and 'getSharedPreferences(PREFS_NAME' in texture,
+    "Cartoteka alone has the settings slider": 'if(AppTheme.NOIR.equals(id)){' in settings and 'new SeekBar(ThemeSettingsActivity.this)' in settings,
+    "changes preview live": "newspaperPreview.setStrength(value);" in settings,
+    "live theme reacts to changes": "registerOnSharedPreferenceChangeListener(texturePreferenceListener)" in home and "unregisterOnSharedPreferenceChangeListener(" in home,
     "Schueler not loaded": "schuelerBold" not in fonts,
     "Schueler no longer required": "restore_noir_font" not in rebuild,
-    "correct 0.9.144 version": bool(re.search(r"versionCode:\s*244\s+versionName:\s*0\.9\.144",manifest)),
+    "correct 0.9.145 version": bool(re.search(r"versionCode:\s*245\s+versionName:\s*0\.9\.145",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
