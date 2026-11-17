@@ -50,7 +50,7 @@ final class NoirUi {
         view.setGravity(Gravity.CENTER);
         view.setMinHeight(dp(c, 46));
         view.setPadding(dp(c, 12), 0, dp(c, 12), 0);
-        view.setBackgroundDrawable(state(PANEL, 0xff423b3c, 7, c));
+        view.setBackgroundDrawable(state(PANEL, 0xffeae0d5, 8, c));
         view.setFocusable(true);
         view.setOnClickListener(v -> action.run());
         return view;
