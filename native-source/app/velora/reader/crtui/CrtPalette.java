@@ -3,7 +3,7 @@ package app.velora.reader.crtui;
 /** Immutable CRT colour roles shared by Android Views and Compose. */
 public final class CrtPalette {
     private CrtPalette() {}
-    static final int NOIR_BACKGROUND = 0xff1c1b1c;
+    static final int NOIR_BACKGROUND = 0xfff3eee5;
 
     public static final int PRIMARY=0, ON_PRIMARY=1, PRIMARY_CONTAINER=2, ON_PRIMARY_CONTAINER=3,
         INVERSE_PRIMARY=4, SECONDARY=5, ON_SECONDARY=6, SECONDARY_CONTAINER=7,
@@ -53,7 +53,7 @@ public final class CrtPalette {
     private static volatile String theme = AppTheme.PIXEL_CAT;
     private static final int[] CLASSIC_DARK=classicPalette(true),CLASSIC_LIGHT=classicPalette(false);
     private static final int[] JOURNAL_DARK=journalPalette(true), JOURNAL_LIGHT=journalPalette(false);
-    private static final int[] NOIR_DARK=noirDarkPalette();
+    private static final int[] NOIR_PAPER=noirPaperPalette();
     private static int paletteRevision;
     public static int revision(){return paletteRevision;}
     static void setClassic(boolean value){setTheme(value ? AppTheme.CLASSIC : AppTheme.PIXEL_CAT);}
@@ -101,11 +101,25 @@ public final class CrtPalette {
         colors[PRESSED] = CrtColorMath.mix(surface, accent, .16f);
         return colors;
     }
-    private static int[] noirDarkPalette() {
-        int[] colors = JOURNAL_DARK.clone();
-        colors[BACKGROUND] = colors[SURFACE_DIM] = colors[SURFACE_CONTAINER_LOWEST] = NOIR_BACKGROUND;
-        colors[INVERSE_ON_SURFACE] = NOIR_BACKGROUND;
-        return colors;
+    /** Cartoteka is a light printed page independent of system night-mode. */
+    private static int[] noirPaperPalette() {
+        int[] p = JOURNAL_LIGHT.clone();
+        int paper = NOIR_BACKGROUND, surface = 0xfffaf6ed, ink = 0xff302620;
+        int muted = 0xff695b4f, rust = 0xffa94f3b, line = 0xffc9bdb0;
+        p[BACKGROUND] = p[SURFACE_DIM] = p[SURFACE_CONTAINER_LOWEST] = paper;
+        p[SURFACE] = p[SURFACE_CONTAINER] = p[SURFACE_CONTAINER_LOW] = surface;
+        p[SURFACE_VARIANT] = p[SURFACE_CONTAINER_HIGH] = p[SURFACE_CONTAINER_HIGHEST] = 0xffe8dfd2;
+        p[SURFACE_BRIGHT] = surface;
+        p[ON_BACKGROUND] = p[ON_SURFACE] = ink;
+        p[ON_SURFACE_VARIANT] = muted;
+        p[PRIMARY] = p[SECONDARY] = p[TERTIARY] = p[SURFACE_TINT] = rust;
+        p[ON_PRIMARY] = p[ON_SECONDARY] = p[ON_TERTIARY] = 0xffffffff;
+        p[PRIMARY_CONTAINER] = p[SECONDARY_CONTAINER] = p[TERTIARY_CONTAINER] = 0xfff0ded4;
+        p[ON_PRIMARY_CONTAINER] = p[ON_SECONDARY_CONTAINER] = p[ON_TERTIARY_CONTAINER] = ink;
+        p[INVERSE_SURFACE] = ink; p[INVERSE_ON_SURFACE] = surface;
+        p[BORDER] = p[OUTLINE] = p[OUTLINE_VARIANT] = line;
+        p[PRESSED] = 0xffe8dfd2;
+        return p;
     }
     static void setAccentOverride(int color){
         paletteRevision++;
@@ -126,7 +140,7 @@ public final class CrtPalette {
     public static int color(boolean dark,int role) {
         if(role<0||role>=DARK.length)throw new IllegalArgumentException("Unknown CRT colour role");
         String selected = theme;
-        if (AppTheme.NOIR.equals(selected)) return (dark ? NOIR_DARK : JOURNAL_LIGHT)[role];
+        if (AppTheme.NOIR.equals(selected)) return NOIR_PAPER[role];
         if (AppTheme.JOURNAL.equals(selected)) return (dark ? JOURNAL_DARK : JOURNAL_LIGHT)[role];
         if (AppTheme.CLASSIC.equals(selected)) return (dark ? CLASSIC_DARK : CLASSIC_LIGHT)[role];
         int[] custom=dark?customDark:customLight;
