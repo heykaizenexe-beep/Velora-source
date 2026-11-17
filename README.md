@@ -1,4 +1,4 @@
-# Velora 0.9.130
+# Velora 0.9.131
 
 Проект восстановлен из APK. В нём есть редактируемый Java-код доработок, ресурсы и smali приложения и Readium. Сборку запускает `rebuild.py`, в том числе из терминала Android Studio.
 
@@ -46,7 +46,7 @@ Android SDK для этой сборки устанавливать отдель
 ```powershell
 git init -b main
 git add .
-git commit -m "Исходники Velora 0.9.130"
+git commit -m "Исходники Velora 0.9.131"
 git remote add origin https://github.com/USERNAME/Velora-source.git
 git push -u origin main
 ```

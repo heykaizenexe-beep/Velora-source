@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -26,14 +27,16 @@ final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
     private final SparseArray<Card> cards = new SparseArray<>(5);
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF shape = new RectF();
+    private final RectF shape = new RectF(), stage = new RectF();
+    private final Path stageOutline = new Path();
     private final int touchSlop;
     private final Runnable selected, open;
     private List<Book> books = Collections.emptyList();
     private int index, windowCenter = -1;
     private float position, downX, downY, dragStart, coverWidth, coverHeight, stride;
     private boolean attached, horizontal, vertical;
-    private Shader light;
+    private Shader light, floorShadow;
+    private float stageRadius, frameStroke;
     private VelocityTracker velocity;
     private ValueAnimator settling;
 
@@ -81,22 +84,39 @@ final class NoirCoverDeck extends View {
     private float dp(float n) { return NoirUi.dp(getContext(), n); }
 
     @Override protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        coverWidth = Math.max(1f, Math.min(w * .655f, (h - dp(36)) / NoirBookArt.COVER_RATIO));
+        coverWidth = Math.max(1f, Math.min(w * .64f, (h - dp(38)) / NoirBookArt.COVER_RATIO));
         coverHeight = coverWidth * NoirBookArt.COVER_RATIO;
         // Fit the resting fan inside the stage, including the corners of the rotated covers.
-        double angle = Math.toRadians(8);
+        double angle = Math.toRadians(6);
         float sideReach = .4f * (coverWidth * (float) Math.cos(angle) + coverHeight * (float) Math.sin(angle));
-        stride = Math.max(1f, Math.min(coverWidth * .63f, w * .5f - sideReach - dp(6)));
-        light = new RadialGradient(w * .5f, h * .45f, Math.max(1, w * .57f),
-                new int[]{0xff2b2829, 0xff211f20, NoirUi.BACKGROUND},
-                new float[]{0f, .55f, 1f}, Shader.TileMode.CLAMP);
+        stride = Math.max(1f, Math.min(coverWidth * .61f, w * .5f - sideReach - dp(10)));
+        stageRadius = dp(20);
+        frameStroke = Math.max(1f, dp(1));
+        float inset = frameStroke * .5f;
+        stage.set(inset, inset, w - inset, h - inset);
+        stageOutline.reset();
+        stageOutline.addRoundRect(stage, stageRadius, stageRadius, Path.Direction.CW);
+        light = new RadialGradient(w * .5f, h * .30f, Math.max(1f, Math.max(w * .58f, h * .80f)),
+                new int[]{0xff67483f, 0xff3a2b2d, 0xff261c20, 0xff21181c},
+                new float[]{0f, .45f, .82f, 1f}, Shader.TileMode.CLAMP);
+        floorShadow = new RadialGradient(0, 0, 1f,
+                new int[]{0xa9080507, 0x5b080507, 0x00080507},
+                new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP);
     }
 
     @Override protected void onDraw(Canvas canvas) {
         if (books.isEmpty()) return;
         ink.setColor(0xffffffff);
         ink.setShader(light);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), ink);
+        canvas.drawRoundRect(stage, stageRadius, stageRadius, ink);
+        int clipping = canvas.save();
+        canvas.clipPath(stageOutline);
+        int shadow = canvas.save();
+        canvas.translate(getWidth() * .5f, (getHeight() + coverHeight) * .5f + dp(5));
+        canvas.scale(Math.min(getWidth() * .45f, coverWidth * .95f), dp(19));
+        ink.setShader(floorShadow);
+        canvas.drawCircle(0, 0, 1, ink);
+        canvas.restoreToCount(shadow);
         ink.setShader(null);
         int near = limit(Math.round(position));
         for (int distance = 2; distance > 0; distance--) {
@@ -104,6 +124,12 @@ final class NoirCoverDeck extends View {
             drawCard(canvas, near + distance);
         }
         drawCard(canvas, near);
+        canvas.restoreToCount(clipping);
+        ink.setStyle(Paint.Style.STROKE);
+        ink.setStrokeWidth(frameStroke);
+        ink.setColor(NoirHomeStyle.EDGE);
+        canvas.drawRoundRect(stage, stageRadius, stageRadius, ink);
+        ink.setStyle(Paint.Style.FILL);
     }
 
     private void drawCard(Canvas canvas, int at) {
@@ -115,18 +141,27 @@ final class NoirCoverDeck extends View {
         float w = coverWidth * scale, h = coverHeight * scale;
         float x = getWidth() * .5f + offset * stride - w * .5f;
         float y = (getHeight() - h) * .5f + distance * dp(5);
-        float angle = Math.max(-1.3f, Math.min(1.3f, offset)) * 8f;
+        float angle = Math.max(-1.3f, Math.min(1.3f, offset)) * 6f;
         int save = canvas.save();
         canvas.translate(x, y);
         canvas.rotate(angle, w * .5f, h * .53f);
-        ink.setColor(0x44070506);
-        shape.set(dp(1), dp(4), w + dp(4), h + dp(8));
-        canvas.drawRoundRect(shape, dp(6), dp(6), ink);
+        float edgeRadius = w * .027f;
+        ink.setColor(0x6a0b0709);
+        shape.set(dp(1), dp(3), w + dp(3), h + dp(5));
+        canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
         art.draw(canvas, card.bitmap, NoirBookArt.cloth(card.book.getId()), w, h);
         if (distance > .04f) {
             shape.set(0, 0, w, h);
-            ink.setColor((Math.min(81, Math.round(distance * 48f)) << 24) | 0x171415);
-            canvas.drawRoundRect(shape, w * .027f, w * .027f, ink);
+            ink.setColor((Math.min(96, Math.round(distance * 58f)) << 24) | 0x21171c);
+            canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
+        } else {
+            ink.setStyle(Paint.Style.STROKE);
+            ink.setStrokeWidth(frameStroke);
+            ink.setColor(0x88e5bd91);
+            float inset = frameStroke * .5f;
+            shape.set(inset, inset, w - inset, h - inset);
+            canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
+            ink.setStyle(Paint.Style.FILL);
         }
         canvas.restoreToCount(save);
     }
