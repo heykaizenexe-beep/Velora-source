@@ -196,13 +196,15 @@ def main():
     width, height = map(int, match.groups())
     # First test the right paper edge (forward), then the left (backward).
     right = drag("04_right_edge", int(width*.94), int(width*.35), int(height*.55))
-    time.sleep(5)
+    time.sleep(3)
+    inner = drag("04_inner_right", int(width*.80), int(width*.35), int(height*.55))
+    time.sleep(3)
     left = drag("05_left_edge", int(width*.06), int(width*.65), int(height*.55))
-    logs = cmd("adb", "logcat", "-d", "-s", "VeloraPageCurl:D", "VeloraPagePreview:D", "*:S", check=False)
+    logs = cmd("adb", "logcat", "-d", "-s", "VeloraPageCurl:D", "VeloraPagePreview:D", "VeloraPageInput:D", "*:S", check=False)
     (OUT / "page-curl.log").write_text(logs, encoding="utf-8")
     captures = logs.count("drag_start")
-    print("EDGE_DRAG_METRICS:", {"right_changed":right, "left_changed":left,
-                                  "drag_start_logs":captures}, flush=True)
+    print("EDGE_DRAG_METRICS:", {"right_changed":right, "inner_changed":inner,
+                                  "left_changed":left, "drag_start_logs":captures}, flush=True)
     if captures < 2:
         raise AssertionError("PageTurnController did not recognize both edge grabs")
     if right < .002 or left < .002:
