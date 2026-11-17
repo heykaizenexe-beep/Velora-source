@@ -73,11 +73,11 @@ final class NoirHomeView extends LinearLayout {
         imprint.setGravity(Gravity.CENTER_VERTICAL);
         TextView imprintLeft = NoirUi.text(c, "VELORA  /  АРХИВ", 9,
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
-        imprintLeft.setLetterSpacing(.12f);
+        NoirUi.tracking(imprintLeft, .12f);
         imprint.addView(imprintLeft, new LayoutParams(0, -2, 1f));
         TextView imprintRight = NoirUi.text(c, "EST. 2026  ·  VOL. 01", 9,
                 NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
-        imprintRight.setLetterSpacing(.07f);
+        NoirUi.tracking(imprintRight, .07f);
         imprint.addView(imprintRight, new LayoutParams(-2, -2));
         LayoutParams imprintSize = new LayoutParams(-1, dp(19));
         page.addView(imprint, imprintSize);
@@ -87,7 +87,7 @@ final class NoirHomeView extends LinearLayout {
         toolbar.setMinimumHeight(dp(58));
         sectionLabel = NoirUi.text(c, "Картотека", 24, NoirHomeStyle.INK, NoirUi.HEADLINE);
         sectionLabel.setAllCaps(true);
-        sectionLabel.setLetterSpacing(-.045f);
+        NoirUi.tracking(sectionLabel, -.045f);
         sectionLabel.setGravity(Gravity.CENTER_VERTICAL);
         sectionLabel.setMaxLines(2);
         sectionLabel.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -101,7 +101,7 @@ final class NoirHomeView extends LinearLayout {
         page.addView(toolbar, new LayoutParams(-1, -2));
         TextView deckCaption = NoirUi.text(c, "ЛИЧНАЯ КОЛЛЕКЦИЯ  /  КНИГИ И ИСТОРИИ",
                 9, NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
-        deckCaption.setLetterSpacing(.11f);
+        NoirUi.tracking(deckCaption, .11f);
         LayoutParams deckCaptionSize = new LayoutParams(-1, -2);
         deckCaptionSize.bottomMargin = dp(9);
         page.addView(deckCaption, deckCaptionSize);
@@ -142,7 +142,7 @@ final class NoirHomeView extends LinearLayout {
             });
             tab.setTextSize(12);
             tab.setAllCaps(true);
-            tab.setLetterSpacing(.055f);
+            NoirUi.tracking(tab, .055f);
             tab.setMinHeight(dp(44));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
