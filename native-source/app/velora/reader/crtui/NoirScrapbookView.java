@@ -604,6 +604,7 @@ final class NoirScrapbookView extends FrameLayout {
     }
     private void editText(Piece existing) {
         EditText input=new EditText(host);
+        input.setTypeface(NoirUi.themedFont(host, NoirUi.SERIF));
         input.setTextColor(NoirUi.INK);input.setHintTextColor(NoirUi.BLUE);
         input.setBackgroundColor(NoirUi.PAPER);
         input.setPadding(dp(15),dp(12),dp(15),dp(12));
