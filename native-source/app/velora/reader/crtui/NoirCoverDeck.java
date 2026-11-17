@@ -115,7 +115,7 @@ final class NoirCoverDeck extends View {
         shelf.size(w, h, density, NoirBookArt.COVER_RATIO);
         glow.size(w, h, density);
         floorShadow = new RadialGradient(0, 0, 1f,
-                new int[]{0x40353c33, 0x20353c33, 0x00353c33},
+                new int[]{0x342e231d, 0x172e231d, 0x002e231d},
                 new float[]{0f, .52f, 1f}, Shader.TileMode.CLAMP);
     }
 
