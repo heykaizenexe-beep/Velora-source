@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RadialGradient;
-import android.graphics.RectF;
 import android.graphics.Shader;
 import android.util.SparseArray;
 import android.view.HapticFeedbackConstants;
@@ -27,16 +26,15 @@ final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
     private final SparseArray<Card> cards = new SparseArray<>(5);
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final RectF shape = new RectF(), stage = new RectF();
-    private final Path stageOutline = new Path();
+    private final Path outline = new Path();
+    private final NoirShelfGeometry shelf = new NoirShelfGeometry();
     private final int touchSlop;
     private final Runnable selected, open;
     private List<Book> books = Collections.emptyList();
     private int index, windowCenter = -1;
-    private float position, downX, downY, dragStart, coverWidth, coverHeight, stride;
+    private float position, downX, downY, dragStart;
     private boolean attached, horizontal, vertical;
-    private Shader light, floorShadow;
-    private float stageRadius, frameStroke;
+    private Shader floorShadow;
     private VelocityTracker velocity;
     private ValueAnimator settling;
 
@@ -64,15 +62,25 @@ final class NoirCoverDeck extends View {
     Book book() { return books.isEmpty() ? null : books.get(index); }
     int index() { return index; }
     int count() { return books.size(); }
+    Bitmap currentCover() {
+        Card card = cards.get(index);
+        return card == null ? null : card.bitmap;
+    }
+    boolean waitingForCurrentCover() {
+        Card card = cards.get(index);
+        return card != null && card.request != null;
+    }
 
     int[] coverOrigin() {
-        if (books.isEmpty() || coverWidth < 1f || settling != null || horizontal) return null;
-        int[] origin = new int[4];
-        getLocationOnScreen(origin);
-        origin[0] += Math.round((getWidth() - coverWidth) * .5f);
-        origin[1] += Math.round((getHeight() - coverHeight) * .5f);
-        origin[2] = Math.round(coverWidth);
-        origin[3] = Math.round(coverHeight);
+        if (books.isEmpty() || getWidth() <= 0 || getHeight() <= 0 || settling != null || horizontal) return null;
+        shelf.project(0f);
+        int[] location = new int[2];
+        getLocationOnScreen(location);
+        int[] origin = new int[8];
+        for (int i = 0; i < origin.length; i += 2) {
+            origin[i] = location[0] + Math.round(shelf.front[i]);
+            origin[i + 1] = location[1] + Math.round(shelf.front[i + 1]);
+        }
         return origin;
     }
 
@@ -84,36 +92,18 @@ final class NoirCoverDeck extends View {
     private float dp(float n) { return NoirUi.dp(getContext(), n); }
 
     @Override protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        coverWidth = Math.max(1f, Math.min(w * .64f, (h - dp(38)) / NoirBookArt.COVER_RATIO));
-        coverHeight = coverWidth * NoirBookArt.COVER_RATIO;
-        // Fit the resting fan inside the stage, including the corners of the rotated covers.
-        double angle = Math.toRadians(6);
-        float sideReach = .4f * (coverWidth * (float) Math.cos(angle) + coverHeight * (float) Math.sin(angle));
-        stride = Math.max(1f, Math.min(coverWidth * .61f, w * .5f - sideReach - dp(10)));
-        stageRadius = dp(20);
-        frameStroke = Math.max(1f, dp(1));
-        float inset = frameStroke * .5f;
-        stage.set(inset, inset, w - inset, h - inset);
-        stageOutline.reset();
-        stageOutline.addRoundRect(stage, stageRadius, stageRadius, Path.Direction.CW);
-        light = new RadialGradient(w * .5f, h * .30f, Math.max(1f, Math.max(w * .58f, h * .80f)),
-                new int[]{0xff67483f, 0xff3a2b2d, 0xff261c20, 0xff21181c},
-                new float[]{0f, .45f, .82f, 1f}, Shader.TileMode.CLAMP);
+        shelf.size(w, h, getResources().getDisplayMetrics().density, NoirBookArt.COVER_RATIO);
         floorShadow = new RadialGradient(0, 0, 1f,
-                new int[]{0xa9080507, 0x5b080507, 0x00080507},
-                new float[]{0f, .48f, 1f}, Shader.TileMode.CLAMP);
+                new int[]{0x40353c33, 0x20353c33, 0x00353c33},
+                new float[]{0f, .52f, 1f}, Shader.TileMode.CLAMP);
     }
 
     @Override protected void onDraw(Canvas canvas) {
         if (books.isEmpty()) return;
         ink.setColor(0xffffffff);
-        ink.setShader(light);
-        canvas.drawRoundRect(stage, stageRadius, stageRadius, ink);
-        int clipping = canvas.save();
-        canvas.clipPath(stageOutline);
         int shadow = canvas.save();
-        canvas.translate(getWidth() * .5f, (getHeight() + coverHeight) * .5f + dp(5));
-        canvas.scale(Math.min(getWidth() * .45f, coverWidth * .95f), dp(19));
+        canvas.translate(getWidth() * .5f, (getHeight() + shelf.bookHeight()) * .5f + dp(9));
+        canvas.scale(Math.max(1f, Math.min(getWidth() * .47f, shelf.gestureStride() * 1.45f)), dp(15));
         ink.setShader(floorShadow);
         canvas.drawCircle(0, 0, 1, ink);
         canvas.restoreToCount(shadow);
@@ -124,46 +114,60 @@ final class NoirCoverDeck extends View {
             drawCard(canvas, near + distance);
         }
         drawCard(canvas, near);
-        canvas.restoreToCount(clipping);
-        ink.setStyle(Paint.Style.STROKE);
-        ink.setStrokeWidth(frameStroke);
-        ink.setColor(NoirHomeStyle.EDGE);
-        canvas.drawRoundRect(stage, stageRadius, stageRadius, ink);
-        ink.setStyle(Paint.Style.FILL);
     }
 
     private void drawCard(Canvas canvas, int at) {
         Card card = cards.get(at);
         if (card == null) return;
-        float offset = at - position, distance = Math.abs(offset);
-        if (distance > 1.85f) return;
-        float scale = 1f - Math.min(distance, 1.7f) * .20f;
-        float w = coverWidth * scale, h = coverHeight * scale;
-        float x = getWidth() * .5f + offset * stride - w * .5f;
-        float y = (getHeight() - h) * .5f + distance * dp(5);
-        float angle = Math.max(-1.3f, Math.min(1.3f, offset)) * 6f;
-        int save = canvas.save();
-        canvas.translate(x, y);
-        canvas.rotate(angle, w * .5f, h * .53f);
-        float edgeRadius = w * .027f;
-        ink.setColor(0x6a0b0709);
-        shape.set(dp(1), dp(3), w + dp(3), h + dp(5));
-        canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
-        art.draw(canvas, card.bitmap, NoirBookArt.cloth(card.book.getId()), w, h);
-        if (distance > .04f) {
-            shape.set(0, 0, w, h);
-            ink.setColor((Math.min(96, Math.round(distance * 58f)) << 24) | 0x21171c);
-            canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
-        } else {
-            ink.setStyle(Paint.Style.STROKE);
-            ink.setStrokeWidth(frameStroke);
-            ink.setColor(0x88e5bd91);
-            float inset = frameStroke * .5f;
-            shape.set(inset, inset, w - inset, h - inset);
-            canvas.drawRoundRect(shape, edgeRadius, edgeRadius, ink);
-            ink.setStyle(Paint.Style.FILL);
+        float offset = at - position;
+        if (Math.abs(offset) > NoirShelfGeometry.VISIBLE_DISTANCE) return;
+        shelf.project(offset);
+        float[] front = shelf.front, back = shelf.back;
+        silhouette(canvas, back, 0xff373b34);
+        side(canvas, front, back, 0, 2, 0xffded8c7);
+        side(canvas, front, back, 4, 6, 0xffafa999);
+        side(canvas, front, back, 6, 0, card.cloth);
+        side(canvas, front, back, 2, 4, 0xffd3ccb7);
+        ink.setColor(0x467a725e);
+        ink.setStrokeWidth(Math.max(1f, getResources().getDisplayMetrics().density * .55f));
+        for (int line = 1; line <= 3; line++) {
+            float f = line * .25f;
+            canvas.drawLine(mix(front[2], back[2], f), mix(front[3], back[3], f),
+                    mix(front[4], back[4], f), mix(front[5], back[5], f), ink);
         }
-        canvas.restoreToCount(save);
+        art.cover(canvas, card.bitmap, card.cloth, front);
+    }
+
+    private void silhouette(Canvas canvas, float[] quad, int color) {
+        outline.reset();
+        outline.moveTo(quad[0], quad[1]);
+        outline.lineTo(quad[2], quad[3]);
+        outline.lineTo(quad[4], quad[5]);
+        outline.lineTo(quad[6], quad[7]);
+        outline.close();
+        ink.setColor(color);
+        canvas.drawPath(outline, ink);
+    }
+
+    private void side(Canvas canvas, float[] front, float[] back, int a, int b, int color) {
+        outline.reset();
+        outline.moveTo(front[a], front[a + 1]);
+        outline.lineTo(front[b], front[b + 1]);
+        outline.lineTo(back[b], back[b + 1]);
+        outline.lineTo(back[a], back[a + 1]);
+        outline.close();
+        ink.setColor(color);
+        canvas.drawPath(outline, ink);
+    }
+
+    private static float mix(float from, float to, float amount) {
+        return from + (to - from) * amount;
+    }
+
+    private boolean hits(int candidate, float x, float y) {
+        if (candidate < 0 || candidate >= books.size()) return false;
+        shelf.project(candidate - position);
+        return shelf.contains(x, y);
     }
 
     private void refreshWindow() {
@@ -189,15 +193,19 @@ final class NoirCoverDeck extends View {
 
     private final class Card {
         final Book book;
+        final int cloth;
         Bitmap bitmap;
         CoverRepository<Bitmap>.Request request;
         final CoverRepository.Callback<Bitmap> loaded = value -> {
+            request = null;
             bitmap = value;
             invalidate();
+            if (cards.get(index) == this && Math.abs(position - index) < .02f) selected.run();
         };
 
         Card(Book book) {
             this.book = book;
+            cloth = NoirBookArt.cloth(book.getId());
             String path = book.getDisplayCoverPath();
             if (path == null || path.isEmpty()) return;
             CoverRepository<Bitmap> repository = CoverLoader.get(getContext());
@@ -212,6 +220,7 @@ final class NoirCoverDeck extends View {
         super.onAttachedToWindow();
         attached = true;
         refreshWindow();
+        selected.run();
     }
 
     @Override protected void onDetachedFromWindow() {
@@ -294,7 +303,7 @@ final class NoirCoverDeck extends View {
                     if (horizontal && getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                 }
                 if (horizontal) {
-                    float delta = Math.max(-1.35f, Math.min(1.35f, -dx / Math.max(1, stride)));
+                    float delta = Math.max(-1.35f, Math.min(1.35f, -dx / shelf.gestureStride()));
                     float next = dragStart + delta;
                     position = next < 0 ? next * .22f
                             : next > books.size() - 1 ? books.size() - 1 + (next - books.size() + 1) * .22f : next;
@@ -319,10 +328,10 @@ final class NoirCoverDeck extends View {
                 }
                 endTouch();
                 if (tap && Math.abs(position - index) < .02f) {
-                    float centered = x - getWidth() * .5f;
-                    boolean overHeight = Math.abs(y - getHeight() * .5f) <= coverHeight * .50f;
-                    if (overHeight && Math.abs(centered) <= coverWidth * .5f) performClick();
-                    else if (overHeight && Math.abs(centered) <= coverWidth * 1.16f) step(centered < 0 ? -1 : 1);
+                    int direction = x < getWidth() * .5f ? -1 : 1;
+                    if (hits(index, x, y)) performClick();
+                    else if (hits(index + direction, x, y)) settle(index + direction, true);
+                    else if (hits(index + direction * 2, x, y)) settle(index + direction * 2, true);
                     return true;
                 }
                 settle(target, swipe);

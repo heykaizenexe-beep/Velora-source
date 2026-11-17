@@ -6,8 +6,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -27,18 +27,18 @@ import java.util.Collections;
 import java.util.List;
 
 final class NoirHomeView extends LinearLayout {
-    private static final int TOP_PADDING_DP = 12;
-    private static final int BOTTOM_PADDING_DP = 24;
+    private static final int TOP_PADDING_DP = 7;
+    private static final int BOTTOM_PADDING_DP = 16;
     private enum Section { HOME, FAVORITES, HISTORY }
     private enum Filter { ALL, READING, FINISHED }
 
     private final ScrollView scroll;
-    private final LinearLayout page, toolbar, toolbarActions, display, rack, tabs;
-    private final View aboveDeck, trailingSpace;
+    private final LinearLayout page, toolbarActions, display, tabs;
     private final NoirCoverDeck deck;
     private final NoirBookTicket ticket;
-    private final TextView empty, sectionLabel, position;
-    private final ImageButton previous, next, searchButton;
+    private final NoirShelfBackground shelfBackground;
+    private final TextView empty, sectionLabel;
+    private final ImageButton searchButton;
     private final TextView[] filters = new TextView[Filter.values().length];
     private final EditText query;
     private List<Book> books = Collections.emptyList();
@@ -52,8 +52,8 @@ final class NoirHomeView extends LinearLayout {
     NoirHomeView(Context c) {
         super(c);
         setOrientation(VERTICAL);
-        setBackgroundDrawable(NoirHomeStyle.gradient(c, GradientDrawable.Orientation.TL_BR,
-                new int[]{0xff2e2024, NoirHomeStyle.WALL, 0xff1a1618}, 0, 0));
+        shelfBackground = new NoirShelfBackground(c);
+        setBackgroundDrawable(shelfBackground);
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
@@ -63,10 +63,10 @@ final class NoirHomeView extends LinearLayout {
         page.setFocusableInTouchMode(true);
         scroll.addView(page, new ScrollView.LayoutParams(-1, -2));
 
-        toolbar = new LinearLayout(c);
+        LinearLayout toolbar = new LinearLayout(c);
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setMinimumHeight(dp(68));
-        sectionLabel = NoirUi.text(c, "Картотека", 36, NoirHomeStyle.TEXT, NoirUi.SERIF);
+        toolbar.setMinimumHeight(dp(46));
+        sectionLabel = NoirUi.text(c, "Картотека", 15, NoirHomeStyle.INK, NoirUi.SERIF);
         sectionLabel.setGravity(Gravity.CENTER_VERTICAL);
         sectionLabel.setMaxLines(2);
         sectionLabel.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -81,14 +81,14 @@ final class NoirHomeView extends LinearLayout {
 
         query = new EditText(c);
         query.setTypeface(NoirUi.SANS);
-        query.setTextColor(NoirHomeStyle.TEXT);
-        query.setHintTextColor(NoirHomeStyle.MUTED);
+        query.setTextColor(NoirHomeStyle.INK);
+        query.setHintTextColor(NoirHomeStyle.INK_MUTED);
         query.setHint("Название или автор");
         query.setSingleLine();
         query.setTextSize(16);
         query.setPadding(dp(14), 0, dp(14), 0);
         query.setBackgroundDrawable(NoirHomeStyle.control(c, NoirHomeStyle.SURFACE,
-                NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 12));
+                NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 4));
         query.setVisibility(GONE);
         query.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -102,15 +102,13 @@ final class NoirHomeView extends LinearLayout {
 
         tabs = new LinearLayout(c);
         tabs.setBaselineAligned(false);
-        tabs.setPadding(dp(4), dp(4), dp(4), dp(4));
-        tabs.setBackgroundDrawable(NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 14));
         String[] labels = {"Все", "Читаю", "Прочитано"};
         for (Filter value : Filter.values()) {
             TextView tab = NoirUi.control(c, labels[value.ordinal()], () -> {
                 filter = value;
                 update();
             });
-            tab.setTextSize(14);
+            tab.setTextSize(13);
             tab.setMinHeight(dp(44));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
@@ -118,44 +116,29 @@ final class NoirHomeView extends LinearLayout {
             if (value != Filter.ALL) size.leftMargin = dp(3);
             tabs.addView(tab, size);
         }
-        LayoutParams tabsSize = new LayoutParams(-1, -2);
-        tabsSize.topMargin = dp(4);
+        LayoutParams tabsSize = new LayoutParams(dp(266), -2);
+        tabsSize.gravity = Gravity.CENTER_HORIZONTAL;
         page.addView(tabs, tabsSize);
 
         display = NoirUi.column(c);
-        display.setPadding(0, dp(14), 0, 0);
-        aboveDeck = new View(c);
-        display.addView(aboveDeck, new LayoutParams(-1, 0, .32f));
-        rack = NoirUi.column(c);
+        display.setGravity(Gravity.CENTER_HORIZONTAL);
+        View aboveDeck = new View(c);
+        display.addView(aboveDeck, new LayoutParams(-1, 0, .36f));
         deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
-        rack.addView(deck, new LayoutParams(-1, dp(280)));
-        LinearLayout rail = new LinearLayout(c);
-        rail.setBaselineAligned(false);
-        rail.setGravity(Gravity.CENTER_VERTICAL);
-        previous = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.PREVIOUS, "Предыдущая книга", () -> deck.step(-1));
-        next = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.NEXT, "Следующая книга", () -> deck.step(1));
-        position = NoirUi.text(c, "", 13, NoirHomeStyle.BRASS, NoirUi.MEDIUM);
-        position.setGravity(Gravity.CENTER);
-        rail.addView(previous, new LayoutParams(dp(48), dp(48)));
-        rail.addView(position, new LayoutParams(0, -2, 1f));
-        rail.addView(next, new LayoutParams(dp(48), dp(48)));
-        LayoutParams railSize = new LayoutParams(-1, -2);
-        railSize.topMargin = dp(6);
-        rack.addView(rail, railSize);
-        display.addView(rack, new LayoutParams(-1, -2));
-        ticket = new NoirBookTicket(c, this::readBook, this::openBook, () -> ticketInView());
+        display.addView(deck, new LayoutParams(-1, dp(280)));
+        ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
+                this::readBook, this::openBook, this::ticketInView);
         display.addView(ticket, new LayoutParams(-1, -2));
-        trailingSpace = new View(c);
-        display.addView(trailingSpace, new LayoutParams(-1, 0, .68f));
+        View trailingSpace = new View(c);
+        display.addView(trailingSpace, new LayoutParams(-1, 0, .64f));
         // fillViewport distributes spare height here. Short screens keep the same
         // order and let the card and any expanded note scroll into view.
         page.addView(display, new LayoutParams(-1, -2, 1f));
         display.setVisibility(GONE);
 
-        empty = NoirUi.text(c, "Загрузка книг…", 18, NoirHomeStyle.MUTED, NoirUi.SERIF);
+        empty = NoirUi.text(c, "Загрузка книг…", 16, NoirHomeStyle.INK_MUTED, NoirUi.SERIF);
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(dp(20), dp(24), dp(20), dp(24));
-        empty.setBackgroundDrawable(NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 16));
         LayoutParams emptySize = new LayoutParams(-1, -2);
         emptySize.topMargin = dp(18);
         page.addView(empty, emptySize);
@@ -164,8 +147,7 @@ final class NoirHomeView extends LinearLayout {
 
     private ImageButton toolbarAction(NoirHomeStyle.Symbol symbol, String description, Runnable action) {
         ImageButton button = NoirHomeStyle.icon(getContext(), symbol, description, action);
-        LayoutParams size = new LayoutParams(dp(48), dp(48));
-        size.leftMargin = dp(6);
+        LayoutParams size = new LayoutParams(dp(44), dp(44));
         toolbarActions.addView(button, size);
         return button;
     }
@@ -182,36 +164,15 @@ final class NoirHomeView extends LinearLayout {
     }
 
     private void layoutForSize(int w, int h) {
-        int margin = Math.max(dp(w < dp(370) ? 16 : 20), (w - dp(960)) / 2);
+        int margin = Math.max(dp(14), (w - dp(740)) / 2);
         page.setPadding(margin, dp(TOP_PADDING_DP), margin, dp(BOTTOM_PADDING_DP));
         int space = Math.max(1, w - 2 * margin);
-        sectionLabel.setTextSize(w < dp(390) ? 30 : w < dp(412) ? 32 : 36);
-        float titleWidth = sectionLabel.getPaint().measureText("Картотека");
-        boolean stacked = titleWidth + 3 * (dp(48) + dp(6)) + dp(6) > space;
-        toolbar.setOrientation(stacked ? VERTICAL : HORIZONTAL);
-        toolbar.setGravity(stacked ? Gravity.RIGHT : Gravity.CENTER_VERTICAL);
-        sectionLabel.setLayoutParams(stacked ? new LayoutParams(-1, -2) : new LayoutParams(0, -2, 1f));
-        LayoutParams toolSize = new LayoutParams(-2, -2);
-        toolSize.topMargin = stacked ? dp(5) : 0;
-        toolSize.bottomMargin = stacked ? dp(6) : 0;
-        toolbarActions.setLayoutParams(toolSize);
-
-        boolean wide = w >= dp(705);
         LayoutParams tabsSize = (LayoutParams) tabs.getLayoutParams();
-        tabsSize.width = Math.min(dp(450), space);
-        tabsSize.gravity = wide ? Gravity.LEFT : Gravity.CENTER_HORIZONTAL;
+        tabsSize.width = Math.min(dp(270), space);
         tabs.setLayoutParams(tabsSize);
-        display.setOrientation(wide ? HORIZONTAL : VERTICAL);
-        display.setGravity(wide ? Gravity.CENTER_VERTICAL : Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        aboveDeck.setVisibility(wide ? GONE : VISIBLE);
-        trailingSpace.setVisibility(wide ? GONE : VISIBLE);
-        int stackedWidth = Math.min(dp(450), space);
-        rack.setLayoutParams(wide ? new LayoutParams(0, -2, 1.18f) : new LayoutParams(stackedWidth, -2));
-        LayoutParams form = wide ? new LayoutParams(0, -2, 1f) : new LayoutParams(stackedWidth, -2);
-        form.leftMargin = wide ? dp(28) : 0;
-        form.topMargin = wide ? 0 : dp(10);
-        ticket.setLayoutParams(form);
-        int height = Math.min(dp(wide ? 410 : 390), Math.max(dp(194), Math.round(h * (wide ? .60f : .385f))));
+        ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
+        int height = Math.min(dp(465), Math.min(Math.round(space * .68f) + dp(44),
+                Math.max(dp(186), Math.round(h * .65f))));
         deck.setLayoutParams(new LayoutParams(-1, height));
     }
 
@@ -264,10 +225,11 @@ final class NoirHomeView extends LinearLayout {
             boolean active = value == filter;
             TextView tab = filters[value.ordinal()];
             tab.setSelected(active);
-            tab.setTextColor(active ? NoirHomeStyle.INK : NoirHomeStyle.MUTED);
+            tab.setTextColor(active ? NoirHomeStyle.INK : NoirHomeStyle.INK_MUTED);
+            int flags = tab.getPaintFlags();
+            tab.setPaintFlags(active ? flags | Paint.UNDERLINE_TEXT_FLAG : flags & ~Paint.UNDERLINE_TEXT_FLAG);
             tab.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
-                    active ? NoirHomeStyle.BRASS : Color.TRANSPARENT,
-                    active ? 0xffd6ab80 : NoirHomeStyle.HIGHLIGHT, 0, 10));
+                    Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 5));
         }
     }
 
@@ -304,11 +266,10 @@ final class NoirHomeView extends LinearLayout {
         empty.setOnClickListener(mayAdd ? v -> addBook() : null);
         empty.setClickable(mayAdd);
         empty.setFocusable(mayAdd);
-        empty.setTextColor(mayAdd ? NoirHomeStyle.TEXT : NoirHomeStyle.MUTED);
+        empty.setTextColor(mayAdd ? NoirHomeStyle.INK : NoirHomeStyle.INK_MUTED);
         empty.setBackgroundDrawable(mayAdd
-                ? NoirHomeStyle.control(getContext(), NoirHomeStyle.WINE, NoirHomeStyle.WINE_PRESSED,
-                        NoirHomeStyle.WINE_PRESSED, 16)
-                : NoirHomeStyle.panel(getContext(), NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 16));
+                ? NoirHomeStyle.control(getContext(), NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT,
+                        NoirHomeStyle.EDGE, 6) : null);
         updateFilterTabs();
         selectionChanged();
     }
@@ -328,11 +289,8 @@ final class NoirHomeView extends LinearLayout {
 
     private void selectionChanged() {
         ticket.bind(deck.book());
-        position.setText(deck.count() == 0 ? "" : (deck.index() + 1) + " из " + deck.count());
-        previous.setEnabled(deck.index() > 0);
-        previous.setAlpha(previous.isEnabled() ? 1f : .33f);
-        next.setEnabled(deck.index() + 1 < deck.count());
-        next.setAlpha(next.isEnabled() ? 1f : .33f);
+        ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
+        if (!deck.waitingForCurrentCover()) shelfBackground.show(deck.currentCover(), NoirUi.motion(getContext()));
     }
 
     private void ticketInView() {
@@ -383,13 +341,13 @@ final class NoirHomeView extends LinearLayout {
         dialog.setCanceledOnTouchOutside(true);
         ScrollView scroll = new ScrollView(c);
         scroll.setVerticalScrollBarEnabled(false);
-        scroll.setBackgroundDrawable(NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 18));
+        scroll.setBackgroundDrawable(NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 8));
         LinearLayout panel = NoirUi.column(c);
         panel.setPadding(dp(14), dp(12), dp(14), dp(12));
         scroll.addView(panel);
         LinearLayout header = new LinearLayout(c);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView name = NoirUi.text(c, "Меню", 26, NoirHomeStyle.TEXT, NoirUi.SERIF);
+        TextView name = NoirUi.text(c, "Меню", 20, NoirHomeStyle.INK, NoirUi.SERIF);
         name.setPadding(dp(8), 0, 0, 0);
         header.addView(name, new LayoutParams(0, -2, 1f));
         header.addView(NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.CLOSE, "Закрыть меню", dialog::dismiss),
@@ -442,7 +400,7 @@ final class NoirHomeView extends LinearLayout {
         link.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         link.setTextSize(16);
         link.setSelected(active);
-        link.setTextColor(active ? NoirHomeStyle.BRASS : NoirHomeStyle.TEXT);
+        link.setTextColor(active ? NoirHomeStyle.INK : NoirHomeStyle.INK_MUTED);
         link.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
                 active ? NoirHomeStyle.HIGHLIGHT : Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 9));
         panel.addView(link, new LayoutParams(-1, -2));
@@ -471,6 +429,7 @@ final class NoirHomeView extends LinearLayout {
 
     @Override protected void onDetachedFromWindow() {
         opening = false;
+        shelfBackground.stop();
         if (menu != null) menu.dismiss();
         super.onDetachedFromWindow();
     }

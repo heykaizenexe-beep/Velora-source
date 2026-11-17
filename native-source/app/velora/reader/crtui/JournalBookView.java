@@ -392,34 +392,6 @@ final class JournalBookView extends View {
         canvas.restoreToCount(saved);
     }
 
-    /** Softens a small copy once when the cover arrives, leaving the source bitmap intact. */
-    private static Bitmap softened(Bitmap cover) {
-        float scale = Math.min(1f, 48f / Math.max(cover.getWidth(), cover.getHeight()));
-        int w = Math.max(1, Math.round(cover.getWidth() * scale));
-        int h = Math.max(1, Math.round(cover.getHeight() * scale));
-        Bitmap sample = Bitmap.createScaledBitmap(cover, w, h, true);
-        int[] pixels = new int[w * h];
-        sample.getPixels(pixels, 0, w, 0, 0, w, h);
-        int[] softened = new int[pixels.length];
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int r = 0, g = 0, b = 0, count = 0;
-                for (int sy = Math.max(0, y - 3); sy <= Math.min(h - 1, y + 3); sy++) {
-                    for (int sx = Math.max(0, x - 3); sx <= Math.min(w - 1, x + 3); sx++) {
-                        int color = pixels[sy * w + sx];
-                        r += color >> 16 & 255;
-                        g += color >> 8 & 255;
-                        b += color & 255;
-                        count++;
-                    }
-                }
-                softened[y * w + x] = 0xff000000 | (r / count << 16) | (g / count << 8) | b / count;
-            }
-        }
-        if (sample != cover) sample.recycle();
-        return Bitmap.createBitmap(softened, w, h, Bitmap.Config.ARGB_8888);
-    }
-
     private final class Page {
         Book book;
         Bitmap bitmap, blurred;
@@ -455,7 +427,7 @@ final class JournalBookView extends View {
             int topColor = CrtColorMath.mix(cover.getPixel(0, 0), cover.getPixel(right, 0), .5f);
             int bottomColor = CrtColorMath.mix(cover.getPixel(0, bottom), cover.getPixel(right, bottom), .5f);
             edgeColor = CrtColorMath.mix(topColor, bottomColor, .5f);
-            blurred = softened(cover);
+            blurred = CoverBlur.softened(cover, 48, 3);
         }
     }
 

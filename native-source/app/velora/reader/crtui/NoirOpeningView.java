@@ -107,19 +107,20 @@ final class NoirOpeningView extends View {
         travel = travel * travel * (3 - 2 * travel);
         float w = half, h = tall;
         float x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
-        if (origin != null && origin.length == 4 && origin[2] > 0 && origin[3] > 0) {
+        if (origin != null && origin.length == 8) {
             getLocationOnScreen(location);
-            x = origin[0] - location[0]; y = origin[1] - location[1];
-            w = origin[2]; h = origin[3];
+            for (int i = 0; i < shelfFace.length; i += 2) {
+                shelfFace[i] = origin[i] - location[0];
+                shelfFace[i + 1] = origin[i + 1] - location[1];
+            }
+        } else {
+            if (origin != null && origin.length == 4 && origin[2] > 0 && origin[3] > 0) {
+                getLocationOnScreen(location);
+                x = origin[0] - location[0]; y = origin[1] - location[1];
+                w = origin[2]; h = origin[3];
+            }
+            flatCover(shelfFace, x, x + w, y, y + h);
         }
-        if (travel == 0) {
-            int saved = canvas.save();
-            canvas.translate(x, y);
-            volume.draw(canvas, cover, cloth, w, h);
-            canvas.restoreToCount(saved);
-            return;
-        }
-        flatCover(shelfFace, x, x + w, y, y + h);
         flatCover(uprightFace, spine, spine + half, top, top + tall);
         for (int i = 0; i < movingFace.length; i++) {
             movingFace[i] = lerp(shelfFace[i], uprightFace[i], travel);

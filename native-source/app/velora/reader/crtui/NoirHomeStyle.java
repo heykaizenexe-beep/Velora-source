@@ -2,9 +2,12 @@ package app.velora.reader.crtui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -12,22 +15,15 @@ import android.widget.ImageButton;
 
 /** Palette and controls shared by the catalog, its book card and its menu. */
 final class NoirHomeStyle {
-    static final int WALL = 0xff1c1618;
-    static final int SURFACE = 0xff2b2023;
-    static final int HIGHLIGHT = 0xff3e2c30;
-    static final int EDGE = 0xff543d40;
-    static final int TEXT = 0xfff5eade;
-    static final int MUTED = 0xffceb9ae;
-    static final int BRASS = 0xffe5bd91;
-    static final int PAPER_LIGHT = 0xfff6ebdb;
-    static final int PAPER_SHADE = 0xffecdfce;
-    static final int PAPER_EDGE = 0xffcec0ad;
-    static final int INK = 0xff2a201e;
-    static final int INK_MUTED = 0xff62514a;
-    static final int WINE = 0xff632c3c;
-    static final int WINE_PRESSED = 0xff7b3e50;
+    static final int WALL = 0xffe2e1dd;
+    static final int SURFACE = 0xffefeee9;
+    static final int HIGHLIGHT = 0xffd3d5cd;
+    static final int EDGE = 0xffb9bcb3;
+    static final int INK = 0xff272b28;
+    static final int INK_MUTED = 0xff414942;
+    static final int PAPER = 0xffd8cfb8;
 
-    enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT }
+    enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE }
 
     private NoirHomeStyle() {}
 
@@ -55,16 +51,43 @@ final class NoirHomeStyle {
 
     static ImageButton icon(Context c, Symbol symbol, String description, Runnable action) {
         ImageButton button = new ImageButton(c);
-        boolean accent = symbol == Symbol.ADD;
-        button.setBackgroundDrawable(control(c, accent ? WINE : SURFACE,
-                accent ? WINE_PRESSED : HIGHLIGHT, accent ? WINE_PRESSED : EDGE, 14));
-        button.setImageDrawable(new Icon(NoirUi.dp(c, 23), symbol, accent ? TEXT : BRASS));
+        button.setBackgroundDrawable(control(c, Color.TRANSPARENT, HIGHLIGHT, 0, 6));
+        button.setImageDrawable(new Icon(NoirUi.dp(c, 22), symbol, INK));
         button.setScaleType(ImageButton.ScaleType.CENTER);
         button.setPadding(0, 0, 0, 0);
         button.setContentDescription(description);
         button.setFocusable(true);
         button.setOnClickListener(v -> action.run());
         return button;
+    }
+
+    static Drawable folder(Context c) {
+        final int tabHeight = NoirUi.dp(c, 8);
+        final int tabWidth = NoirUi.dp(c, 62);
+        final int bevel = NoirUi.dp(c, 6);
+        return new Drawable() {
+            private final Path shape = new Path();
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            { paint.setColor(PAPER); }
+
+            @Override protected void onBoundsChange(Rect bounds) {
+                int tab = Math.min(tabWidth, bounds.width());
+                shape.reset();
+                shape.moveTo(bounds.left, bounds.bottom);
+                shape.lineTo(bounds.left, bounds.top + tabHeight);
+                shape.lineTo(bounds.left + bevel, bounds.top);
+                shape.lineTo(bounds.left + tab - bevel, bounds.top);
+                shape.lineTo(bounds.left + tab, bounds.top + tabHeight);
+                shape.lineTo(bounds.right, bounds.top + tabHeight);
+                shape.lineTo(bounds.right, bounds.bottom);
+                shape.close();
+            }
+
+            @Override public void draw(Canvas canvas) { canvas.drawPath(shape, paint); }
+            @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); invalidateSelf(); }
+            @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); invalidateSelf(); }
+            @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+        };
     }
 
     private static final class Icon extends Drawable {
@@ -105,6 +128,14 @@ final class NoirHomeStyle {
                 case CLOSE:
                     canvas.drawLine(6.8f, 6.8f, 17.2f, 17.2f, line);
                     canvas.drawLine(17.2f, 6.8f, 6.8f, 17.2f, line);
+                    break;
+                case NOTE:
+                    canvas.drawLine(7f, 5f, 17f, 5f, line);
+                    canvas.drawLine(17f, 5f, 17f, 19f, line);
+                    canvas.drawLine(17f, 19f, 7f, 19f, line);
+                    canvas.drawLine(7f, 19f, 7f, 5f, line);
+                    canvas.drawLine(10f, 10f, 14f, 10f, line);
+                    canvas.drawLine(10f, 14f, 13f, 14f, line);
                     break;
                 case PREVIOUS:
                 case NEXT:
