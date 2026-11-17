@@ -22,7 +22,7 @@ local.properties
 __pycache__/
 .DS_Store
 
-# Schueler font is restored from the user's original GPLv3 ZIP locally.
+# Old GPLv3 Schueler archive and stale assets must never be committed.
 /schueler-superhyperxp-plus.zip
 /fonts/schueler-superhyperxp-plus.zip
 /decoded/assets/fonts/SchuelerSuperHyperXPPlus-Bold.ttf
