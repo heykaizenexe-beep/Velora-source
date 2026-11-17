@@ -139,7 +139,7 @@ final class NoirHomeView extends LinearLayout {
                 // Keep the covers slightly above center when there is room.
                 int centeredTop = (getHeight() - deck.getHeight()) / 2;
                 int lastTop = getHeight() - display.getHeight();
-                int displayTop = Math.max(0, Math.min(centeredTop, lastTop) - dp(8));
+                int displayTop = Math.max(0, Math.min(centeredTop, lastTop) - dp(10));
                 display.offsetTopAndBottom(displayTop - display.getTop());
             }
         };
