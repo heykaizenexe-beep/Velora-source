@@ -584,9 +584,38 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     }
 
     private void useCachedUnderPage() {
-        if (preview == null || isLargeChapter()) return;
+        if (preview == null) return;
         PageTurnCache.Image<Bitmap> image = preview.acquireReady(logicalForward);
         if (image != null) setUnderPage(image);
+    }
+
+    /**
+     * A held edge owns a single requested neighbor. Speculative warming can be
+     * paused while the finger is down, so a cache miss must explicitly resume
+     * that direction instead of leaving the curl flat until release.
+     *
+     * Also supports chapters outside the speculative preload budget: those
+     * create an isolated navigator only when the reader actually drags.
+     */
+    private void requestDragUnderPage() {
+        useCachedUnderPage();
+        if (underSnapshot != null || preview == null) return;
+        final PageTurnPreview requested = preview;
+        final long requestGeneration = generation;
+        final boolean requestForward = logicalForward;
+        requested.request(requestForward, new PageTurnPreview.Callback() {
+            @Override public void onReady(PageTurnCache.Image<Bitmap> image) {
+                if (image == null) return;
+                if (destroyed || generation != requestGeneration || preview != requested
+                        || phase != Phase.DRAGGING || logicalForward != requestForward
+                        || !sameBounds() || !sameSettings() || !isAt(sourcePosition)) {
+                    image.release();
+                    return;
+                }
+                setUnderPage(image);
+                updateDragVisual();
+            }
+        });
     }
 
     private void setUnderPage(PageTurnCache.Image<Bitmap> image) {
@@ -951,6 +980,9 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             }
             grabX = gesture.grabX();
             grabY = gesture.grabY();
+            // A cold first drag needs an isolated reader even if idle warming
+            // has not started (or was intentionally skipped for a long chapter).
+            if (preview == null) ensurePreview();
             if (!prepare(gesture.physicalRight(), true)) {
                 gesture.abort();
                 touchOwned = blockedTouch = true;
@@ -960,7 +992,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             touchOwned = true;
             dragX = gesture.mapX(x);
             dragY = y;
-            useCachedUnderPage();
+            requestDragUnderPage();
             updateDragVisual();
         } else if (phase == Phase.DRAGGING) {
             dragX = gesture.mapX(x);
@@ -971,7 +1003,10 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     }
 
     private void updateDragVisual() {
-        if (overlay != null && underSnapshot != null) overlay.setDrag(grabX, grabY, dragX, dragY);
+        // Track the real finger immediately, even when the underlying snapshot
+        // is still loading. PageCurlView keeps the front page opaque until the
+        // requested destination is ready and then reveals the held geometry.
+        if (overlay != null) overlay.setDrag(grabX, grabY, dragX, dragY);
     }
 
     public boolean onTouch(MotionEvent event) {
