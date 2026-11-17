@@ -34,6 +34,28 @@ final class NoirBookTicket extends LinearLayout {
         this.opened = opened;
         setOrientation(VERTICAL);
         touchSlop = ViewConfiguration.get(c).getScaledTouchSlop();
+        setPadding(dp(12), dp(10), dp(12), dp(10));
+        setBackgroundDrawable(NoirHomeStyle.panel(c,
+                NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 8));
+
+        // The book remains centered above; only its information card becomes a news brief.
+        LinearLayout edition = new LinearLayout(c);
+        edition.setGravity(Gravity.CENTER_VERTICAL);
+        TextView eyebrow = NoirUi.text(c, "ИЗ ЛИЧНОГО АРХИВА", 9,
+                NoirHomeStyle.RUST, NoirUi.MEDIUM);
+        eyebrow.setLetterSpacing(.12f);
+        edition.addView(eyebrow, new LayoutParams(0, -2, 1f));
+        TextView volume = NoirUi.text(c, "BOOK / 01", 9,
+                NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
+        volume.setLetterSpacing(.06f);
+        edition.addView(volume, new LayoutParams(-2, -2));
+        addView(edition, new LayoutParams(-1, -2));
+        View rule = new View(c);
+        rule.setBackgroundColor(NoirHomeStyle.EDGE);
+        LayoutParams lineSize = new LayoutParams(-1, dp(1));
+        lineSize.topMargin = dp(7);
+        lineSize.bottomMargin = dp(5);
+        addView(rule, lineSize);
 
         LinearLayout caption = new LinearLayout(c);
         caption.setGravity(Gravity.CENTER_VERTICAL);
@@ -42,13 +64,14 @@ final class NoirBookTicket extends LinearLayout {
         caption.addView(previous, new LayoutParams(dp(46), dp(46)));
         LinearLayout metadata = NoirUi.column(c);
         metadata.setPadding(dp(6), 0, dp(6), 0);
-        title = NoirUi.text(c, "", 21, NoirHomeStyle.INK, NoirUi.SERIF);
+        title = NoirUi.text(c, "", 20, NoirHomeStyle.INK, NoirUi.HEADLINE);
         title.setGravity(Gravity.CENTER);
         title.setMaxLines(2);
         title.setEllipsize(TextUtils.TruncateAt.END);
         title.setIncludeFontPadding(false);
         metadata.addView(title, new LayoutParams(-1, -2));
-        author = NoirUi.text(c, "", 13, NoirHomeStyle.INK_MUTED, NoirUi.SANS);
+        author = NoirUi.text(c, "", 12, NoirHomeStyle.INK_MUTED, NoirUi.SANS);
+        author.setLetterSpacing(.015f);
         author.setGravity(Gravity.CENTER);
         author.setMaxLines(2);
         author.setEllipsize(TextUtils.TruncateAt.END);
@@ -62,11 +85,12 @@ final class NoirBookTicket extends LinearLayout {
         actions = new LinearLayout(c);
         actions.setGravity(Gravity.CENTER_VERTICAL);
         actions.setBaselineAligned(false);
-        read = action(c, "Читать", NoirHomeStyle.PAPER_INK, reader);
-        read.setPadding(dp(14), dp(5), dp(14), dp(5));
-        read.setBackgroundDrawable(NoirHomeStyle.control(c, NoirHomeStyle.PAPER, 0xffbfb59f, 0, 5));
+        read = action(c, "Читать", 0xffffffff, reader);
+        read.setPadding(dp(17), dp(5), dp(17), dp(5));
+        read.setBackgroundDrawable(NoirHomeStyle.control(c,
+                NoirHomeStyle.INK, NoirHomeStyle.RUST_DARK, 0, 8));
         actions.addView(read, new LayoutParams(-2, -2));
-        TextView diary = action(c, "Дневник", NoirHomeStyle.INK_MUTED, journal);
+        TextView diary = action(c, "Дневник", NoirHomeStyle.INK, journal);
         LayoutParams diarySize = new LayoutParams(-2, -2);
         diarySize.leftMargin = dp(8);
         actions.addView(diary, diarySize);
@@ -94,10 +118,11 @@ final class NoirBookTicket extends LinearLayout {
     private TextView action(Context c, String text, int ink, Runnable action) {
         TextView control = NoirUi.control(c, text, action);
         control.setTextColor(ink);
-        control.setTextSize(13);
-        control.setPadding(dp(6), dp(5), dp(6), dp(5));
-        control.setBackgroundDrawable(NoirHomeStyle.control(c, Color.TRANSPARENT,
-                NoirHomeStyle.HIGHLIGHT, 0, 5));
+        control.setTextSize(12);
+        control.setLetterSpacing(.025f);
+        control.setPadding(dp(12), dp(5), dp(12), dp(5));
+        control.setBackgroundDrawable(NoirHomeStyle.control(c,
+                NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 8));
         return control;
     }
 
