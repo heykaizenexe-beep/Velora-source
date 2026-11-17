@@ -164,6 +164,15 @@ def main():
     # ExternalBookOpenActivity explicitly accepts file:// via FileInputStream.
     cmd("adb", "root")
     cmd("adb", "wait-for-device")
+    # Isolate reader touch handling from Android's predictive-back gesture.
+    # With gesture navigation, the OS owns the first ~24dp of both screen edges.
+    # A physical edge test must use three-button navigation, otherwise it
+    # measures the OS back arrow instead of the EPUB page curl.
+    cmd("adb", "shell", "cmd", "overlay", "enable", "--user", "0",
+        "com.android.internal.systemui.navbar.threebutton")
+    print("Android navigation mode:",
+          cmd("adb", "shell", "settings", "get", "secure", "navigation_mode"),
+          flush=True)
     private_dir = "/data/user/0/" + PACKAGE + "/files"
     cmd("adb", "shell", "mkdir", "-p", private_dir)
     private_file = private_dir + "/" + BOOK
