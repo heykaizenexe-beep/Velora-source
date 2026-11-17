@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.RectF;
 
 /** The cover image has the same bounds and crop on the shelf and during opening. */
@@ -18,7 +17,6 @@ final class NoirBookArt {
     private final Matrix projection = new Matrix();
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final RectF rect = new RectF();
-    private final Path outline = new Path();
 
     void cover(Canvas canvas, Bitmap bitmap, int color, float[] corners) {
         if (!projection.setPolyToPoly(PLANE, 0, corners, 0, 4)) return;
@@ -30,24 +28,21 @@ final class NoirBookArt {
 
     void draw(Canvas canvas, Bitmap bitmap, int color, float width, float height) {
         rect.set(0, 0, width, height);
-        float corner = width * .027f;
         ink.setColor(color);
-        canvas.drawRoundRect(rect, corner, corner, ink);
+        canvas.drawRect(rect, ink);
         if (bitmap == null || bitmap.isRecycled()) {
             float inset = width * .095f;
             rect.inset(inset, inset);
             ink.setStyle(Paint.Style.STROKE);
             ink.setStrokeWidth(width * .004f);
             ink.setColor(0x55ede1d1);
-            canvas.drawRoundRect(rect, corner * .5f, corner * .5f, ink);
+            canvas.drawRect(rect, ink);
             ink.setStyle(Paint.Style.FILL);
             return;
         }
 
         int saved = canvas.save();
-        outline.reset();
-        outline.addRoundRect(rect, corner, corner, Path.Direction.CW);
-        canvas.clipPath(outline);
+        canvas.clipRect(rect);
         float scale = Math.max(width / bitmap.getWidth(), height / bitmap.getHeight());
         float dx = (width - bitmap.getWidth() * scale) * .5f;
         float dy = (height - bitmap.getHeight() * scale) * .5f;

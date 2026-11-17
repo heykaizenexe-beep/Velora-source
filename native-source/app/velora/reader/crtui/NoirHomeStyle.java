@@ -15,13 +15,14 @@ import android.widget.ImageButton;
 
 /** Palette and controls shared by the catalog, its book card and its menu. */
 final class NoirHomeStyle {
-    static final int WALL = 0xffe2e1dd;
-    static final int SURFACE = 0xffefeee9;
-    static final int HIGHLIGHT = 0xffd3d5cd;
-    static final int EDGE = 0xffb9bcb3;
-    static final int INK = 0xff272b28;
-    static final int INK_MUTED = 0xff414942;
+    static final int WALL = 0xff242528;
+    static final int SURFACE = 0xff2b2d31;
+    static final int HIGHLIGHT = 0xff3d4045;
+    static final int EDGE = 0xff494c52;
+    static final int INK = 0xfff0efec;
+    static final int INK_MUTED = 0xffc2c3c5;
     static final int PAPER = 0xffd8cfb8;
+    static final int PAPER_INK = 0xff272b28;
 
     enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE }
 

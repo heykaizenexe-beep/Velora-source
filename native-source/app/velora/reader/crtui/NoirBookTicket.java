@@ -77,7 +77,7 @@ final class NoirBookTicket extends LinearLayout {
         actions.addView(noteToggle, new LayoutParams(dp(46), dp(46)));
         addView(actions, new LayoutParams(-1, -2));
 
-        note = NoirUi.text(c, "", 15, NoirHomeStyle.INK, NoirUi.SERIF);
+        note = NoirUi.text(c, "", 15, NoirHomeStyle.PAPER_INK, NoirUi.SERIF);
         note.setBackgroundDrawable(NoirHomeStyle.folder(c));
         note.setLineSpacing(dp(3), 1f);
         note.setPadding(dp(13), dp(19), dp(13), dp(12));

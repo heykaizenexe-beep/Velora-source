@@ -37,6 +37,7 @@ final class NoirHomeView extends LinearLayout {
     private final NoirCoverDeck deck;
     private final NoirBookTicket ticket;
     private final NoirShelfBackground shelfBackground;
+    private final NoirMiniShelf miniShelf;
     private final TextView empty, sectionLabel;
     private final ImageButton searchButton;
     private final TextView[] filters = new TextView[Filter.values().length];
@@ -52,8 +53,8 @@ final class NoirHomeView extends LinearLayout {
     NoirHomeView(Context c) {
         super(c);
         setOrientation(VERTICAL);
-        shelfBackground = new NoirShelfBackground(c);
-        setBackgroundDrawable(shelfBackground);
+        shelfBackground = new NoirShelfBackground();
+        setBackgroundColor(NoirHomeStyle.WALL);
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
@@ -122,18 +123,13 @@ final class NoirHomeView extends LinearLayout {
 
         display = NoirUi.column(c);
         display.setGravity(Gravity.CENTER_HORIZONTAL);
-        View aboveDeck = new View(c);
-        display.addView(aboveDeck, new LayoutParams(-1, 0, .36f));
         deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
+        deck.setBackgroundDrawable(shelfBackground);
         display.addView(deck, new LayoutParams(-1, dp(280)));
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
                 this::readBook, this::openBook, this::ticketInView);
         display.addView(ticket, new LayoutParams(-1, -2));
-        View trailingSpace = new View(c);
-        display.addView(trailingSpace, new LayoutParams(-1, 0, .64f));
-        // fillViewport distributes spare height here. Short screens keep the same
-        // order and let the card and any expanded note scroll into view.
-        page.addView(display, new LayoutParams(-1, -2, 1f));
+        page.addView(display, new LayoutParams(-1, -2));
         display.setVisibility(GONE);
 
         empty = NoirUi.text(c, "Загрузка книг…", 16, NoirHomeStyle.INK_MUTED, NoirUi.SERIF);
@@ -142,6 +138,11 @@ final class NoirHomeView extends LinearLayout {
         LayoutParams emptySize = new LayoutParams(-1, -2);
         emptySize.topMargin = dp(18);
         page.addView(empty, emptySize);
+        miniShelf = new NoirMiniShelf(c, this::chooseFromShelf);
+        LayoutParams shelfSize = new LayoutParams(-1, -2);
+        shelfSize.topMargin = dp(8);
+        page.addView(miniShelf, shelfSize);
+        miniShelf.setVisibility(GONE);
         updateFilterTabs();
     }
 
@@ -171,8 +172,8 @@ final class NoirHomeView extends LinearLayout {
         tabsSize.width = Math.min(dp(270), space);
         tabs.setLayoutParams(tabsSize);
         ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
-        int height = Math.min(dp(465), Math.min(Math.round(space * .68f) + dp(44),
-                Math.max(dp(186), Math.round(h * .65f))));
+        int height = Math.min(dp(500), Math.min(Math.round(space * .76f) + dp(40),
+                Math.max(dp(190), Math.round(h * .65f))));
         deck.setLayoutParams(new LayoutParams(-1, height));
     }
 
@@ -182,6 +183,8 @@ final class NoirHomeView extends LinearLayout {
         if (loading == (incoming == null) && books.equals(received)) return;
         loading = incoming == null;
         books = received;
+        miniShelf.bind(books);
+        miniShelf.setVisibility(loading ? GONE : VISIBLE);
         update();
     }
 
@@ -288,9 +291,27 @@ final class NoirHomeView extends LinearLayout {
     }
 
     private void selectionChanged() {
-        ticket.bind(deck.book());
+        Book book = deck.book();
+        ticket.bind(book);
         ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
+        miniShelf.select(book == null ? 0L : book.getId());
         if (!deck.waitingForCurrentCover()) shelfBackground.show(deck.currentCover(), NoirUi.motion(getContext()));
+    }
+
+    private void chooseFromShelf(Book book) {
+        if (!JournalReader.canRead(book.getFormat())) {
+            if (home != null) home.openShownBook(book);
+            return;
+        }
+        if (!deck.selectBook(book.getId())) {
+            section = Section.HOME;
+            filter = Filter.ALL;
+            sectionLabel.setText("Картотека");
+            if (query.length() > 0) query.setText("");
+            else update();
+            deck.selectBook(book.getId());
+        }
+        scroll.smoothScrollTo(0, 0);
     }
 
     private void ticketInView() {

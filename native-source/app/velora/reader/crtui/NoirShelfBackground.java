@@ -1,7 +1,6 @@
 package app.velora.reader.crtui;
 
 import android.animation.ValueAnimator;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -9,15 +8,13 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.view.animation.DecelerateInterpolator;
 import java.lang.ref.WeakReference;
 
-/** Diffuse cover light, rasterized once per selection and cheap to crossfade. */
+/** Blurred cover light confined to the deck, with the wall color at its edges. */
 final class NoirShelfBackground extends Drawable {
     private static final int SIZE = 24;
     private static final Rect FRAME = new Rect(0, 0, SIZE, SIZE);
-    private static final int LIGHT_WASH = 0xc4f7f6f1;
     private final Paint ink = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
     private final Bitmap neutral;
     private WeakReference<Bitmap> source = new WeakReference<>(null);
@@ -25,12 +22,9 @@ final class NoirShelfBackground extends Drawable {
     private ValueAnimator blend;
     private float amount = 1f;
 
-    NoirShelfBackground(Context c) {
+    NoirShelfBackground() {
         neutral = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888);
-        Drawable wall = NoirHomeStyle.gradient(c, GradientDrawable.Orientation.TL_BR,
-                new int[]{0xfff1efeb, NoirHomeStyle.WALL, 0xffcfd2cb}, 0, 0);
-        wall.setBounds(FRAME);
-        wall.draw(new Canvas(neutral));
+        neutral.eraseColor(NoirHomeStyle.WALL);
         neutral.prepareToDraw();
         current = neutral;
     }
@@ -71,7 +65,19 @@ final class NoirShelfBackground extends Drawable {
             Canvas canvas = new Canvas(result);
             ink.setAlpha(255);
             canvas.drawBitmap(blurred, null, FRAME, ink);
-            canvas.drawColor(LIGHT_WASH);
+            int[] pixels = new int[SIZE * SIZE];
+            result.getPixels(pixels, 0, SIZE, 0, 0, SIZE, SIZE);
+            for (int y = 0; y < SIZE; y++) {
+                float dy = (y * 2f / (SIZE - 1f) - 1f);
+                for (int x = 0; x < SIZE; x++) {
+                    float dx = (x * 2f / (SIZE - 1f) - 1f);
+                    float falloff = Math.max(0f, 1f - dx * dx - dy * dy);
+                    int i = y * SIZE + x;
+                    int tint = CrtColorMath.mix(pixels[i], 0xffa8a5ac, .32f);
+                    pixels[i] = CrtColorMath.mix(NoirHomeStyle.WALL, tint, falloff * .93f);
+                }
+            }
+            result.setPixels(pixels, 0, SIZE, 0, 0, SIZE, SIZE);
             result.prepareToDraw();
             return result;
         } catch (RuntimeException | OutOfMemoryError unavailable) {

@@ -13,7 +13,7 @@ final class NoirShelfGeometry {
         this.width = width;
         this.height = height;
         unit = density;
-        coverWidth = Math.max(1f, Math.min(width * .485f, (height - 44f * density) / coverRatio));
+        coverWidth = Math.max(1f, Math.min(width * .54f, (height - 40f * density) / coverRatio));
         coverHeight = coverWidth * coverRatio;
         stride = Math.min(width * .31f, coverWidth * .88f);
     }

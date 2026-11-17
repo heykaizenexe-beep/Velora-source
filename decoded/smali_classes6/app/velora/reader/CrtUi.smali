@@ -68,8 +68,7 @@
 
     move v3, v4
 
-    # The Noir home override is a light surface.
-    const/4 v5, 0x1
+    const/4 v5, 0x0
 
     :window_background
     instance-of v4, v2, Landroid/graphics/drawable/ColorDrawable;

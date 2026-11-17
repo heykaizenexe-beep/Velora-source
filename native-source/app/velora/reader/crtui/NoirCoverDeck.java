@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RadialGradient;
@@ -24,6 +25,11 @@ import java.util.List;
 /** A five-cover window. Repositioning its cards never decodes an image. */
 final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
+    private final NoirSpine spine = new NoirSpine();
+    private static final float SPINE_WIDTH = 74f, SPINE_HEIGHT = 700f;
+    private static final float[] SPINE_PLANE = {0, 0, SPINE_WIDTH, 0, SPINE_WIDTH, SPINE_HEIGHT, 0, SPINE_HEIGHT};
+    private final Matrix spineProjection = new Matrix();
+    private final float[] spineCorners = new float[8];
     private final SparseArray<Card> cards = new SparseArray<>(5);
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path outline = new Path();
@@ -88,6 +94,19 @@ final class NoirCoverDeck extends View {
         if (!books.isEmpty()) settle(index + direction, true);
     }
 
+    boolean selectBook(long id) {
+        for (int i = 0; i < books.size(); i++) {
+            if (books.get(i).getId() == id) {
+                if (Math.abs(position - i) > 2f) {
+                    stop();
+                    finish(i);
+                } else settle(i, false);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private int limit(int value) { return Math.max(0, Math.min(books.size() - 1, value)); }
     private float dp(float n) { return NoirUi.dp(getContext(), n); }
 
@@ -126,7 +145,7 @@ final class NoirCoverDeck extends View {
         silhouette(canvas, back, 0xff373b34);
         side(canvas, front, back, 0, 2, 0xffded8c7);
         side(canvas, front, back, 4, 6, 0xffafa999);
-        side(canvas, front, back, 6, 0, card.cloth);
+        drawSpine(canvas, card, front, back);
         side(canvas, front, back, 2, 4, 0xffd3ccb7);
         ink.setColor(0x467a725e);
         ink.setStrokeWidth(Math.max(1f, getResources().getDisplayMetrics().density * .55f));
@@ -135,7 +154,22 @@ final class NoirCoverDeck extends View {
             canvas.drawLine(mix(front[2], back[2], f), mix(front[3], back[3], f),
                     mix(front[4], back[4], f), mix(front[5], back[5], f), ink);
         }
+        silhouette(canvas, front, card.cloth);
         art.cover(canvas, card.bitmap, card.cloth, front);
+    }
+
+    private void drawSpine(Canvas canvas, Card card, float[] front, float[] back) {
+        side(canvas, front, back, 6, 0, card.cloth);
+        if (front[0] - back[0] < 1f || front[6] - back[6] < 1f) return;
+        spineCorners[0] = back[0]; spineCorners[1] = back[1];
+        spineCorners[2] = front[0]; spineCorners[3] = front[1];
+        spineCorners[4] = front[6]; spineCorners[5] = front[7];
+        spineCorners[6] = back[6]; spineCorners[7] = back[7];
+        if (!spineProjection.setPolyToPoly(SPINE_PLANE, 0, spineCorners, 0, 4)) return;
+        int saved = canvas.save();
+        canvas.concat(spineProjection);
+        spine.draw(canvas, card.spineText, card.cloth, SPINE_WIDTH, SPINE_HEIGHT);
+        canvas.restoreToCount(saved);
     }
 
     private void silhouette(Canvas canvas, float[] quad, int color) {
@@ -193,24 +227,30 @@ final class NoirCoverDeck extends View {
 
     private final class Card {
         final Book book;
-        final int cloth;
+        final String spineText;
+        int cloth;
         Bitmap bitmap;
         CoverRepository<Bitmap>.Request request;
-        final CoverRepository.Callback<Bitmap> loaded = value -> {
+        final CoverRepository.Callback<Bitmap> loaded = this::applyCover;
+
+        private void applyCover(Bitmap value) {
             request = null;
             bitmap = value;
+            cloth = NoirSpine.color(value, NoirBookArt.cloth(book.getId()));
             invalidate();
             if (cards.get(index) == this && Math.abs(position - index) < .02f) selected.run();
-        };
+        }
 
         Card(Book book) {
             this.book = book;
+            spineText = spine.fit(JournalBookView.titleOf(book), SPINE_WIDTH, SPINE_HEIGHT);
             cloth = NoirBookArt.cloth(book.getId());
             String path = book.getDisplayCoverPath();
             if (path == null || path.isEmpty()) return;
             CoverRepository<Bitmap> repository = CoverLoader.get(getContext());
             bitmap = repository.peek(path);
             if (bitmap == null) request = repository.load(path, loaded);
+            else cloth = NoirSpine.color(bitmap, cloth);
         }
 
         void cancel() { if (request != null) request.cancel(); }
