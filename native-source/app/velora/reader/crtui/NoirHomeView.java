@@ -247,12 +247,6 @@ final class NoirHomeView extends LinearLayout {
         newspaperPaper.setStrength(NoirNewspaperPaper.readStrength(getContext()));
     }
 
-    @Override protected void onDetachedFromWindow() {
-        NoirNewspaperPaper.preferences(getContext()).unregisterOnSharedPreferenceChangeListener(
-                texturePreferenceListener);
-        super.onDetachedFromWindow();
-    }
-
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         int w = MeasureSpec.getSize(widthSpec);
         int h = MeasureSpec.getSize(heightSpec);
@@ -577,6 +571,8 @@ final class NoirHomeView extends LinearLayout {
     }
 
     @Override protected void onDetachedFromWindow() {
+        NoirNewspaperPaper.preferences(getContext()).unregisterOnSharedPreferenceChangeListener(
+                texturePreferenceListener);
         opening = false;
         if (menu != null) menu.dismiss();
         if (catalog != null) catalog.dismiss();
