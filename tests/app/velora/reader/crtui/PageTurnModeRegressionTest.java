@@ -99,6 +99,22 @@ public final class PageTurnModeRegressionTest {
                     "decisive middle flick retains the existing velocity rule");
         }
 
+        // A touch in the outer page margin is mapped to the actual paper edge,
+        // while the first inward MOVE still decides whether a curl is claimed.
+        for (boolean right : new boolean[]{false, true}) {
+            float rawDown = right ? 816f : -16f;
+            float origin = PageTurnController.edgeOrigin(rawDown, 800);
+            float inward = right ? 690f : 110f;
+            PageTurnGesture edge = gesture(1);
+            check(edge.begin(origin, 500, 100, 800, 1000, true),
+                    "outer margin DOWN arms the matching paper edge");
+            check(edge.move(inward, 500, 150, 1, true)
+                            && edge.physicalRight() == right,
+                    "outer margin inward MOVE claims the original physical side");
+            check(edge.finish(right ? 410f : 390f, 500, 0f, true) == (right ? -1 : 1),
+                    "margin-origin drag can complete in either direction");
+        }
+
         PageTurnGesture g = gesture(1);
         for (float origin : new float[]{20, 400, 780}) {
             check(!g.begin(origin, 500, 100, 800, 1000, false), "ordinary mode does not observe edge or center");
