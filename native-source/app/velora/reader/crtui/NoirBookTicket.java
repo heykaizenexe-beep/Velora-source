@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 /** The selected book's caption, reading actions and pull-out note. */
 final class NoirBookTicket extends LinearLayout {
     private final TextView title, author, note, read;
+    private final LinearLayout actions;
     private final ImageButton previous, next, noteToggle;
     private final Runnable opened;
     private final int touchSlop;
@@ -58,7 +59,7 @@ final class NoirBookTicket extends LinearLayout {
         caption.addView(next, new LayoutParams(dp(46), dp(46)));
         addView(caption, new LayoutParams(-1, -2));
 
-        LinearLayout actions = new LinearLayout(c);
+        actions = new LinearLayout(c);
         actions.setGravity(Gravity.CENTER_VERTICAL);
         actions.setBaselineAligned(false);
         read = action(c, "Читать", NoirHomeStyle.PAPER_INK, reader);
@@ -106,6 +107,8 @@ final class NoirBookTicket extends LinearLayout {
         next.setEnabled(after);
         next.setAlpha(after ? 1f : .32f);
     }
+
+    int actionsBottom() { return actions.getBottom(); }
 
     void bind(Book next) {
         boolean changed = book == null || next == null || next.getId() != book.getId();

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
@@ -133,13 +134,22 @@ final class NoirHomeView extends LinearLayout {
         display.setVisibility(GONE);
 
         content = new FrameLayout(c) {
+            private final Rect visibleWindow = new Rect();
+            private final int[] screenLocation = new int[2];
+
             @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
                 super.onLayout(changed, left, top, right, bottom);
                 if (display.getVisibility() != VISIBLE) return;
-                // Keep the covers slightly above center when there is room.
-                int centeredTop = (getHeight() - deck.getHeight()) / 2;
+                getWindowVisibleDisplayFrame(visibleWindow);
+                getLocationOnScreen(screenLocation);
+                int viewportCenter = visibleWindow.isEmpty() ? getHeight() / 2
+                        : visibleWindow.centerY() - screenLocation[1] - scroll.getScrollY();
+                int coverTop = deck.getTop() + deck.centeredCoverTop();
+                int actionsBottom = ticket.getTop() + ticket.actionsBottom();
+                // Fit the books and their controls around the visible center, above the library row.
+                int centeredTop = viewportCenter - (coverTop + actionsBottom) / 2;
                 int lastTop = getHeight() - display.getHeight();
-                int displayTop = Math.max(0, Math.min(centeredTop, lastTop) - dp(10));
+                int displayTop = Math.max(0, Math.min(centeredTop, lastTop));
                 display.offsetTopAndBottom(displayTop - display.getTop());
             }
         };

@@ -71,6 +71,11 @@ final class NoirCoverDeck extends View {
     int index() { return index; }
     int count() { return books.size(); }
 
+    int centeredCoverTop() {
+        shelf.project(0f);
+        return Math.round(Math.min(shelf.front[1], shelf.front[3]));
+    }
+
     int[] coverOrigin() {
         if (books.isEmpty() || getWidth() <= 0 || getHeight() <= 0 || settling != null || horizontal) return null;
         shelf.project(0f);
