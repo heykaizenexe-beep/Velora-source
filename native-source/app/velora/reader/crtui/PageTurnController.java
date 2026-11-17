@@ -161,6 +161,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private int activePointerId = -1;
     private VelocityTracker velocity;
     private long recordedTime = -1L;
+    private int inputDiagnosticMoves;
     private int recordedAction = -1, recordedPointers;
     private float recordedX, recordedY;
 
@@ -894,6 +895,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             touchOwned = blockedTouch = false;
             if (phase == Phase.ARMED) phase = Phase.IDLE;
             activePointerId = event.getPointerId(0);
+            inputDiagnosticMoves = 0;
             if (inside && navigationOutstanding()) {
                 touchOwned = blockedTouch = true;
                 return true;
@@ -905,6 +907,12 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             boolean armed = gesture.begin(edgeOrigin(event.getX() - target.getLeft(), target.getWidth()),
                     event.getY() - target.getTop(), event.getEventTime(),
                     target.getWidth(), target.getHeight(), allowed);
+            Log.d("VeloraPageInput", "down x=" + event.getX() + " y=" + event.getY()
+                    + " inside=" + inside + " allowed=" + allowed
+                    + " armed=" + armed + " mode=" + bookMode
+                    + " target=" + target.getLeft() + "," + target.getTop()
+                    + "+" + target.getWidth() + "x" + target.getHeight()
+                    + " root=" + root.getWidth() + "x" + root.getHeight());
             if (armed) {
                 phase = Phase.ARMED;
                 pauseWarming();
@@ -956,6 +964,10 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             allowed = allowed && sameBounds() && sameSettings()
                     && isAt(sourcePosition);
         boolean claimed = gesture.move(x, y, event.getEventTime(), event.getPointerCount(), allowed);
+        if (inputDiagnosticMoves++ < 5)
+            Log.d("VeloraPageInput", "move x=" + x + " y=" + y + " allowed=" + allowed
+                    + " claimed=" + claimed + " blocked=" + gesture.isBlocked()
+                    + " phase=" + phase);
         if (!claimed) {
             if (!gesture.isObserving(event.getEventTime())) {
                 if (phase == Phase.ARMED) phase = Phase.IDLE;
@@ -1097,6 +1109,9 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     /** Keep observing only unresolved book-mode intent, never native selection. */
     public boolean keepIntercepting() {
         boolean keep = phase == Phase.ARMED && gesture.isObserving(SystemClock.uptimeMillis()) && canIntercept();
+        if (!keep && phase == Phase.ARMED && !touchOwned)
+            Log.d("VeloraPageInput", "disallow_not_overridden; phase=" + phase
+                    + " allowed=" + canIntercept());
         if (!keep && phase == Phase.ARMED && !touchOwned) {
             // A child may disallow interception for selection/pinch and hide its UP
             // from this parent. Release the warmup pause when handing it ownership.
