@@ -158,12 +158,22 @@ def main():
         PACKAGE + "/app.velora.reader.MainActivity")
     time.sleep(7)
     capture("01_main")
-    cmd("adb", "push", book, "/sdcard/Download/" + BOOK)
-    uri = "content://com.android.externalstorage.documents/document/primary%3ADownload%2F" + BOOK
+    # The adb shell UID cannot grant itself Storage Access Framework document
+    # permissions. This is a non-Play, developer emulator; use its root-only
+    # test channel to place the fixture inside the app's private files directory.
+    # ExternalBookOpenActivity explicitly accepts file:// via FileInputStream.
+    cmd("adb", "root")
+    cmd("adb", "wait-for-device")
+    private_dir = "/data/user/0/" + PACKAGE + "/files"
+    cmd("adb", "shell", "mkdir", "-p", private_dir)
+    private_file = private_dir + "/" + BOOK
+    cmd("adb", "push", book, private_file)
+    cmd("adb", "shell", "chmod", "644", private_file)
+    uri = "file://" + private_file
     cmd("adb", "shell", "am", "start", "-W", "-n",
         PACKAGE + "/app.velora.reader.feature.importing.ExternalBookOpenActivity",
         "-a", "android.intent.action.VIEW", "-t", "application/epub+zip",
-        "-d", uri, "-f", "0x1", check=False)
+        "-d", uri)
     if not await_reader():
         capture("02_reader_not_open")
         ui_xml()
