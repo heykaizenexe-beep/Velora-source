@@ -84,7 +84,7 @@ final class NoirHomeView extends LinearLayout {
         page.addView(toolbar, new LayoutParams(-1, -2));
 
         query = new EditText(c);
-        query.setTypeface(NoirUi.SANS);
+        query.setTypeface(NoirUi.themedFont(c, NoirUi.SANS));
         query.setTextColor(NoirHomeStyle.INK);
         query.setHintTextColor(NoirHomeStyle.INK_MUTED);
         query.setHint("Название или автор");
@@ -506,6 +506,7 @@ final class NoirHomeView extends LinearLayout {
         content.addView(NoirUi.text(c, "В личной библиотеке: " + books.size() + "\nПрочитано: " + completed,
                 16, NoirUi.INK, NoirUi.SANS));
         EditText name = new EditText(c);
+        name.setTypeface(NoirUi.themedFont(c, NoirUi.SANS));
         name.setSingleLine(true);
         name.setHint("Имя читателя");
         name.setTextColor(NoirUi.INK);
