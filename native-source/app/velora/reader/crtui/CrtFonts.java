@@ -9,10 +9,12 @@ public final class CrtFonts {
     private static Typeface pixel = Typeface.MONOSPACE;
     private static FontFamily family;
     private static FontFamily classic;
+    private static FontFamily noir;
     public static synchronized void init(Context context) {
         AppTheme.initialize(context);
         pixel = Typeface.createFromAsset(context.getAssets(), "fonts/VeloraPixel.ttf");
         family = AndroidTypeface_androidKt.FontFamily(pixel);
+        noir = AndroidTypeface_androidKt.FontFamily(NoirUi.schuelerBold(context));
     }
     public static Typeface pixel() { return AppTheme.isPixel()?pixel:Typeface.SANS_SERIF; }
     static Typeface pixelAsset(){return pixel;}
@@ -21,6 +23,7 @@ public final class CrtFonts {
         return family;
     }
     public static synchronized FontFamily compose() {
+        if(AppTheme.isNoir() && noir != null) return noir;
         if(!AppTheme.isPixel()){
             if(classic==null)classic=AndroidTypeface_androidKt.FontFamily(Typeface.SANS_SERIF);
             return classic;
