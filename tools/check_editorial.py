@@ -24,7 +24,7 @@ checks = {
     "warm paper palette": "0xfff3eee5" in style and "0xffa94f3b" in style,
     "Schueler not loaded": "schuelerBold" not in fonts,
     "Schueler no longer required": "restore_noir_font" not in rebuild,
-    "correct 0.9.142 version": bool(re.search(r"versionCode:\s*242\s+versionName:\s*0\.9\.142",manifest)),
+    "correct 0.9.143 version": bool(re.search(r"versionCode:\s*242\s+versionName:\s*0\.9\.142",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
