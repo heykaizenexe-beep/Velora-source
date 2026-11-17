@@ -61,7 +61,8 @@ final class NoirHomeView extends LinearLayout {
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
-        scroll.setBackgroundColor(NoirHomeStyle.WALL);
+        // Barely visible print texture belongs to Cartoteka, never to book pages.
+        scroll.setBackgroundDrawable(new NoirNewspaperPaper(c));
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
