@@ -167,10 +167,8 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
     private final Runnable warmPreview = new Runnable() {
         @Override public void run() {
             if (!warmup.shouldRun(SystemClock.uptimeMillis(), mayWarmNow())) return;
-            if (isLargeChapter()) {
-                disposePreview();
-                return;
-            }
+            // Every chapter needs its immediate neighbors ready before an edge grab.
+            // The 48-page budget only limits the optional *second* lookahead.
             PageTurnPreview ready = ensurePreview();
             if (ready != null) {
                 ready.setBusy(false);
@@ -823,14 +821,9 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             return;
         }
         scheduleWhenReady();
-        if (underSnapshot == null) {
-            // The unprepared drag has stayed flat. Start its release from the displayed sheet.
-            dragX = grabX;
-            dragY = grabY;
-            releaseWhenReady(planMotion(true, 0f, 0f));
-        } else {
-            releaseWhenReady(planMotion(true, velocityX, velocityY));
-        }
+        // The finger-driven sheet is already curling even if the neighbor is
+        // being rendered. Never snap its geometry flat on UP.
+        releaseWhenReady(planMotion(true, velocityX, velocityY));
     }
 
     private void finishCommittedIfReady() {
@@ -867,8 +860,20 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
 
     private boolean sameSettings() { return equal(captureSettings, settings()); }
 
+    /** Allow grabbing paper through the narrow margins outside the text viewport. */
+    static float edgeReach(float density, int pageWidth) {
+        return Math.min(32f * density, Math.max(0f, pageWidth) * .10f);
+    }
+
+    /** Clamp a margin touch to its physical paper edge, never the page center. */
+    static float edgeOrigin(float x, int pageWidth) {
+        if (pageWidth <= 0) return 0f;
+        return Math.max(0f, Math.min(pageWidth - .001f, x));
+    }
+
     private boolean inside(float x, float y) {
-        if (!(x >= target.getLeft() && x < target.getRight()
+        float reach = edgeReach(root.getResources().getDisplayMetrics().density, target.getWidth());
+        if (!(x >= target.getLeft() - reach && x < target.getRight() + reach
                 && y >= target.getTop() && y < target.getBottom())) return false;
         int targetIndex = root.indexOfChild(target);
         if (targetIndex < 0) return false;
@@ -898,8 +903,9 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
                 clearVisual();
             boolean allowed = inside && event.getPointerCount() == 1 && canIntercept()
                     && !navigationOutstanding();
-            boolean armed = gesture.begin(event.getX() - target.getLeft(), event.getY() - target.getTop(),
-                    event.getEventTime(), target.getWidth(), target.getHeight(), allowed);
+            boolean armed = gesture.begin(edgeOrigin(event.getX() - target.getLeft(), target.getWidth()),
+                    event.getY() - target.getTop(), event.getEventTime(),
+                    target.getWidth(), target.getHeight(), allowed);
             if (armed) {
                 phase = Phase.ARMED;
                 pauseWarming();
@@ -1170,7 +1176,7 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
         if (old != null) old.release();
         if (under != null) under.release();
         if (preview != null) preview.cancelRequest();
-        if (preview != null && isLargeChapter()) disposePreview();
+        // Preserve the adjacent-page cache even for long chapters.
         phase = destroyed ? Phase.DESTROYED : Phase.IDLE;
         accepted = locationChanged = startPosted = frameReady = settled = false;
         beforeLocator = null;
