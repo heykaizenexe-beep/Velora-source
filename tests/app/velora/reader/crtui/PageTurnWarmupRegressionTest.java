@@ -67,7 +67,12 @@ public final class PageTurnWarmupRegressionTest {
         check(!window.shouldRun(50500, true), "destroy/success stop remains terminal until explicit start");
         check(!PageTurnController.exceedsPreviewBudget(1), "a short loaded chapter can use previews");
         check(!PageTurnController.exceedsPreviewBudget(48), "a chapter at the budget limit can use previews");
-        check(PageTurnController.exceedsPreviewBudget(49), "a long chapter skips hidden previews");
+        check(PageTurnController.exceedsPreviewBudget(49), "a long chapter skips only optional second-page lookahead");
+        check(PageTurnController.edgeReach(1f, 800) == 32f, "edge margin accepts a 32dp reach");
+        check(PageTurnController.edgeReach(1f, 200) == 20f, "narrow pages use a proportional reach");
+        check(PageTurnController.edgeOrigin(-20f, 800) == 0f, "outer left margin maps to paper edge");
+        check(Math.abs(PageTurnController.edgeOrigin(820f, 800) - 799.999f) < .01f,
+                "outer right margin maps to paper edge");
         check(PageTurnController.exceedsPreviewBudget(25000), "very large resources also skip hidden previews");
         System.out.println("PASS: " + checks + " bounded startup/resume warmup and cancellation checks");
     }
