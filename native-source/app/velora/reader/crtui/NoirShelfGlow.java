@@ -14,7 +14,7 @@ import android.graphics.Shader;
 /** Soft light projected around a book's front cover. */
 final class NoirShelfGlow {
     private static final int WIDTH = 112, HEIGHT = 128;
-    private static final float SPREAD_X = .56f, SPREAD_Y = .27f;
+    private static final float SPREAD_X = .08f, SPREAD_Y = .057f;
     private static final float[] FRONT = {0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f};
 
     private final Bitmap mask = makeMask();
@@ -92,9 +92,9 @@ final class NoirShelfGlow {
     }
 
     static int opacity(float x, float y) {
-        float dx = Math.max(0f, Math.abs(x - .5f) - .29f) / (SPREAD_X + .21f);
-        float dy = Math.max(0f, Math.abs(y - .5f) - .36f) / (SPREAD_Y + .14f);
-        float distance = Math.min(1f, (float) Math.sqrt(dx * dx + dy * dy));
-        return Math.round(157f * strength(distance));
+        float dx = Math.max(0f, Math.abs(x - .5f) - .5f) / SPREAD_X;
+        float dy = Math.max(0f, Math.abs(y - .5f) - .5f) / SPREAD_Y;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        return Math.round(112f * strength(distance));
     }
 }

@@ -115,9 +115,11 @@ final class NoirCoverDeck extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         if (books.isEmpty()) return;
-        int left = (int) Math.floor(position);
-        drawGlow(canvas, left);
-        if (position != left) drawGlow(canvas, left + 1);
+        // The book can move past the stop, but there is no next cover to fade toward.
+        float glowPosition = Math.max(0f, Math.min(position, books.size() - 1f));
+        int left = (int) glowPosition;
+        drawGlow(canvas, left, NoirShelfGlow.strength(left - glowPosition));
+        if (glowPosition != left) drawGlow(canvas, left + 1, NoirShelfGlow.strength(left + 1 - glowPosition));
         glow.fadeAtEdges(canvas, getWidth(), getHeight());
         ink.setColor(0xffffffff);
         int shadow = canvas.save();
@@ -135,12 +137,11 @@ final class NoirCoverDeck extends View {
         drawCard(canvas, near);
     }
 
-    private void drawGlow(Canvas canvas, int at) {
+    private void drawGlow(Canvas canvas, int at, float strength) {
         Card card = cards.get(at);
         if (card == null) return;
-        float offset = at - position;
-        shelf.project(offset);
-        glow.draw(canvas, shelf.front, card.glowTint, NoirShelfGlow.strength(offset));
+        shelf.project(at - position);
+        glow.draw(canvas, shelf.front, card.glowTint, strength);
     }
 
     private void drawCard(Canvas canvas, int at) {
