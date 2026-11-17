@@ -8,7 +8,6 @@ import sys
 import zipfile
 from tools.fetch_tool import fetch_tool
 from tools.restore_dependencies import restore_media_libraries
-from tools.restore_noir_font import restore_noir_font
 
 ROOT = Path(__file__).resolve().parent
 TOOLS = ROOT / 'tool-cache'
@@ -33,7 +32,13 @@ def run(*args):
     subprocess.run([str(x) for x in args], check=True, cwd=ROOT)
 
 restore_media_libraries(ROOT, OUT)
-new_font_assets = restore_noir_font(ROOT)
+# Drop leftover Schueler assets from older local builds; never distribute GPLv3 font in APK.
+old_font_removed = False
+for old_asset in (ROOT / 'decoded/assets/fonts/SchuelerSuperHyperXPPlus-Bold.ttf',
+                  ROOT / 'decoded/assets/licenses/SchuelerSuperHyperXPPlus-GPL-3.0.txt'):
+    if old_asset.exists():
+        old_asset.unlink()
+        old_font_removed = True
 native_dex = ROOT / 'decoded/smali_classes23'
 if '--compile-home' in sys.argv or not native_dex.is_dir():
     run(sys.executable, ROOT/'tools/compile_home.py')
@@ -49,8 +54,8 @@ if '--incremental' in sys.argv and (ROOT / 'decoded/build/apk/AndroidManifest.xm
     if not resource_stamp.exists() or resource_stamp.read_text().strip() != resource_key:
         manifest.touch()
 build_args = ['java', '-Xmx4g', '-jar', apktool, 'b']
-if '--incremental' not in sys.argv or new_font_assets:
-    # Apktool may otherwise reuse a package assembled without the new font.
+if '--incremental' not in sys.argv or old_font_removed:
+    # Apktool may otherwise reuse an old package containing the removed font.
     build_args.append('-f')
 run(*build_args, ROOT/'decoded', '-o', OUT/'unsigned.apk')
 resource_stamp.write_text(resource_key + '\n')
