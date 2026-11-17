@@ -52,6 +52,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
             heading=label(name,18);
             if(AppTheme.PIXEL_CAT.equals(id))heading.setTypeface(CrtFonts.pixelAsset());
             if(AppTheme.JOURNAL.equals(id))heading.setTypeface(Typeface.SERIF);
+            if(AppTheme.NOIR.equals(id))heading.setTypeface(NoirUi.schuelerBold(ThemeSettingsActivity.this));
             card.addView(heading,new LinearLayout.LayoutParams(-1,-2));
             detail=label(description,14);detail.setPadding(0,dp(5),0,dp(8));
             card.addView(detail,new LinearLayout.LayoutParams(-1,-2));
