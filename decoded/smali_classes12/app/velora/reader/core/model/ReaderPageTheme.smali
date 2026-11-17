@@ -25,6 +25,7 @@
         "LIGHT",
         "DARK",
         "SEPIA",
+        "NEWSPAPER",
         "app"
     }
     k = 0x1
@@ -46,6 +47,8 @@
 
 .field public static final enum LIGHT:Lapp/velora/reader/core/model/ReaderPageTheme;
 
+.field public static final enum NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
+
 .field public static final enum SEPIA:Lapp/velora/reader/core/model/ReaderPageTheme;
 
 .field public static final enum SYSTEM:Lapp/velora/reader/core/model/ReaderPageTheme;
@@ -53,7 +56,7 @@
 
 # direct methods
 .method private static final synthetic $values()[Lapp/velora/reader/core/model/ReaderPageTheme;
-    .locals 4
+    .locals 5
 
     sget-object v0, Lapp/velora/reader/core/model/ReaderPageTheme;->SYSTEM:Lapp/velora/reader/core/model/ReaderPageTheme;
 
@@ -63,7 +66,9 @@
 
     sget-object v3, Lapp/velora/reader/core/model/ReaderPageTheme;->SEPIA:Lapp/velora/reader/core/model/ReaderPageTheme;
 
-    filled-new-array {v0, v1, v2, v3}, [Lapp/velora/reader/core/model/ReaderPageTheme;
+    sget-object v4, Lapp/velora/reader/core/model/ReaderPageTheme;->NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    filled-new-array/range {v0 .. v4}, [Lapp/velora/reader/core/model/ReaderPageTheme;
 
     move-result-object v0
 
@@ -113,6 +118,16 @@
     invoke-direct {v0, v1, v2}, Lapp/velora/reader/core/model/ReaderPageTheme;-><init>(Ljava/lang/String;I)V
 
     sput-object v0, Lapp/velora/reader/core/model/ReaderPageTheme;->SEPIA:Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    new-instance v0, Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    const-string v1, "NEWSPAPER"
+
+    const/4 v2, 0x4
+
+    invoke-direct {v0, v1, v2}, Lapp/velora/reader/core/model/ReaderPageTheme;-><init>(Ljava/lang/String;I)V
+
+    sput-object v0, Lapp/velora/reader/core/model/ReaderPageTheme;->NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
 
     invoke-static {}, Lapp/velora/reader/core/model/ReaderPageTheme;->$values()[Lapp/velora/reader/core/model/ReaderPageTheme;
 
