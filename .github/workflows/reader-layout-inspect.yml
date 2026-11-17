@@ -1,0 +1,12 @@
+name: Inspect reader appearance layout
+on:
+  push:
+    paths: [tools/reader_layout_inspect.py]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/reader_layout_inspect.py
