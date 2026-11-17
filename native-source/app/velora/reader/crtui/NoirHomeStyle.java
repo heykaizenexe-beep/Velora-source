@@ -15,14 +15,16 @@ import android.widget.ImageButton;
 
 /** Palette and controls shared by the catalog, its book card and its menu. */
 final class NoirHomeStyle {
-    static final int WALL = 0xff242528;
-    static final int SURFACE = 0xff2b2d31;
-    static final int HIGHLIGHT = 0xff3d4045;
-    static final int EDGE = 0xff494c52;
-    static final int INK = 0xfff0efec;
-    static final int INK_MUTED = 0xffc2c3c5;
-    static final int PAPER = 0xffd8cfb8;
-    static final int PAPER_INK = 0xff272b28;
+    static final int WALL = 0xfff3eee5;
+    static final int SURFACE = 0xfffaf6ed;
+    static final int HIGHLIGHT = 0xffeae0d5;
+    static final int EDGE = 0xffc9bdb0;
+    static final int INK = 0xff302620;
+    static final int INK_MUTED = 0xff695b4f;
+    static final int PAPER = 0xfffaf6ed;
+    static final int PAPER_INK = 0xff302620;
+    static final int RUST = 0xffa94f3b;
+    static final int RUST_DARK = 0xff863c2c;
 
     enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE, LIBRARY, UP }
 
@@ -52,7 +54,7 @@ final class NoirHomeStyle {
 
     static ImageButton icon(Context c, Symbol symbol, String description, Runnable action) {
         ImageButton button = new ImageButton(c);
-        button.setBackgroundDrawable(control(c, Color.TRANSPARENT, HIGHLIGHT, 0, 6));
+        button.setBackgroundDrawable(control(c, SURFACE, HIGHLIGHT, EDGE, 8));
         button.setImageDrawable(symbol(c, symbol, INK));
         button.setScaleType(ImageButton.ScaleType.CENTER);
         button.setPadding(0, 0, 0, 0);
