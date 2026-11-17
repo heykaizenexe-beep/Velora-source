@@ -1034,17 +1034,14 @@
     const/4 v1, 0x1
 
     :cond_0
-    invoke-static {v1}, Lapp/velora/reader/crtui/CrtTheme;->background(Z)I
+    invoke-virtual {p1}, Lorg/readium/r2/navigator/preferences/Theme;->name()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
 
     move-result v0
 
-    sget-object v2, Lorg/readium/r2/navigator/preferences/Theme;->SEPIA:Lorg/readium/r2/navigator/preferences/Theme;
-
-    if-ne p1, v2, :cond_1
-
-    const v0, -0x81027
-
-    :cond_1
     iget-object v2, p0, Lapp/velora/reader/feature/reader/readium/ReadiumReaderActivity;->container:Landroid/widget/FrameLayout;
 
     if-eqz v2, :cond_2
