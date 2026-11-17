@@ -11015,36 +11015,21 @@
 .end method
 
 .method private final readerPageBackgroundColor(Lorg/readium/r2/navigator/preferences/Theme;)I
-    .locals 2
+    .locals 1
 
-    if-nez p1, :cond_0
+    if-nez p1, :cond_read_theme
 
-    invoke-static {}, Lapp/velora/reader/crtui/CrtTheme;->background()I
+    const-string v0, "LIGHT"
 
-    move-result v0
+    goto :goto_read_theme
 
-    return v0
+    :cond_read_theme
+    invoke-virtual {p1}, Lorg/readium/r2/navigator/preferences/Theme;->name()Ljava/lang/String;
 
-    :cond_0
-    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->SEPIA:Lorg/readium/r2/navigator/preferences/Theme;
+    move-result-object v0
 
-    if-ne p1, v0, :cond_1
-
-    const v0, -0x81027
-
-    return v0
-
-    :cond_1
-    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->DARK:Lorg/readium/r2/navigator/preferences/Theme;
-
-    const/4 v1, 0x0
-
-    if-ne p1, v0, :cond_2
-
-    const/4 v1, 0x1
-
-    :cond_2
-    invoke-static {v1}, Lapp/velora/reader/crtui/CrtTheme;->background(Z)I
+    :goto_read_theme
+    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
 
     move-result v0
 
@@ -15000,6 +14985,15 @@
 
     .line 1147
     :cond_0
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    if-ne p1, v0, :cond_newspaper_tone_default
+
+    sget-object v0, Lapp/velora/reader/feature/reader/PaperTextureTone;->LIGHT:Lapp/velora/reader/feature/reader/PaperTextureTone;
+
+    goto :goto_1
+
+    :cond_newspaper_tone_default
     if-nez p1, :cond_1
 
     const/4 v0, -0x1
