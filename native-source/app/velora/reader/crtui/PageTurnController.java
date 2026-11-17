@@ -657,11 +657,10 @@ public final class PageTurnController implements View.OnLayoutChangeListener,
             controller.gesture.abort();
             controller.clearVisual();
         }
-        // Keep preview WebViews/cache undisturbed until the release animation has ended.
-        if (!controller.navigationOutstanding()) {
-            if (controller.isLargeChapter()) controller.disposePreview();
-            else controller.requestWarmup();
-        }
+        // Long chapters also benefit from adjacent-page snapshots. Only their
+        // optional second-forward lookahead is bounded, not neighbor warming.
+        // Keep preview WebViews/cache undisturbed until release has ended.
+        if (!controller.navigationOutstanding()) controller.requestWarmup();
         if (controller.navigationOutstanding()) controller.recordLocationChange(locator);
     }
 
