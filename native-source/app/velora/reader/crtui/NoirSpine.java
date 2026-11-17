@@ -1,5 +1,6 @@
 package app.velora.reader.crtui;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -12,8 +13,8 @@ final class NoirSpine {
     private static final WeakHashMap<Bitmap, Integer> CLOTH = new WeakHashMap<>();
     private final TextPaint ink = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 
-    NoirSpine() {
-        ink.setTypeface(NoirUi.MEDIUM);
+    NoirSpine(Context context) {
+        ink.setTypeface(NoirUi.themedFont(context, NoirUi.MEDIUM));
         ink.setTextAlign(Paint.Align.CENTER);
     }
 
