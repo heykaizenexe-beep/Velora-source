@@ -1,0 +1,28 @@
+name: Apply original reader Compose picker patch
+on:
+  push:
+    paths:
+      - tools/patch_reader_theme_picker.py
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Add fourth independent page theme to Compose picker
+        run: python3 tools/patch_reader_theme_picker.py
+      - name: Commit patched original reader UI directly to main
+        run: |
+          if git diff --quiet -- decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderUiKt.smali; then
+            echo "Already patched"
+          else
+            git config user.name "Velora GitHub Actions"
+            git config user.email "actions@users.noreply.github.com"
+            git add decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderUiKt.smali
+            git commit -m "Expose independent Gazette page palette in reader settings"
+            git push origin HEAD:main
+          fi
