@@ -43,11 +43,11 @@ final class NoirBookTicket extends LinearLayout {
         edition.setGravity(Gravity.CENTER_VERTICAL);
         TextView eyebrow = NoirUi.text(c, "ИЗ ЛИЧНОГО АРХИВА", 9,
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
-        eyebrow.setLetterSpacing(.12f);
+        NoirUi.tracking(eyebrow, .12f);
         edition.addView(eyebrow, new LayoutParams(0, -2, 1f));
         TextView volume = NoirUi.text(c, "BOOK / 01", 9,
                 NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
-        volume.setLetterSpacing(.06f);
+        NoirUi.tracking(volume, .06f);
         edition.addView(volume, new LayoutParams(-2, -2));
         addView(edition, new LayoutParams(-1, -2));
         View rule = new View(c);
@@ -71,7 +71,7 @@ final class NoirBookTicket extends LinearLayout {
         title.setIncludeFontPadding(false);
         metadata.addView(title, new LayoutParams(-1, -2));
         author = NoirUi.text(c, "", 12, NoirHomeStyle.INK_MUTED, NoirUi.SANS);
-        author.setLetterSpacing(.015f);
+        NoirUi.tracking(author, .015f);
         author.setGravity(Gravity.CENTER);
         author.setMaxLines(2);
         author.setEllipsize(TextUtils.TruncateAt.END);
@@ -119,7 +119,7 @@ final class NoirBookTicket extends LinearLayout {
         TextView control = NoirUi.control(c, text, action);
         control.setTextColor(ink);
         control.setTextSize(12);
-        control.setLetterSpacing(.025f);
+        NoirUi.tracking(control, .025f);
         control.setPadding(dp(12), dp(5), dp(12), dp(5));
         control.setBackgroundDrawable(NoirHomeStyle.control(c,
                 NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 8));
