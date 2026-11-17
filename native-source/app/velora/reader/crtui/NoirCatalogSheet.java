@@ -44,11 +44,22 @@ final class NoirCatalogSheet extends Dialog {
 
         LinearLayout header = new LinearLayout(c);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = NoirUi.text(c, "Библиотека", 18, NoirHomeStyle.INK, NoirUi.MEDIUM);
+        TextView title = NoirUi.text(c, "Библиотека", 22, NoirHomeStyle.INK, NoirUi.HEADLINE);
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
         header.addView(NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.CLOSE, "Закрыть библиотеку", this::dismiss),
                 new LinearLayout.LayoutParams(dp(48), dp(48)));
         panel.addView(header, new LinearLayout.LayoutParams(-1, -2));
+        TextView subtitle = NoirUi.text(c, "КНИГИ  /  ЛИЧНЫЙ АРХИВ", 9,
+                NoirHomeStyle.RUST, NoirUi.MEDIUM);
+        subtitle.setLetterSpacing(.11f);
+        LinearLayout.LayoutParams subtitleSize = new LinearLayout.LayoutParams(-1, -2);
+        subtitleSize.bottomMargin = dp(9);
+        panel.addView(subtitle, subtitleSize);
+        View rule = new View(c);
+        rule.setBackgroundColor(NoirHomeStyle.EDGE);
+        LinearLayout.LayoutParams ruleSize = new LinearLayout.LayoutParams(-1, dp(1));
+        ruleSize.bottomMargin = dp(8);
+        panel.addView(rule, ruleSize);
 
         list = new ListView(c);
         list.setAdapter(adapter);
@@ -135,7 +146,7 @@ final class NoirCatalogSheet extends Dialog {
             addView(cover, new LayoutParams(dp(29), dp(43)));
             LinearLayout labels = NoirUi.column(c);
             labels.setPadding(dp(11), 0, dp(8), 0);
-            title = NoirUi.text(c, "", 15, NoirHomeStyle.INK, NoirUi.SANS);
+            title = NoirUi.text(c, "", 15, NoirHomeStyle.INK, NoirUi.HEADLINE);
             title.setMaxLines(2);
             title.setEllipsize(TextUtils.TruncateAt.END);
             labels.addView(title, new LayoutParams(-1, -2));
@@ -144,7 +155,7 @@ final class NoirCatalogSheet extends Dialog {
             author.setEllipsize(TextUtils.TruncateAt.END);
             labels.addView(author, new LayoutParams(-1, -2));
             addView(labels, new LayoutParams(0, -2, 1f));
-            check = NoirUi.text(c, "✓", 16, NoirHomeStyle.PAPER, NoirUi.MEDIUM);
+            check = NoirUi.text(c, "✓", 16, NoirHomeStyle.RUST, NoirUi.MEDIUM);
             check.setGravity(Gravity.CENTER);
             check.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             addView(check, new LayoutParams(dp(28), -2));
