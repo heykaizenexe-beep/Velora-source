@@ -52,7 +52,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
             heading=label(name,18);
             if(AppTheme.PIXEL_CAT.equals(id))heading.setTypeface(CrtFonts.pixelAsset());
             if(AppTheme.JOURNAL.equals(id))heading.setTypeface(Typeface.SERIF);
-            if(AppTheme.NOIR.equals(id))heading.setTypeface(NoirUi.schuelerBold(ThemeSettingsActivity.this));
+            if(AppTheme.NOIR.equals(id))heading.setTypeface(NoirUi.HEADLINE);
             card.addView(heading,new LinearLayout.LayoutParams(-1,-2));
             detail=label(description,14);detail.setPadding(0,dp(5),0,dp(8));
             card.addView(detail,new LinearLayout.LayoutParams(-1,-2));
@@ -104,7 +104,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
         space(10);
         journal=new ThemeCard(AppTheme.JOURNAL,"Журнал","Одна книга на экране. Листай вверх и вниз на телефоне, влево и вправо на планшете.");
         space(10);
-        noir=new ThemeCard(AppTheme.NOIR,"Картотека","Листайте обложки свайпом и вытягивайте последние заметки из читательских карточек.");
+        noir=new ThemeCard(AppTheme.NOIR,"Картотека","Газетная типографика, бумажная палитра и карусель книг.");
         refresh();setContentView(scroll);CrtOverlay.install(this);ReaderStatus.hideSystemStatus(this);
     }
     private void refresh(){
