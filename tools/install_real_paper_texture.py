@@ -10,7 +10,7 @@ from PIL import Image, ImageOps, ImageEnhance
 
 URL = ("https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/"
        "%D0%A2%D0%B5%D0%BA%D1%81%D1%82%D1%83%D1%80%D0%B0_%D0%B1%D1%83%D0%BC%D0%B0%D0%B3%D0%B8.jpg/"
-       "1024px-%D0%A2%D0%B5%D0%BA%D1%81%D1%82%D1%83%D1%80%D0%B0_%D0%B1%D1%83%D0%BC%D0%B0%D0%B3%D0%B8.jpg")
+       "1280px-%D0%A2%D0%B5%D0%BA%D1%81%D1%82%D1%83%D1%80%D0%B0_%D0%B1%D1%83%D0%BC%D0%B0%D0%B3%D0%B8.jpg")
 DEST = Path("decoded/assets/noir/newsprint-paper.jpg")
 DEST.parent.mkdir(parents=True, exist_ok=True)
 if DEST.is_file() and DEST.stat().st_size > 5000:
