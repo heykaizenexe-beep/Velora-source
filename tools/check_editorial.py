@@ -24,7 +24,7 @@ checks = {
     "newspaper filter chips": "NoirHomeStyle.RUST" in home and "NoirHomeStyle.EDGE, 20" in home,
     "book action retained": 'read = action(c, "Читать"' in ticket and 'diary = action(c, "Дневник"' in ticket,
     "warm paper palette": "0xfff3eee5" in style and "0xffa94f3b" in style,
-    "subtle newspaper texture only in cartoteka": "scroll.setBackgroundDrawable(new NoirNewspaperPaper(c));" in home and "new NoirNewspaperPaper(" not in read("native-source/app/velora/reader/crtui/ReaderPaper.java"),
+    "subtle newspaper texture only in cartoteka": "newspaperPaper = new NoirNewspaperPaper(c);" in home and "scroll.setBackgroundDrawable(newspaperPaper);" in home and "new NoirNewspaperPaper(" not in read("native-source/app/velora/reader/crtui/ReaderPaper.java"),
     "fixed-grain tile has no frame flicker": "BitmapShader(texture, Shader.TileMode.REPEAT" in texture and "Fixed-seed noise" in texture and "for (int i = 0; i < pixels.length; i++)" in texture,
     "ghost ink remains translucent at 100%": "Math.min(27, Math.round(11f * strength / DEFAULT_STRENGTH))" in texture and ".17f" in texture,
     "background keeps central carousel clean": "bounds.width() * .17f" in texture,
