@@ -32,8 +32,28 @@ jobs:
       - name: Build reconstructed Android APK
         run: python3 rebuild.py --compile-home
 
-      - name: Run behavioral JVM regression tests
-        run: python3 tools/run_tests.py
+      # The legacy tools/run_tests.py compiles ALL test-only android.* stubs
+      # together and collides with the real android.jar. Exercise pure-Java
+      # book geometry/gesture/cache tests separately instead.
+      - name: Run pure JVM book gesture and curl regressions
+        shell: bash
+        run: |
+          mkdir -p build-output/gesture-tests
+          javac -encoding UTF-8 -d build-output/gesture-tests \
+            native-source/app/velora/reader/crtui/PageTurnGesture.java \
+            native-source/app/velora/reader/crtui/PageCurlGeometry.java \
+            native-source/app/velora/reader/crtui/PageCurlMesh.java \
+            native-source/app/velora/reader/crtui/PageTurnSurface.java \
+            native-source/app/velora/reader/crtui/PageTurnRelease.java \
+            native-source/app/velora/reader/crtui/PageTurnCache.java \
+            tests/app/velora/reader/crtui/PageTurnGestureRegressionTest.java \
+            tests/app/velora/reader/crtui/PageCurlGeometryRegressionTest.java \
+            tests/app/velora/reader/crtui/PageCurlMeshRegressionTest.java \
+            tests/app/velora/reader/crtui/PageTurnReleaseRegressionTest.java \
+            tests/app/velora/reader/crtui/PageTurnCacheRegressionTest.java
+          for test in PageTurnGestureRegressionTest PageCurlGeometryRegressionTest PageCurlMeshRegressionTest PageTurnReleaseRegressionTest PageTurnCacheRegressionTest; do
+            java -ea -cp build-output/gesture-tests app.velora.reader.crtui."$test"
+          done
 
       - name: Install screenshot comparison dependency
         run: python3 -m pip install pillow==11.3.0
