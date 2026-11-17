@@ -15,15 +15,13 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root=Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium")
-          for p in [root/"ReadiumReaderUiKt.smali",root/"ComposableSingletons$ReadiumReaderUiKt.smali"]:
-            lines=p.read_text().splitlines()
-            terms=("Theme;->", "SEPIA", "Сепия", "Тёмная", "Темная", "readium_settings_theme",
-                   "PageTheme", "themeOptions", "Theme.valueOf", "Theme;->values", "ЧТЕНИЯ",
-                   "Тема страницы", "Дневной", "Ночной", "Темы", "Режим чтения")
-            hits=[i for i,line in enumerate(lines) if any(t in line for t in terms)]
-            print("FILE",p,"LINES",len(lines),"HITS",len(hits))
-            for i in hits[:90]:
-              start=max(0,i-16); end=min(len(lines),i+22)
-              print("LOCATION",i+1,"\\n"+"\\n".join(f"{j+1}: {lines[j]}" for j in range(start,end)))
+          p=Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderUiKt.smali")
+          ls=p.read_text().splitlines()
+          for a,b in ((38558,38980),(34770,34930)):
+            print("RANGE",a,b)
+            print("\\n".join(f"{i+1}: {ls[i]}" for i in range(a-1,b) ))
+          for i,l in enumerate(ls):
+            if ".method" in l and ("ReadiumSettingsOverlay$lambda$0$27$1$8$0$0$0" in l or "ReadiumSettingsOverlay$lambda$0$27$1$8" in l):
+              print("CALLBACK",i+1)
+              print("\\n".join(f"{k+1}: {ls[k]}" for k in range(i,min(i+70,len(ls)))))
           PY
