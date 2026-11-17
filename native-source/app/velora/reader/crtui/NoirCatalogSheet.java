@@ -51,7 +51,7 @@ final class NoirCatalogSheet extends Dialog {
         panel.addView(header, new LinearLayout.LayoutParams(-1, -2));
         TextView subtitle = NoirUi.text(c, "КНИГИ  /  ЛИЧНЫЙ АРХИВ", 9,
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
-        subtitle.setLetterSpacing(.11f);
+        NoirUi.tracking(subtitle, .11f);
         LinearLayout.LayoutParams subtitleSize = new LinearLayout.LayoutParams(-1, -2);
         subtitleSize.bottomMargin = dp(9);
         panel.addView(subtitle, subtitleSize);
