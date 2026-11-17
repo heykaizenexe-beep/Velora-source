@@ -297,7 +297,7 @@ public final class NoirSpreadActivity extends Activity {
     private void editReview() {
         LinearLayout content = dialogColumn();
         EditText text = new EditText(this);
-        text.setTypeface(NoirUi.SERIF);
+        text.setTypeface(NoirUi.themedFont(this, NoirUi.SERIF));
         text.setTextSize(18);
         text.setHint("Что хочется запомнить?");
         text.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -443,6 +443,7 @@ public final class NoirSpreadActivity extends Activity {
     private void editCaption() {
         LinearLayout content = dialogColumn();
         EditText caption = new EditText(this);
+        caption.setTypeface(NoirUi.themedFont(this, NoirUi.SANS));
         caption.setText(prefs.getString(key("caption"), ""));
         caption.setHint("Подпись к фотографии");
         content.addView(caption);
