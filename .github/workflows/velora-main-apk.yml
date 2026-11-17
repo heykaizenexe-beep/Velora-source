@@ -25,7 +25,8 @@ jobs:
         run: python3 rebuild.py --compile-home
       - name: Check carousel and newspaper design regression
         run: python3 tools/check_editorial.py
-      - name: Check independent reading themes\n        run: python3 tools/check_reader_palettes.py
+      - name: Check independent reading themes
+        run: python3 tools/check_reader_palettes.py
       - name: Publish build artifact
         if: success()
         uses: actions/upload-artifact@v4
