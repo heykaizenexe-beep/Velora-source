@@ -1,0 +1,30 @@
+name: Embed CC0 photographic paper texture
+on:
+  push:
+    paths: [tools/install_real_paper_texture.py]
+  workflow_dispatch:
+permissions: {contents: write}
+jobs:
+  texture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python3 -m pip install pillow==11.3.0
+      - run: python3 tools/install_real_paper_texture.py
+      - name: Commit real CC0 paper image to app assets
+        run: |
+          if ! git diff --quiet -- decoded/assets/noir/ || test -n "$(git ls-files --others --exclude-standard decoded/assets/noir)"; then
+            git config user.name "Velora GitHub Actions"
+            git config user.email "actions@users.noreply.github.com"
+            git add decoded/assets/noir/newsprint-paper.jpg
+            git commit -m "Bundle real CC0 photographic paper texture for Cartoteka"
+            git push origin HEAD:main
+          fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: photographic-paper-source
+          path: decoded/assets/noir/newsprint-paper.jpg
+          retention-days: 7
