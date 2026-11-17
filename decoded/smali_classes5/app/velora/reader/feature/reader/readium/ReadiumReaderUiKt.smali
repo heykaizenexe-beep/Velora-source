@@ -38568,7 +38568,7 @@
     invoke-interface {v2, v1}, Landroidx/compose/runtime/Composer;->startReplaceGroup(I)V
 
     .line 1263
-    const/4 v1, 0x3
+    const/4 v1, 0x4
 
     new-array v1, v1, [Lkotlin/Pair;
 
@@ -38616,6 +38616,19 @@
     move-result-object v1
 
     const/16 v18, 0x2
+
+    aput-object v1, v86, v18
+
+    # Independent Newspaper reading palette; retains LIGHT, SEPIA, DARK.
+    sget-object v1, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    const-string v10, "Газета"
+
+    invoke-static {v1, v10}, Lkotlin/TuplesKt;->to(Ljava/lang/Object;Ljava/lang/Object;)Lkotlin/Pair;
+
+    move-result-object v1
+
+    const/4 v18, 0x3
 
     aput-object v1, v86, v18
 
