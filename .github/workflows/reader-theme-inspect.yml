@@ -16,15 +16,14 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root=Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium")
-          for p in [root/"ReadiumReaderUiKt.smali",root/"ComposableSingletons$ReadiumReaderUiKt.smali",
-                    Path("decoded/smali_classes5/app/velora/reader/feature/settings/SettingsScreenKt.smali")]:
+          for p in [root/"ReadiumReaderUiKt.smali",root/"ComposableSingletons$ReadiumReaderUiKt.smali"]:
             lines=p.read_text().splitlines()
-            terms=("Theme;", "SEPIA", "Сепия", "Тёмная", "Темная", "Тема страницы",
-                   "reading theme", "PageTheme", "PageColors", "Режим чтения",
-                   "theme", "Выберите цвет", "ReadiumSettingsOverlay")
-            hits=[i for i, line in enumerate(lines) if any(t in line for t in terms)]
+            terms=("Theme;->", "SEPIA", "Сепия", "Тёмная", "Темная", "readium_settings_theme",
+                   "PageTheme", "themeOptions", "Theme.valueOf", "Theme;->values", "ЧТЕНИЯ",
+                   "Тема страницы", "Дневной", "Ночной", "Темы", "Режим чтения")
+            hits=[i for i,line in enumerate(lines) if any(t in line for t in terms)]
             print("FILE",p,"LINES",len(lines),"HITS",len(hits))
-            for i in hits[:140]:
-              start=max(0,i-8); end=min(len(lines),i+13)
-              print("LOCATION",i+1,"\n"+"\n".join(f"{j+1}: {lines[j]}" for j in range(start,end)))
+            for i in hits[:90]:
+              start=max(0,i-16); end=min(len(lines),i+22)
+              print("LOCATION",i+1,"\\n"+"\\n".join(f"{j+1}: {lines[j]}" for j in range(start,end)))
           PY
