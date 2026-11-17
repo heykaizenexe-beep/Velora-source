@@ -26,6 +26,17 @@ final class NoirUi {
     // Do not use the old GPLv3 Schueler font. Cartoteka uses licensed Android system faces.
     static Typeface themedFont(Context context, Typeface fallback) { return fallback; }
 
+    /** The reconstructed project compiles against a legacy android.jar.
+     *  Tracking uses the platform method at runtime without requiring it in that stub. */
+    static void tracking(TextView view, float spacing) {
+        if (android.os.Build.VERSION.SDK_INT < 21) return;
+        try {
+            TextView.class.getMethod("setLetterSpacing", Float.TYPE).invoke(view, Float.valueOf(spacing));
+        } catch (ReflectiveOperationException unavailable) {
+            // Older systems retain the same text; only decorative tracking is omitted.
+        }
+    }
+
     static int dp(Context c, float size) { return Math.round(size * c.getResources().getDisplayMetrics().density); }
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("velora_noir_journal", Context.MODE_PRIVATE); }
     static boolean motion(Context c) { return prefs(c).getBoolean("motion", true) && CrtOverlay.animationsEnabled(); }
