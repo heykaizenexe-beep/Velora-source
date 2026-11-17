@@ -38628,7 +38628,7 @@
 
     move-result-object v1
 
-    const/4 v18, 0x3
+    const/16 v18, 0x3
 
     aput-object v1, v86, v18
 
