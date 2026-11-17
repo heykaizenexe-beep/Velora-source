@@ -21,5 +21,23 @@ public final class ReaderPaper {
   return home!=0?home:CrtTheme.background();
  }
  static boolean dark(Context context){Value value=papers.get(activity(context));return value==null?CrtTheme.isDark():value.dark;}
- static int foreground(Context context){int bg=background(context);return bg==0xfff7efd9?0xff5b3a21:CrtTheme.text(dark(context));}
+ // Fixed reader palettes do not depend on the selected Velora home theme.
+ public static int pageBackground(String name){
+  if("DARK".equals(name)) return 0xff242629;
+  if("SEPIA".equals(name)) return 0xfff7efd9;
+  if("NEWSPAPER".equals(name)) return 0xfff3eee5;
+  return 0xfffaf8f3;
+ }
+ public static int pageText(String name){
+  if("DARK".equals(name)) return 0xffe9e8e4;
+  if("SEPIA".equals(name)) return 0xff5b3a21;
+  return 0xff302620;
+ }
+ static int foreground(Context context){
+  int bg=background(context);
+  if(bg==0xff242629)return 0xffe9e8e4;
+  if(bg==0xfff7efd9)return 0xff5b3a21;
+  if(bg==0xfff3eee5||bg==0xfffaf8f3)return 0xff302620;
+  return CrtTheme.text(dark(context));
+ }
 }
