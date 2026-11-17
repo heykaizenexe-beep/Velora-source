@@ -25,10 +25,11 @@ jobs:
         run: python3 rebuild.py --compile-home
       - name: Check carousel and newspaper design regression
         run: python3 tools/check_editorial.py
+      - name: Check independent reading themes\n        run: python3 tools/check_reader_palettes.py
       - name: Publish build artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.142-main-APK
+          name: Velora-0.9.143-main-APK
           path: build-output/Velora-CRT.apk
           retention-days: 14
