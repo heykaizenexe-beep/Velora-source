@@ -188,6 +188,17 @@ def main():
         ui_xml()
         raise AssertionError("Test EPUB did not open ReadiumReaderActivity; see UI screenshot/XML")
     capture("03_reader_ready")
+    # The normal reader starts with the top/bottom chrome expanded (seen in
+    # the CI screenshots). First close it, as a real reader does before
+    # gripping the page. Otherwise testing a toolbar is not a page curl test.
+    size = cmd("adb", "shell", "wm", "size")
+    dims = re.search(r"(\d+)x(\d+)", size)
+    if not dims:
+        raise AssertionError("Unable to read Android display size")
+    display_width, display_height = map(int, dims.groups())
+    cmd("adb", "shell", "input", "tap", display_width // 2, display_height // 2)
+    time.sleep(1.5)
+    capture("03_reader_chrome_toggled")
     cmd("adb", "logcat", "-c")
     size = cmd("adb", "shell", "wm", "size")
     match = re.search(r"(\d+)x(\d+)", size)
