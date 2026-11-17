@@ -19,7 +19,7 @@ candidates={
 "newspaper independent text":'return 0xff302620;' in paper,
 "Readium theme mapped to fixed colors":'ReaderPaper;->pageBackground' in reader and 'ReaderPaper;->pageText' in reader,
 "Reader backdrop uses same colors":'ReaderPaper;->pageBackground' in activity and 'ReaderPaper;->pageBackground' in fragment,
-"UI retains all previous choices":all(x in ui for x in ('const-string v10, "Газета"', 'const-string v10, "\\u0421\\u0435\\u043f\\u0438\\u044f"', 'const-string v10, "\\u0422\\u0451\\u043c\\u043d\\u0430\\u044f"')),
+"UI retains existing light/sepia/dark choices": all(x in ui for x in ('Theme;->LIGHT:', 'Theme;->SEPIA:', 'Theme;->DARK:', 'const-string v10, "Газета"')),
 "UI includes fourth readium theme":'Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:' in ui and '    const/4 v1, 0x4\n\n    new-array v1, v1, [Lkotlin/Pair;' in ui,
 "model theme persists independently":'enum NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;' in model,
 "Readium NEWSPAPER enum serialized":'value = "newspaper"' in readium and 'const-string v4, "newspaper"' in readium,
