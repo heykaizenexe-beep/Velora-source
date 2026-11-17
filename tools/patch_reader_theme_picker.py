@@ -14,8 +14,8 @@ needle = 'sget-object v1, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPE
 if needle in s:
     # Existing 0.9.143 patch used a high v18 register with a four-bit const/4.
     # Use const/16 for the wide register operand; otherwise apktool rejects it.
-    before = '    const/4 v18, 0x3\\n\\n    aput-object v1, v86, v18'
-    after = '    const/16 v18, 0x3\\n\\n    aput-object v1, v86, v18'
+    before = '    const/4 v18, 0x3'
+    after = '    const/16 v18, 0x3'
     if before in s:
         s = s.replace(before, after, 1)
         FILE.write_text(s, encoding="utf-8")
