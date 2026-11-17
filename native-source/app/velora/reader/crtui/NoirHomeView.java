@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -36,6 +37,8 @@ final class NoirHomeView extends LinearLayout {
     private enum Filter { ALL, READING, FINISHED }
 
     private final ScrollView scroll;
+    private final NoirNewspaperPaper newspaperPaper;
+    private final SharedPreferences.OnSharedPreferenceChangeListener texturePreferenceListener;
     private final LinearLayout page, toolbarActions, display, tabs;
     private final FrameLayout content;
     private final NoirCoverDeck deck;
@@ -61,8 +64,16 @@ final class NoirHomeView extends LinearLayout {
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
-        // Barely visible print texture belongs to Cartoteka, never to book pages.
-        scroll.setBackgroundDrawable(new NoirNewspaperPaper(c));
+        // Reuse a single drawable; settings changes update it without rebuilding the carousel.
+        newspaperPaper = new NoirNewspaperPaper(c);
+        texturePreferenceListener = (preferences, key) -> {
+            if (NoirNewspaperPaper.PREF_STRENGTH.equals(key)) {
+                newspaperPaper.setStrength(NoirNewspaperPaper.clamp(
+                        preferences.getInt(NoirNewspaperPaper.PREF_STRENGTH,
+                                NoirNewspaperPaper.DEFAULT_STRENGTH)));
+            }
+        };
+        scroll.setBackgroundDrawable(newspaperPaper);
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
@@ -227,6 +238,19 @@ final class NoirHomeView extends LinearLayout {
         LayoutParams size = new LayoutParams(dp(48), dp(48));
         toolbarActions.addView(button, size);
         return button;
+    }
+
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        SharedPreferences preferences = NoirNewspaperPaper.preferences(getContext());
+        preferences.registerOnSharedPreferenceChangeListener(texturePreferenceListener);
+        newspaperPaper.setStrength(NoirNewspaperPaper.readStrength(getContext()));
+    }
+
+    @Override protected void onDetachedFromWindow() {
+        NoirNewspaperPaper.preferences(getContext()).unregisterOnSharedPreferenceChangeListener(
+                texturePreferenceListener);
+        super.onDetachedFromWindow();
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
