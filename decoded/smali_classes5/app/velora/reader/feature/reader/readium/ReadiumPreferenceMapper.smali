@@ -88,35 +88,18 @@
 .method private final colorsFor(Lorg/readium/r2/navigator/preferences/Theme;)Lapp/velora/reader/feature/reader/readium/ReadiumPreferenceMapper$PageColors;
     .locals 4
 
-    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->SEPIA:Lorg/readium/r2/navigator/preferences/Theme;
+    invoke-virtual {p1}, Lorg/readium/r2/navigator/preferences/Theme;->name()Ljava/lang/String;
 
-    if-ne p1, v0, :cond_0
+    move-result-object v0
 
-    const v1, -0x81027
-
-    const v2, -0xa4c5df
-
-    goto :goto_0
-
-    :cond_0
-    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->DARK:Lorg/readium/r2/navigator/preferences/Theme;
-
-    const/4 v3, 0x0
-
-    if-ne p1, v0, :cond_1
-
-    const/4 v3, 0x1
-
-    :cond_1
-    invoke-static {v3}, Lapp/velora/reader/crtui/CrtTheme;->background(Z)I
+    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
 
     move-result v1
 
-    invoke-static {v3}, Lapp/velora/reader/crtui/CrtTheme;->text(Z)I
+    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageText(Ljava/lang/String;)I
 
     move-result v2
 
-    :goto_0
     new-instance v0, Lapp/velora/reader/feature/reader/readium/ReadiumPreferenceMapper$PageColors;
 
     const/4 v3, 0x0
@@ -125,7 +108,6 @@
 
     return-object v0
 .end method
-
 
 # virtual methods
 .method public final fromAppPreferences(Landroid/content/Context;Lapp/velora/reader/data/preferences/AppPreferences;)Lorg/readium/r2/navigator/epub/EpubPreferences;
@@ -204,6 +186,17 @@
 
     move-result-object v0
 
+    sget-object v4, Lapp/velora/reader/core/model/ReaderPageTheme;->NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    if-ne v0, v4, :cond_reader_standard
+
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    move-object/from16 v26, v0
+
+    goto :goto_2
+
+    :cond_reader_standard
     sget-object v4, Lapp/velora/reader/feature/reader/readium/ReadiumPreferenceMapper$WhenMappings;->$EnumSwitchMapping$0:[I
 
     invoke-virtual {v0}, Lapp/velora/reader/core/model/ReaderPageTheme;->ordinal()I
@@ -687,6 +680,15 @@
     .locals 2
     .param p1, "theme"    # Lorg/readium/r2/navigator/preferences/Theme;
 
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    if-ne p1, v0, :cond_reader_regular_theme
+
+    sget-object v0, Lapp/velora/reader/core/model/ReaderPageTheme;->NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    return-object v0
+
+    :cond_reader_regular_theme
     .line 73
     if-nez p1, :cond_0
 
