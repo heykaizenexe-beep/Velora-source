@@ -275,7 +275,8 @@ final class NoirScrapbookView extends FrameLayout {
             String kind = p.kind;
             boolean isReader = kind.equals("read");
             boolean centered = isReader || kind.equals("photo");
-            int foreground = isReader || (p.custom && stockIndex == 7) ? NoirUi.WHITE : NoirUi.INK;
+            // Dark reader cutouts still need white lettering on the new light newspaper skin.
+            int foreground = isReader || (p.custom && stockIndex == 7) ? 0xfff9f5ee : NoirUi.INK;
             boolean serif = kind.equals("title") || kind.equals("review")
                     || kind.equals("note") || kind.equals("description");
             TextView text = NoirUi.text(host, p.text, textSize(p), foreground,
