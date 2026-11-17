@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,8 +38,8 @@ final class NoirHomeView extends LinearLayout {
     private final NoirCoverDeck deck;
     private final NoirBookTicket ticket;
     private final NoirShelfBackground shelfBackground;
-    private final NoirMiniShelf miniShelf;
-    private final TextView empty, sectionLabel;
+    private final LinearLayout library;
+    private final TextView empty, sectionLabel, libraryCount;
     private final ImageButton searchButton;
     private final TextView[] filters = new TextView[Filter.values().length];
     private final EditText query;
@@ -49,6 +50,7 @@ final class NoirHomeView extends LinearLayout {
     private boolean loading = true, opening;
     private int layoutWidth, layoutHeight;
     private Dialog menu;
+    private NoirCatalogSheet catalog;
 
     NoirHomeView(Context c) {
         super(c);
@@ -138,11 +140,35 @@ final class NoirHomeView extends LinearLayout {
         LayoutParams emptySize = new LayoutParams(-1, -2);
         emptySize.topMargin = dp(18);
         page.addView(empty, emptySize);
-        miniShelf = new NoirMiniShelf(c, this::chooseFromShelf);
-        LayoutParams shelfSize = new LayoutParams(-1, -2);
-        shelfSize.topMargin = dp(8);
-        page.addView(miniShelf, shelfSize);
-        miniShelf.setVisibility(GONE);
+        page.addView(new View(c), new LayoutParams(0, 0, 1f));
+        library = NoirUi.column(c);
+        View line = new View(c);
+        line.setBackgroundColor(NoirHomeStyle.EDGE);
+        library.addView(line, new LayoutParams(-1, dp(1)));
+        LinearLayout entry = new LinearLayout(c);
+        entry.setBaselineAligned(false);
+        entry.setGravity(Gravity.CENTER_VERTICAL);
+        entry.setPadding(dp(6), dp(8), dp(6), dp(8));
+        entry.setMinimumHeight(dp(52));
+        entry.setBackgroundDrawable(NoirHomeStyle.control(c, Color.TRANSPARENT, NoirHomeStyle.HIGHLIGHT, 0, 4));
+        entry.setOnClickListener(v -> openCatalog());
+        entry.setFocusable(true);
+        TextView name = NoirUi.text(c, "Библиотека", 15, NoirHomeStyle.INK, NoirUi.SANS);
+        Drawable booksIcon = NoirHomeStyle.symbol(c, NoirHomeStyle.Symbol.LIBRARY, NoirHomeStyle.INK_MUTED);
+        name.setCompoundDrawablesWithIntrinsicBounds(booksIcon, null, null, null);
+        name.setCompoundDrawablePadding(dp(9));
+        entry.addView(name, new LayoutParams(0, -2, 1f));
+        libraryCount = NoirUi.text(c, "", 13, NoirHomeStyle.INK_MUTED, NoirUi.SANS);
+        Drawable arrow = NoirHomeStyle.symbol(c, NoirHomeStyle.Symbol.UP, NoirHomeStyle.INK_MUTED);
+        libraryCount.setCompoundDrawablesWithIntrinsicBounds(null, null, arrow, null);
+        libraryCount.setCompoundDrawablePadding(dp(6));
+        entry.addView(libraryCount, new LayoutParams(-2, -2));
+        library.addView(entry, new LayoutParams(-1, -2));
+        LayoutParams librarySize = new LayoutParams(-1, -2);
+        librarySize.gravity = Gravity.CENTER_HORIZONTAL;
+        librarySize.topMargin = dp(18);
+        page.addView(library, librarySize);
+        library.setVisibility(GONE);
         updateFilterTabs();
     }
 
@@ -172,9 +198,13 @@ final class NoirHomeView extends LinearLayout {
         tabsSize.width = Math.min(dp(270), space);
         tabs.setLayoutParams(tabsSize);
         ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
+        LayoutParams librarySize = (LayoutParams) library.getLayoutParams();
+        librarySize.width = Math.min(space, dp(420));
+        library.setLayoutParams(librarySize);
         int height = Math.min(dp(500), Math.min(Math.round(space * .76f) + dp(40),
-                Math.max(dp(190), Math.round(h * .65f))));
+                Math.max(dp(190), h - dp(244))));
         deck.setLayoutParams(new LayoutParams(-1, height));
+        if (catalog != null) catalog.resize(w, h);
     }
 
     void bind(List<Book> incoming, HomeBinding binding) {
@@ -183,9 +213,10 @@ final class NoirHomeView extends LinearLayout {
         if (loading == (incoming == null) && books.equals(received)) return;
         loading = incoming == null;
         books = received;
-        miniShelf.bind(books);
-        miniShelf.setVisibility(loading ? GONE : VISIBLE);
+        libraryCount.setText(NoirCatalogSheet.bookCount(books.size()));
+        library.setVisibility(loading ? GONE : VISIBLE);
         update();
+        if (catalog != null) catalog.bind(books, selectedBookId());
     }
 
     private int dp(float v) { return NoirUi.dp(getContext(), v); }
@@ -294,11 +325,31 @@ final class NoirHomeView extends LinearLayout {
         Book book = deck.book();
         ticket.bind(book);
         ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
-        miniShelf.select(book == null ? 0L : book.getId());
         if (!deck.waitingForCurrentCover()) shelfBackground.show(deck.currentCover(), NoirUi.motion(getContext()));
     }
 
-    private void chooseFromShelf(Book book) {
+    private Long selectedBookId() {
+        Book book = deck.book();
+        return book == null ? null : book.getId();
+    }
+
+    private void openCatalog() {
+        if (catalog != null || menu != null || loading || opening) return;
+        Activity activity = HomePresentation.activity(getContext());
+        if (activity == null || activity.isFinishing()) return;
+        InputMethodManager input = keyboard();
+        if (input != null) input.hideSoftInputFromWindow(query.getWindowToken(), 0);
+        NoirCatalogSheet sheet = new NoirCatalogSheet(activity, this::chooseFromLibrary);
+        sheet.setOnDismissListener(d -> {
+            if (catalog == sheet) catalog = null;
+        });
+        catalog = sheet;
+        sheet.bind(books, selectedBookId());
+        sheet.show();
+        sheet.resize(getWidth(), getHeight());
+    }
+
+    private void chooseFromLibrary(Book book) {
         if (!JournalReader.canRead(book.getFormat())) {
             if (home != null) home.openShownBook(book);
             return;
@@ -343,7 +394,7 @@ final class NoirHomeView extends LinearLayout {
     }
 
     private void openMenu() {
-        if (menu != null || opening || home == null) return;
+        if (menu != null || catalog != null || opening || home == null) return;
         Context c = getContext();
         menu = new Dialog(c) {
             private float downX, downY;
@@ -452,6 +503,7 @@ final class NoirHomeView extends LinearLayout {
         opening = false;
         shelfBackground.stop();
         if (menu != null) menu.dismiss();
+        if (catalog != null) catalog.dismiss();
         super.onDetachedFromWindow();
     }
 

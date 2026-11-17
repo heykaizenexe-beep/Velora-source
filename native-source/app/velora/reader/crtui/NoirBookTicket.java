@@ -58,24 +58,25 @@ final class NoirBookTicket extends LinearLayout {
         caption.addView(next, new LayoutParams(dp(46), dp(46)));
         addView(caption, new LayoutParams(-1, -2));
 
-        View rule = new View(c);
-        rule.setBackgroundColor(NoirHomeStyle.EDGE);
-        LayoutParams divider = new LayoutParams(-1, dp(1));
-        divider.topMargin = dp(10);
-        addView(rule, divider);
-
         LinearLayout actions = new LinearLayout(c);
-        actions.setGravity(Gravity.CENTER);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
         actions.setBaselineAligned(false);
-        read = action(c, "Читать", NoirHomeStyle.INK, reader);
-        actions.addView(read, new LayoutParams(0, -2, 1f));
+        read = action(c, "Читать", NoirHomeStyle.PAPER_INK, reader);
+        read.setPadding(dp(14), dp(5), dp(14), dp(5));
+        read.setBackgroundDrawable(NoirHomeStyle.control(c, NoirHomeStyle.PAPER, 0xffbfb59f, 0, 5));
+        actions.addView(read, new LayoutParams(-2, -2));
         TextView diary = action(c, "Дневник", NoirHomeStyle.INK_MUTED, journal);
-        actions.addView(diary, new LayoutParams(0, -2, 1f));
+        LayoutParams diarySize = new LayoutParams(-2, -2);
+        diarySize.leftMargin = dp(8);
+        actions.addView(diary, diarySize);
         noteToggle = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.NOTE, "Последняя заметка",
                 () -> reveal(!expanded, true));
         noteToggle.setOnTouchListener(this::pull);
         actions.addView(noteToggle, new LayoutParams(dp(46), dp(46)));
-        addView(actions, new LayoutParams(-1, -2));
+        LayoutParams actionsSize = new LayoutParams(-2, -2);
+        actionsSize.gravity = Gravity.CENTER_HORIZONTAL;
+        actionsSize.topMargin = dp(9);
+        addView(actions, actionsSize);
 
         note = NoirUi.text(c, "", 15, NoirHomeStyle.PAPER_INK, NoirUi.SERIF);
         note.setBackgroundDrawable(NoirHomeStyle.folder(c));

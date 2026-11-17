@@ -1,4 +1,4 @@
-# Velora 0.9.133
+# Velora 0.9.134
 
 Проект восстановлен из APK. В нём есть редактируемый Java-код доработок, ресурсы и smali приложения и Readium. Сборку запускает `rebuild.py`, в том числе из терминала Android Studio.
 
@@ -22,7 +22,7 @@ Android SDK для этой сборки устанавливать отдель
 | Что меняешь | Где искать |
 | --- | --- |
 | Главная «Картотеки» | `native-source/app/velora/reader/crtui/NoirHomeView.java` |
-| Обложки и нижняя карточка | `NoirCoverDeck.java` и `NoirBookTicket.java` в той же папке |
+| Обложки, карточка книги и список библиотеки | `NoirCoverDeck.java`, `NoirBookTicket.java` и `NoirCatalogSheet.java` в той же папке |
 | Дневник и разворот | `NoirSpreadActivity.java` и `NoirScrapbookView.java` в той же папке |
 | Анимация перелистывания | `PageTurnController.java` и `PageCurlView.java` в той же папке |
 | Смежная логика Readium, в том числе выделение текста | `decoded/smali_classes20/org/readium/r2/navigator/` |
@@ -46,7 +46,7 @@ Android SDK для этой сборки устанавливать отдель
 ```powershell
 git init -b main
 git add .
-git commit -m "Исходники Velora 0.9.133"
+git commit -m "Исходники Velora 0.9.134"
 git remote add origin https://github.com/USERNAME/Velora-source.git
 git push -u origin main
 ```

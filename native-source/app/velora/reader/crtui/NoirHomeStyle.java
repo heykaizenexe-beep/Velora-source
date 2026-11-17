@@ -24,7 +24,7 @@ final class NoirHomeStyle {
     static final int PAPER = 0xffd8cfb8;
     static final int PAPER_INK = 0xff272b28;
 
-    enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE }
+    enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE, LIBRARY, UP }
 
     private NoirHomeStyle() {}
 
@@ -53,13 +53,17 @@ final class NoirHomeStyle {
     static ImageButton icon(Context c, Symbol symbol, String description, Runnable action) {
         ImageButton button = new ImageButton(c);
         button.setBackgroundDrawable(control(c, Color.TRANSPARENT, HIGHLIGHT, 0, 6));
-        button.setImageDrawable(new Icon(NoirUi.dp(c, 22), symbol, INK));
+        button.setImageDrawable(symbol(c, symbol, INK));
         button.setScaleType(ImageButton.ScaleType.CENTER);
         button.setPadding(0, 0, 0, 0);
         button.setContentDescription(description);
         button.setFocusable(true);
         button.setOnClickListener(v -> action.run());
         return button;
+    }
+
+    static Drawable symbol(Context c, Symbol symbol, int color) {
+        return new Icon(NoirUi.dp(c, 22), symbol, color);
     }
 
     static Drawable folder(Context c) {
@@ -137,6 +141,15 @@ final class NoirHomeStyle {
                     canvas.drawLine(7f, 19f, 7f, 5f, line);
                     canvas.drawLine(10f, 10f, 14f, 10f, line);
                     canvas.drawLine(10f, 14f, 13f, 14f, line);
+                    break;
+                case LIBRARY:
+                    canvas.drawRect(4f, 5f, 8.5f, 19f, line);
+                    canvas.drawRect(8.5f, 5f, 13f, 19f, line);
+                    canvas.drawLine(15f, 5.5f, 20f, 18.5f, line);
+                    break;
+                case UP:
+                    canvas.drawLine(7f, 14f, 12f, 9f, line);
+                    canvas.drawLine(12f, 9f, 17f, 14f, line);
                     break;
                 case PREVIOUS:
                 case NEXT:
