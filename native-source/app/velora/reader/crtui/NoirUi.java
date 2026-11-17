@@ -19,7 +19,30 @@ final class NoirUi {
     static final Typeface SANS = Typeface.create("sans-serif", Typeface.NORMAL);
     static final Typeface MEDIUM = Typeface.create("sans-serif-medium", Typeface.NORMAL);
     static final Typeface SERIF = Typeface.create("serif", Typeface.NORMAL);
+    private static volatile Typeface schuelerBold;
     private NoirUi() {}
+
+    /** Cartoteka's display font, kept strictly out of book typography and other skins. */
+    static Typeface schuelerBold(Context context) {
+        Typeface cached = schuelerBold;
+        if (cached != null) return cached;
+        synchronized (NoirUi.class) {
+            if (schuelerBold == null) {
+                try {
+                    schuelerBold = Typeface.createFromAsset(context.getAssets(),
+                            "fonts/SchuelerSuperHyperXPPlus-Bold.ttf");
+                } catch (RuntimeException missing) {
+                    android.util.Log.w("VeloraNoirFont", "Missing Schueler Bold font asset", missing);
+                    schuelerBold = Typeface.DEFAULT_BOLD;
+                }
+            }
+            return schuelerBold;
+        }
+    }
+
+    static Typeface themedFont(Context context, Typeface fallback) {
+        return AppTheme.isNoir() ? schuelerBold(context) : fallback;
+    }
 
     static int dp(Context c, float size) { return Math.round(size * c.getResources().getDisplayMetrics().density); }
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("velora_noir_journal", Context.MODE_PRIVATE); }
@@ -37,7 +60,7 @@ final class NoirUi {
         text.setText(value);
         text.setTextSize(size);
         text.setTextColor(color);
-        text.setTypeface(font);
+        text.setTypeface(themedFont(c, font));
         return text;
     }
     static TextView control(Context c, String value, Runnable action) {
