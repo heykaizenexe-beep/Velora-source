@@ -13,36 +13,18 @@ import java.util.Date;
 import java.util.Locale;
 
 final class NoirUi {
-    static final int BACKGROUND = CrtPalette.NOIR_BACKGROUND, PANEL = 0xff2d2a2b, ACCENT = 0xffdfcfc3;
-    static final int WHITE = 0xfff3efe9, DIM = 0xffbcb3ad;
-    static final int INK = 0xff242220, PAPER = 0xfff7f3eb, BLUE = 0xff394d68, WINE = 0xff672e3d;
+    // Newspaper edition: warm paper, carbon ink and one restrained oxidised-red accent.
+    static final int BACKGROUND = CrtPalette.NOIR_BACKGROUND, PANEL = 0xfffaf6ed, ACCENT = 0xffa94f3b;
+    static final int WHITE = 0xff302620, DIM = 0xff75695e;
+    static final int INK = 0xff302620, PAPER = 0xfffaf6ed, BLUE = 0xff736851, WINE = 0xffa94f3b;
     static final Typeface SANS = Typeface.create("sans-serif", Typeface.NORMAL);
     static final Typeface MEDIUM = Typeface.create("sans-serif-medium", Typeface.NORMAL);
     static final Typeface SERIF = Typeface.create("serif", Typeface.NORMAL);
-    private static volatile Typeface schuelerBold;
+    static final Typeface HEADLINE = Typeface.create("serif", Typeface.BOLD);
     private NoirUi() {}
 
-    /** Cartoteka's display font, kept strictly out of book typography and other skins. */
-    static Typeface schuelerBold(Context context) {
-        Typeface cached = schuelerBold;
-        if (cached != null) return cached;
-        synchronized (NoirUi.class) {
-            if (schuelerBold == null) {
-                try {
-                    schuelerBold = Typeface.createFromAsset(context.getAssets(),
-                            "fonts/SchuelerSuperHyperXPPlus-Bold.ttf");
-                } catch (RuntimeException missing) {
-                    android.util.Log.w("VeloraNoirFont", "Missing Schueler Bold font asset", missing);
-                    schuelerBold = Typeface.DEFAULT_BOLD;
-                }
-            }
-            return schuelerBold;
-        }
-    }
-
-    static Typeface themedFont(Context context, Typeface fallback) {
-        return AppTheme.isNoir() ? schuelerBold(context) : fallback;
-    }
+    // Do not use the old GPLv3 Schueler font. Cartoteka uses licensed Android system faces.
+    static Typeface themedFont(Context context, Typeface fallback) { return fallback; }
 
     static int dp(Context c, float size) { return Math.round(size * c.getResources().getDisplayMetrics().density); }
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("velora_noir_journal", Context.MODE_PRIVATE); }
