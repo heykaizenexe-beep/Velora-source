@@ -14,7 +14,7 @@ import android.graphics.Shader;
 /** Soft light projected around a book's front cover. */
 final class NoirShelfGlow {
     private static final int WIDTH = 112, HEIGHT = 128;
-    private static final float SPREAD_X = .46f, SPREAD_Y = .22f;
+    private static final float SPREAD_X = .56f, SPREAD_Y = .27f;
     private static final float[] FRONT = {0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f};
 
     private final Bitmap mask = makeMask();
@@ -29,8 +29,8 @@ final class NoirShelfGlow {
         int wall = NoirHomeStyle.WALL;
         int clear = wall & 0xffffff;
         int[] colors = {wall, clear, clear, wall};
-        float x = Math.min(.18f, 22f * density / width);
-        float y = Math.min(.18f, 17f * density / height);
+        float x = Math.min(.18f, 28f * density / width);
+        float y = Math.min(.18f, 22f * density / height);
         horizontalFade = new LinearGradient(0, 0, width, 0, colors,
                 new float[]{0f, x, 1f - x, 1f}, Shader.TileMode.CLAMP);
         verticalFade = new LinearGradient(0, 0, 0, height, colors,
@@ -64,13 +64,14 @@ final class NoirShelfGlow {
         int g = coverColor >> 8 & 255;
         int b = coverColor & 255;
         int peak = Math.max(r, Math.max(g, b));
-        float scale = Math.max(1f, 218f / Math.max(72, peak));
+        float scale = Math.max(1f, 198f / Math.max(72, peak));
         // Preserve color while giving dark and nearly black covers enough light to read on graphite.
         float brightness = peak * scale;
-        float neutral = brightness < 176f ? (176f - brightness) / (255f - brightness) : 0f;
+        float neutral = brightness < 158f ? (158f - brightness) / (255f - brightness) : 0f;
         int boosted = 0xff000000 | (Math.round(r * scale) << 16)
                 | (Math.round(g * scale) << 8) | Math.round(b * scale);
-        return CrtColorMath.mix(boosted, 0xfff2f0f5, neutral);
+        int colored = CrtColorMath.mix(boosted, 0xfff2f0f5, neutral);
+        return CrtColorMath.mix(colored, 0xff8c8994, .16f);
     }
 
     static float strength(float offset) {
@@ -91,11 +92,9 @@ final class NoirShelfGlow {
     }
 
     static int opacity(float x, float y) {
-        float dx = Math.max(0f, Math.abs(x - .5f) - .43f) / (SPREAD_X + .07f);
-        float dy = Math.max(0f, Math.abs(y - .5f) - .45f) / (SPREAD_Y + .05f);
+        float dx = Math.max(0f, Math.abs(x - .5f) - .29f) / (SPREAD_X + .21f);
+        float dy = Math.max(0f, Math.abs(y - .5f) - .36f) / (SPREAD_Y + .14f);
         float distance = Math.min(1f, (float) Math.sqrt(dx * dx + dy * dy));
-        float aura = strength(distance);
-        float core = strength(distance / .55f);
-        return Math.round(130f * aura + 110f * core);
+        return Math.round(157f * strength(distance));
     }
 }

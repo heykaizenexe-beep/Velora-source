@@ -18,6 +18,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -35,6 +36,7 @@ final class NoirHomeView extends LinearLayout {
 
     private final ScrollView scroll;
     private final LinearLayout page, toolbarActions, display, tabs;
+    private final FrameLayout content;
     private final NoirCoverDeck deck;
     private final NoirBookTicket ticket;
     private final LinearLayout library;
@@ -128,16 +130,25 @@ final class NoirHomeView extends LinearLayout {
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
                 this::readBook, this::openBook, this::ticketInView);
         display.addView(ticket, new LayoutParams(-1, -2));
-        page.addView(display, new LayoutParams(-1, -2));
         display.setVisibility(GONE);
 
+        content = new FrameLayout(c) {
+            @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+                super.onLayout(changed, left, top, right, bottom);
+                if (display.getVisibility() != VISIBLE) return;
+                // Center the covers, leaving space for the title and actions below.
+                int centeredTop = (getHeight() - deck.getHeight()) / 2;
+                int lastTop = getHeight() - display.getHeight();
+                int displayTop = Math.max(0, Math.min(centeredTop, lastTop));
+                display.offsetTopAndBottom(displayTop - display.getTop());
+            }
+        };
+        content.addView(display, new FrameLayout.LayoutParams(-1, -2));
         empty = NoirUi.text(c, "Загрузка книг…", 16, NoirHomeStyle.INK_MUTED, NoirUi.SERIF);
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(dp(20), dp(24), dp(20), dp(24));
-        LayoutParams emptySize = new LayoutParams(-1, -2);
-        emptySize.topMargin = dp(18);
-        page.addView(empty, emptySize);
-        page.addView(new View(c), new LayoutParams(0, 0, 1f));
+        content.addView(empty, new FrameLayout.LayoutParams(-1, -2, Gravity.CENTER_VERTICAL));
+        page.addView(content, new LayoutParams(-1, -2, 1f));
         library = NoirUi.column(c);
         View line = new View(c);
         line.setBackgroundColor(NoirHomeStyle.EDGE);
@@ -363,7 +374,8 @@ final class NoirHomeView extends LinearLayout {
 
     private void ticketInView() {
         scroll.post(() -> {
-            int overflow = display.getTop() + ticket.getBottom() + dp(12) - scroll.getScrollY() - scroll.getHeight();
+            int noteBottom = content.getTop() + display.getTop() + ticket.getBottom();
+            int overflow = noteBottom + dp(12) - scroll.getScrollY() - scroll.getHeight();
             if (overflow > 0) scroll.smoothScrollBy(0, overflow);
         });
     }
