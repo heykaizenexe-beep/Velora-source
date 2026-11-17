@@ -80,7 +80,7 @@ public final class NoirSpreadActivity extends Activity {
         back.setContentDescription("Вернуться к книгам");
         back.setTextSize(28);
         header.addView(back, new LinearLayout.LayoutParams(dp(48), dp(46)));
-        TextView heading = NoirUi.text(this, "Дневник", 22, NoirUi.WHITE, NoirUi.SERIF);
+        TextView heading = NoirUi.text(this, "Дневник", 22, NoirUi.WHITE, NoirUi.HEADLINE);
         heading.setGravity(Gravity.CENTER);
         header.addView(heading, new LinearLayout.LayoutParams(0, -2, 1));
         undoButton = NoirUi.flatControl(this, "↶", () -> { if (scrapbook != null) scrapbook.undo(); });
