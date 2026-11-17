@@ -1,6 +1,7 @@
 package app.velora.reader.crtui;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
@@ -23,15 +24,35 @@ import android.graphics.drawable.Drawable;
  * network assets, external fonts, allocations or randomness on draw().
  */
 final class NoirNewspaperPaper extends Drawable {
+    static final int DEFAULT_STRENGTH = 35;
+    static final int MIN_STRENGTH = 0;
+    static final int MAX_STRENGTH = 100;
+    static final String PREF_STRENGTH = "newspaper_texture_strength";
+    private static final String PREFS_NAME = "velora_cartoteka_appearance";
     private static final int TILE = 192;
+
+    static SharedPreferences preferences(Context context) {
+        Context app = context.getApplicationContext();
+        return (app == null ? context : app).getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    static int readStrength(Context context) {
+        return clamp(preferences(context).getInt(PREF_STRENGTH, DEFAULT_STRENGTH));
+    }
+
+    static int clamp(int value) {
+        return Math.max(MIN_STRENGTH, Math.min(MAX_STRENGTH, value));
+    }
     private final Paint paper = new Paint();
     private final Paint grain = new Paint();
     private final Paint ghostInk = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float density;
     private int alpha = 255;
+    private int strength;
 
     NoirNewspaperPaper(Context context) {
         density = context.getResources().getDisplayMetrics().density;
+        strength = readStrength(context);
         Bitmap texture = Bitmap.createBitmap(TILE, TILE, Bitmap.Config.ARGB_8888);
         int[] pixels = new int[TILE * TILE];
         int seed = 0x5a3c29e1;
@@ -42,10 +63,11 @@ final class NoirNewspaperPaper extends Drawable {
             seed ^= seed << 5;
             int sample = (seed >>> 8) & 255;
             if (sample < 90) {
-                int speck = 4 + ((seed >>> 19) & 7);
+                // 100%: still translucent. 35% matches the original 0.9.144 grain.
+                int speck = (4 + ((seed >>> 19) & 7)) * 3;
                 pixels[i] = Color.argb(speck, 95, 77, 59);
             } else if (sample > 218) {
-                int fleck = 4 + ((seed >>> 21) & 7);
+                int fleck = (4 + ((seed >>> 21) & 7)) * 3;
                 pixels[i] = Color.argb(fleck, 255, 255, 250);
             }
         }
@@ -56,6 +78,13 @@ final class NoirNewspaperPaper extends Drawable {
         ghostInk.setStyle(Paint.Style.STROKE);
     }
 
+    void setStrength(int value) {
+        int next = clamp(value);
+        if (strength == next) return;
+        strength = next;
+        invalidateSelf();
+    }
+
     @Override public void draw(Canvas canvas) {
         Rect bounds = getBounds();
         if (bounds.isEmpty()) return;
@@ -63,14 +92,17 @@ final class NoirNewspaperPaper extends Drawable {
         paper.setColor((alpha << 24) | (NoirHomeStyle.WALL & 0x00ffffff));
         canvas.drawRect(bounds, paper);
 
-        // Grain averages well below 2% effective contrast on top of paper.
-        grain.setAlpha(alpha);
+        // The grain is adjustable separately from the opaque paper base.
+        // At 0% the background is perfectly clean; at 35% it matches v0.9.144.
+        if (strength == 0) return;
+        grain.setAlpha((strength * alpha + 50) / 100);
         canvas.drawRect(bounds, grain);
 
-        // The ink is only ~4% opaque and confined to the edges; centre stays
-        // almost blank to protect the 3D carousel's visual hierarchy.
+        // The ghosted print never exceeds ~10% opacity, even at 100%.
+        // Restrict it to the edges; keep the 3D carousel's centre clean.
         if (bounds.width() < density * 290f) return;
-        int inkAlpha = (11 * alpha + 127) / 255;
+        int inkAlpha = (Math.min(27, Math.round(11f * strength / DEFAULT_STRENGTH))
+                * alpha + 127) / 255;
         ghostInk.setColor(Color.argb(inkAlpha, 89, 75, 63));
         float band = Math.min(bounds.width() * .17f, density * 72f);
         float padding = density * 8f;
