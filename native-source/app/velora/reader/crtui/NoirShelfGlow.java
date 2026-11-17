@@ -65,13 +65,13 @@ final class NoirShelfGlow {
         int b = coverColor & 255;
         int peak = Math.max(r, Math.max(g, b));
         float scale = Math.max(1f, 198f / Math.max(72, peak));
-        // Preserve color while giving dark and nearly black covers enough light to read on graphite.
+        // On a paper background the tint should be a subtle warm reflection, not neon.
         float brightness = peak * scale;
         float neutral = brightness < 158f ? (158f - brightness) / (255f - brightness) : 0f;
         int boosted = 0xff000000 | (Math.round(r * scale) << 16)
                 | (Math.round(g * scale) << 8) | Math.round(b * scale);
-        int colored = CrtColorMath.mix(boosted, 0xfff2f0f5, neutral);
-        return CrtColorMath.mix(colored, 0xff8c8994, .16f);
+        int colored = CrtColorMath.mix(boosted, 0xffeee4d8, neutral);
+        return CrtColorMath.mix(colored, 0xff9e8168, .22f);
     }
 
     static float strength(float offset) {
@@ -95,6 +95,6 @@ final class NoirShelfGlow {
         float dx = Math.max(0f, Math.abs(x - .5f) - .5f) / SPREAD_X;
         float dy = Math.max(0f, Math.abs(y - .5f) - .5f) / SPREAD_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        return Math.round(112f * strength(distance));
+        return Math.round(54f * strength(distance));
     }
 }
