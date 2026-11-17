@@ -164,15 +164,21 @@ public final class PageCurlView extends View {
         ensureSize();
         Bitmap bitmap = page;
         if (bitmap == null || bitmap.isRecycled() || getWidth() < 1 || getHeight() < 1) return;
-        if (geometry.progress <= 0f || underPage == null || underPage.isRecycled()) {
+        if (geometry.progress <= 0f) {
             drawBitmap(canvas, bitmap);
             return;
         }
+        // React to the touch immediately. A cold neighbor may still be rendering;
+        // show the folded physical sheet over paper rather than freezing the sheet
+        // in place until the asynchronous Readium snapshot becomes available.
+        boolean neighborReady = underPage != null && !underPage.isRecycled();
         final boolean hasRidge=geometry.ridgeSpan(ridgeSpan);
         final float effect=hasRidge?geometry.effectStrength():0f;
         float underEdge = geometry.origin + geometry.radius * (float) Math.sin(
                 Math.max(0f, Math.min(Math.PI / 2, (geometry.maxU - geometry.origin) / geometry.radius)));
-        if (geometry.progress >= 1f || !underlay.draw(canvas, geometry.width, geometry.height,
+        if (!neighborReady) {
+            canvas.drawColor(paperColor);
+        } else if (geometry.progress >= 1f || !underlay.draw(canvas, geometry.width, geometry.height,
                 geometry.nx, geometry.ny, underEdge,
                 Math.min(geometry.width * .07f, 40f * getResources().getDisplayMetrics().density),
                 effect, ridgeSpan[0], ridgeSpan[1])) drawBitmap(canvas, underPage);
