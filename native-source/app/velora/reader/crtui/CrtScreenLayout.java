@@ -423,6 +423,10 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
             if(gestureWarp)gestureGeometry.displayToSource(event.getX(),event.getY(),mappedPoint);
             else {mappedPoint[0]=event.getX();mappedPoint[1]=event.getY();}
             rejectedGesture=viewport!=null&&!viewport.contains(mappedPoint[0],mappedPoint[1]);
+            if(ReaderStatus.isReader(getContext()))
+                android.util.Log.d("VeloraPageInput","crt_down x="+event.getX()+" y="+event.getY()
+                    +" mappedX="+mappedPoint[0]+" mappedY="+mappedPoint[1]
+                    +" rejected="+rejectedGesture+" warped="+gestureWarp+" viewport="+(viewport!=null));
         }
         boolean end = action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL;
         if (rejectedGesture || ignoreRemainder) {
