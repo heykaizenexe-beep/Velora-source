@@ -12,7 +12,16 @@ FILE = Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium/Rea
 s = FILE.read_text(encoding="utf-8")
 needle = 'sget-object v1, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:'
 if needle in s:
-    print("NEWSPAPER UI entry already present; no changes")
+    # Existing 0.9.143 patch used a high v18 register with a four-bit const/4.
+    # Use const/16 for the wide register operand; otherwise apktool rejects it.
+    before = '    const/4 v18, 0x3\\n\\n    aput-object v1, v86, v18'
+    after = '    const/16 v18, 0x3\\n\\n    aput-object v1, v86, v18'
+    if before in s:
+        s = s.replace(before, after, 1)
+        FILE.write_text(s, encoding="utf-8")
+        print("PASS: fixed high-register const/16 for Newspaper option")
+    else:
+        print("NEWSPAPER picker already patched with valid register encoding")
     raise SystemExit(0)
 
 start = s.index('    .line 1263\n    const/4 v1, 0x3\n\n    new-array v1, v1, [Lkotlin/Pair;')
@@ -36,7 +45,7 @@ block = block.replace(marker, '''    aput-object v1, v86, v18
 
     move-result-object v1
 
-    const/4 v18, 0x3
+    const/16 v18, 0x3
 
     aput-object v1, v86, v18
 
