@@ -14,7 +14,7 @@ final class NoirSpine {
     private final TextPaint ink = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 
     NoirSpine(Context context) {
-        ink.setTypeface(NoirUi.themedFont(context, NoirUi.MEDIUM));
+        ink.setTypeface(NoirUi.MEDIUM);
         ink.setTextAlign(Paint.Align.CENTER);
     }
 
