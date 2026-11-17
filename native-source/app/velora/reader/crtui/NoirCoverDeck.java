@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -26,6 +27,7 @@ import java.util.List;
 final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
     private final NoirSpine spine = new NoirSpine();
+    private final NoirShelfGlow glow = new NoirShelfGlow();
     private static final float SPINE_WIDTH = 74f, SPINE_HEIGHT = 700f;
     private static final float[] SPINE_PLANE = {0, 0, SPINE_WIDTH, 0, SPINE_WIDTH, SPINE_HEIGHT, 0, SPINE_HEIGHT};
     private final Matrix spineProjection = new Matrix();
@@ -68,14 +70,6 @@ final class NoirCoverDeck extends View {
     Book book() { return books.isEmpty() ? null : books.get(index); }
     int index() { return index; }
     int count() { return books.size(); }
-    Bitmap currentCover() {
-        Card card = cards.get(index);
-        return card == null ? null : card.bitmap;
-    }
-    boolean waitingForCurrentCover() {
-        Card card = cards.get(index);
-        return card != null && card.request != null;
-    }
 
     int[] coverOrigin() {
         if (books.isEmpty() || getWidth() <= 0 || getHeight() <= 0 || settling != null || horizontal) return null;
@@ -111,7 +105,9 @@ final class NoirCoverDeck extends View {
     private float dp(float n) { return NoirUi.dp(getContext(), n); }
 
     @Override protected void onSizeChanged(int w, int h, int oldW, int oldH) {
-        shelf.size(w, h, getResources().getDisplayMetrics().density, NoirBookArt.COVER_RATIO);
+        float density = getResources().getDisplayMetrics().density;
+        shelf.size(w, h, density, NoirBookArt.COVER_RATIO);
+        glow.size(w, h, density);
         floorShadow = new RadialGradient(0, 0, 1f,
                 new int[]{0x40353c33, 0x20353c33, 0x00353c33},
                 new float[]{0f, .52f, 1f}, Shader.TileMode.CLAMP);
@@ -119,6 +115,10 @@ final class NoirCoverDeck extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         if (books.isEmpty()) return;
+        int left = (int) Math.floor(position);
+        drawGlow(canvas, left);
+        if (position != left) drawGlow(canvas, left + 1);
+        glow.fadeAtEdges(canvas, getWidth(), getHeight());
         ink.setColor(0xffffffff);
         int shadow = canvas.save();
         canvas.translate(getWidth() * .5f, (getHeight() + shelf.bookHeight()) * .5f + dp(9));
@@ -133,6 +133,14 @@ final class NoirCoverDeck extends View {
             drawCard(canvas, near + distance);
         }
         drawCard(canvas, near);
+    }
+
+    private void drawGlow(Canvas canvas, int at) {
+        Card card = cards.get(at);
+        if (card == null) return;
+        float offset = at - position;
+        shelf.project(offset);
+        glow.draw(canvas, shelf.front, card.glowTint, NoirShelfGlow.strength(offset));
     }
 
     private void drawCard(Canvas canvas, int at) {
@@ -229,28 +237,34 @@ final class NoirCoverDeck extends View {
         final Book book;
         final String spineText;
         int cloth;
+        ColorFilter glowTint;
         Bitmap bitmap;
         CoverRepository<Bitmap>.Request request;
         final CoverRepository.Callback<Bitmap> loaded = this::applyCover;
 
         private void applyCover(Bitmap value) {
             request = null;
+            setCover(value);
+            invalidate();
+        }
+
+        private void setCover(Bitmap value) {
             bitmap = value;
             cloth = NoirSpine.color(value, NoirBookArt.cloth(book.getId()));
-            invalidate();
-            if (cards.get(index) == this && Math.abs(position - index) < .02f) selected.run();
+            glowTint = NoirShelfGlow.filter(cloth);
         }
 
         Card(Book book) {
             this.book = book;
             spineText = spine.fit(JournalBookView.titleOf(book), SPINE_WIDTH, SPINE_HEIGHT);
-            cloth = NoirBookArt.cloth(book.getId());
             String path = book.getDisplayCoverPath();
-            if (path == null || path.isEmpty()) return;
+            if (path == null || path.isEmpty()) {
+                setCover(null);
+                return;
+            }
             CoverRepository<Bitmap> repository = CoverLoader.get(getContext());
-            bitmap = repository.peek(path);
+            setCover(repository.peek(path));
             if (bitmap == null) request = repository.load(path, loaded);
-            else cloth = NoirSpine.color(bitmap, cloth);
         }
 
         void cancel() { if (request != null) request.cancel(); }

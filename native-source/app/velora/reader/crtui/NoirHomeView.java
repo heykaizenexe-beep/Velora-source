@@ -37,7 +37,6 @@ final class NoirHomeView extends LinearLayout {
     private final LinearLayout page, toolbarActions, display, tabs;
     private final NoirCoverDeck deck;
     private final NoirBookTicket ticket;
-    private final NoirShelfBackground shelfBackground;
     private final LinearLayout library;
     private final TextView empty, sectionLabel, libraryCount;
     private final ImageButton searchButton;
@@ -55,7 +54,6 @@ final class NoirHomeView extends LinearLayout {
     NoirHomeView(Context c) {
         super(c);
         setOrientation(VERTICAL);
-        shelfBackground = new NoirShelfBackground();
         setBackgroundColor(NoirHomeStyle.WALL);
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
@@ -126,7 +124,6 @@ final class NoirHomeView extends LinearLayout {
         display = NoirUi.column(c);
         display.setGravity(Gravity.CENTER_HORIZONTAL);
         deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
-        deck.setBackgroundDrawable(shelfBackground);
         display.addView(deck, new LayoutParams(-1, dp(280)));
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
                 this::readBook, this::openBook, this::ticketInView);
@@ -325,7 +322,6 @@ final class NoirHomeView extends LinearLayout {
         Book book = deck.book();
         ticket.bind(book);
         ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
-        if (!deck.waitingForCurrentCover()) shelfBackground.show(deck.currentCover(), NoirUi.motion(getContext()));
     }
 
     private Long selectedBookId() {
@@ -501,7 +497,6 @@ final class NoirHomeView extends LinearLayout {
 
     @Override protected void onDetachedFromWindow() {
         opening = false;
-        shelfBackground.stop();
         if (menu != null) menu.dismiss();
         if (catalog != null) catalog.dismiss();
         super.onDetachedFromWindow();
