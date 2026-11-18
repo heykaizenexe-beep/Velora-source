@@ -140,7 +140,7 @@ public final class CrtPalette {
     public static int color(boolean dark,int role) {
         if(role<0||role>=DARK.length)throw new IllegalArgumentException("Unknown CRT colour role");
         String selected = theme;
-        if (AppTheme.NOIR.equals(selected)) return NOIR_PAPER[role];
+        if (AppTheme.NOIR.equals(selected) || AppTheme.ARCHIVE_GALLERY.equals(selected)) return NOIR_PAPER[role];
         if (AppTheme.JOURNAL.equals(selected)) return (dark ? JOURNAL_DARK : JOURNAL_LIGHT)[role];
         if (AppTheme.CLASSIC.equals(selected)) return (dark ? CLASSIC_DARK : CLASSIC_LIGHT)[role];
         int[] custom=dark?customDark:customLight;
