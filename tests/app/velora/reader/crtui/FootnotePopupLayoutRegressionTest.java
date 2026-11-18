@@ -9,6 +9,10 @@ public final class FootnotePopupLayoutRegressionTest {
         check(shortNote!=null,"short note available");check(shortNote.width==142,"short note follows text width");
         check(shortNote.height==88,"short note follows content height below old 150dp minimum");
         check(!shortNote.scrolls,"short note not scrollable");check(shortNote.y==222,"below the tap when space allows");
+        FootnotePopupLayout leftNote=FootnotePopupLayout.fit(0,24,360,780,1,142,88,80,33f,210f);
+        check(leftNote!=null&&leftNote.x==10,"left-side popup follows tap");
+        FootnotePopupLayout rightNote=FootnotePopupLayout.fit(0,24,360,780,1,142,88,80,340f,210f);
+        check(rightNote!=null&&rightNote.x+rightNote.width==350,"right-side popup stays on screen");
         FootnotePopupLayout longNote=FootnotePopupLayout.fit(0,24,360,780,1,340,1200,90,700);
         check(longNote.height==Math.round((780-24)*.4f),"long note capped at 40% of visible window");
         check(longNote.scrolls,"long note body scrolls");check(longNote.y+longNote.height<700,"placed above bottom tap");

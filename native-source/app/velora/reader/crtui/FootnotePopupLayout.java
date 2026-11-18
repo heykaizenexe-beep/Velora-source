@@ -25,6 +25,13 @@ final class FootnotePopupLayout {
     static FootnotePopupLayout fit(int left,int top,int right,int bottom,float density,
                                   int desiredWidth,int desiredHeight,int minimumUsableHeight,
                                   float tappedY) {
+        return fit(left,top,right,bottom,density,desiredWidth,desiredHeight,
+                minimumUsableHeight,Float.NaN,tappedY);
+    }
+
+    static FootnotePopupLayout fit(int left,int top,int right,int bottom,float density,
+                                  int desiredWidth,int desiredHeight,int minimumUsableHeight,
+                                  float tappedX,float tappedY) {
         int availableWidth=right-left, availableHeight=bottom-top;
         if(availableWidth<=0||availableHeight<=0||desiredWidth<=0||desiredHeight<=0)return null;
         int mx=margin(availableWidth,density), my=margin(availableHeight,density);
@@ -35,6 +42,8 @@ final class FootnotePopupLayout {
         int maxHeight=Math.min(innerHeight,Math.max(minimumUsableHeight,Math.round(availableHeight*.40f)));
         int width=Math.min(desiredWidth,maxWidth), height=Math.min(desiredHeight,maxHeight);
         int x=left+Math.max(mx,(availableWidth-width)/2);
+        if(!Float.isNaN(tappedX)&&!Float.isInfinite(tappedX))
+            x=Math.max(left+mx,Math.min(right-mx-width,Math.round(tappedX-width*.5f)));
         int low=top+my, high=bottom-my-height;
         float touch=Float.isNaN(tappedY)||Float.isInfinite(tappedY)?top+availableHeight*.5f:tappedY;
         touch=Math.max(low,Math.min(bottom-my,touch));

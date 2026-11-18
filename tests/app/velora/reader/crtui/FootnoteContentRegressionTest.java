@@ -62,6 +62,14 @@ public final class FootnoteContentRegressionTest {
         note("<p><a name='_ftn1' href='#_ftnref1'>1</a>Word note.</p>","_ftn1",source("","#_ftn1","1"),"Word note.");
         note("<p class='MsoFootnoteText'><a name='_ftn1' class='MsoFootnoteReference' href='#_ftnref1'>1</a>Styled Word note.</p>","_ftn1",source("class='MsoFootnoteReference'","#_ftn1","1"),"Styled Word note.");
 
+        note("<section class='endnotes'><div id='unusual'><p>Numbered EPUB note.</p></div></section>",
+                "unusual",source("","chapter.xhtml#unusual","1"),"Numbered EPUB note.");
+        check(FootnoteContent.likelyFootnote(source("role='doc-noteref'","notes.xhtml#unknown","1"),
+              "notes.xhtml#unknown"),"marked EPUB reference stays in popup on missing target");
+        check(FootnoteContent.likelyFootnote(source("","../Text/endnotes.xhtml#ref-27","27"),
+              "../Text/endnotes.xhtml#ref-27"),"numbered note-file target stays in popup");
+        check(!FootnoteContent.likelyFootnote(source("","#chapter1","1"),"#chapter1"),
+              "chapter anchor is not mistaken for a footnote");
         ordinary("<h1 id='chapter1'>Chapter one</h1><p>Body</p>","chapter1",source("","#chapter1","1"));
         ordinary("<p id='paragraph42'>A paragraph</p>","paragraph42",source("","#paragraph42","See text"));
         ordinary("<nav id='contents'>Contents</nav>","contents",source("","#contents","Contents"));

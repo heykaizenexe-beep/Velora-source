@@ -30,6 +30,21 @@ public final class FootnoteContent {
         } catch (Exception ignored) { return null; }
     }
 
+    /** An explicit note reference stays at its reading position on lookup errors. */
+    public static boolean likelyFootnote(String html, String target) {
+        try {
+            Element source = link(html);
+            if (source == null || backlink(source)) return false;
+            String href = target == null ? source.attr("href") : target;
+            int hash = href.indexOf('#');
+            if (hash < 0 || hash + 1 >= href.length()) return false;
+            String id = decodeFragment(href.substring(hash + 1));
+            if (noteref(source)) return true;
+            boolean numbered = referenceLabel(source.text()) || source.selectFirst("sup") != null;
+            return numbered && (strongNoteId(id) || shortNoteId(id) || noteFile(href));
+        } catch (RuntimeException invalid) { return false; }
+    }
+
     /** Null means normal navigation, never a fabricated or empty footnote popup. */
     public static String extract(Document document, String decodedId, String linkHtml) {
         try {
@@ -130,11 +145,17 @@ public final class FootnoteContent {
         }
         return false;
     }
+    private static boolean noteFile(String href) {
+        if (href == null) return false;
+        String file = lower(href).split("#", 2)[0].split("\\?", 2)[0];
+        return file.matches("(?:.*/)?(?:footnotes?|endnotes?|rearnotes?|notes?|comments?|"
+                + "примечания|сноски|notes?[-_.]part[-_.]?[0-9]+)[-_.0-9]*\\.(?:x?html?|xml)")
+                || file.matches(".*/(?:notes?|footnotes?|endnotes?)/[^/]+\\.(?:x?html?|xml)");
+    }
     private static boolean noteDocument(Document document, String href) {
         String title = lower(document.title());
         if (title.matches(".*(?:\\bnotes\\b|\\bfootnotes\\b|\\bendnotes\\b|примечани|сноски).*")) return true;
-        String file = lower(href).split("#", 2)[0];
-        return file.matches("(?:.*/)?(?:footnotes?|endnotes?|rearnotes?|notes?|comments?)[-_.0-9]*\\.(?:x?html?|xml)");
+        return noteFile(href);
     }
     private static Element find(Document document, String id) {
         Element exact = document.getElementById(id);

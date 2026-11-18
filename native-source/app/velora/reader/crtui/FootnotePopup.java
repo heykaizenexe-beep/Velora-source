@@ -2,6 +2,7 @@ package app.velora.reader.crtui;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
@@ -35,13 +36,23 @@ public final class FootnotePopup {
         final int bottomPad=FootnotePopupLayout.dp(density,10), gap=FootnotePopupLayout.dp(density,4);
         final int closeSize=FootnotePopupLayout.dp(density,48);
         final boolean action=onAction!=null&&actionLabel!=null&&actionLabel.trim().length()!=0;
+        // In Cartoteka the note must match the actual reading-page palette,
+        // never the global CRT skin or the app's light/dark preference.
+        final boolean archive=AppTheme.isNoir();
         final boolean sepia="SEPIA".equals(themeName);
         final boolean dark="DARK".equals(themeName)||(!"LIGHT".equals(themeName)&&!sepia&&CrtTheme.isDark());
-        final int background=sepia?0xfff7efd9:CrtTheme.background(dark);
-        final int foreground=sepia?0xff5b3a21:CrtTheme.text(dark);
-        final int border=sepia?0xffbdad89:CrtTheme.border(dark);
-        final int accent=sepia?0xff6b4723:CrtTheme.accent(dark);
-        final int actionFill=sepia?0xffe9ddc3:CrtTheme.surfaceAlt(dark);
+        final int paper=themeName==null?ReaderPaper.background(context)
+                :ReaderPaper.effectivePageBackground(themeName);
+        final int pageInk=themeName==null?ReaderPaper.foreground(context)
+                :ReaderPaper.pageText(themeName);
+        final int background=archive?paper:(sepia?0xfff7efd9:CrtTheme.background(dark));
+        final int foreground=archive?pageInk:(sepia?0xff5b3a21:CrtTheme.text(dark));
+        final int border=archive?CrtColorMath.mix(background,foreground,.28f)
+                :(sepia?0xffbdad89:CrtTheme.border(dark));
+        final int accent=archive?CrtColorMath.mix(foreground,background,.10f)
+                :(sepia?0xff6b4723:CrtTheme.accent(dark));
+        final int actionFill=archive?CrtColorMath.mix(background,foreground,.09f)
+                :(sepia?0xffe9ddc3:CrtTheme.surfaceAlt(dark));
 
         Rect frame=new Rect();anchor.getWindowVisibleDisplayFrame(frame);
         int[] screen=new int[2],window=new int[2];
@@ -54,13 +65,15 @@ public final class FootnotePopup {
 
         TextView body=new TextView(context);
         body.setText(text.trim());body.setTextSize(16);body.setTextColor(foreground);
+        if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));
         body.setLineSpacing(0,1.15f);body.setIncludeFontPadding(false);body.setTextIsSelectable(true);
         body.setPadding(0,0,0,0);body.setMinWidth(0);body.setMinimumWidth(0);
         body.measure(View.MeasureSpec.makeMeasureSpec(contentLimit,View.MeasureSpec.AT_MOST),
                 View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
 
         TextView title=new TextView(context);title.setText("Сноска");title.setTextSize(13);
-        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);title.setTextColor(foreground);
+        title.setTypeface(archive?Typeface.create("sans-serif-medium",Typeface.BOLD)
+                :Typeface.DEFAULT,Typeface.BOLD);title.setTextColor(foreground);
         title.setSingleLine(true);title.setEllipsize(TextUtils.TruncateAt.END);title.setGravity(Gravity.CENTER_VERTICAL);
         title.setIncludeFontPadding(false);
         title.measure(View.MeasureSpec.makeMeasureSpec(contentLimit,View.MeasureSpec.AT_MOST),
@@ -83,15 +96,16 @@ public final class FootnotePopup {
         int actionHeight=action?Math.max(closeSize,actionView.getMeasuredHeight()):0;
         int chrome=topPad+headerHeight+gap+bottomPad+(action?actionHeight+gap:0);
         int desiredHeight=chrome+Math.max(1,body.getMeasuredHeight());
-        float tap=frame.centerY();
+        float tapX=Float.NaN,tapY=frame.centerY();
         if(lastTapY!=null){
             float[] physicalPoint=new float[2];
             CrtScreenLayout.mapPointToScreen(anchor,lastTapX==null?anchor.getWidth()*.5f:lastTapX.floatValue(),
                     lastTapY.floatValue(),physicalPoint);
-            tap=physicalPoint[1];
+            tapX=physicalPoint[0];tapY=physicalPoint[1];
         }
         FootnotePopupLayout layout=FootnotePopupLayout.fit(frame.left,frame.top,frame.right,frame.bottom,density,
-                popupWidth,desiredHeight,chrome+Math.min(body.getMeasuredHeight(),Math.max(1,body.getLineHeight())),tap);
+                popupWidth,desiredHeight,chrome+Math.min(body.getMeasuredHeight(),Math.max(1,body.getLineHeight())),
+                tapX,tapY);
         if(layout==null)return null;
 
         LinearLayout content=new LinearLayout(context);content.setOrientation(LinearLayout.VERTICAL);

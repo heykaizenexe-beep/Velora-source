@@ -18886,12 +18886,7 @@
 
     if-eqz v0, :cond_1
 
-    invoke-virtual {p0}, Lapp/velora/reader/feature/reader/readium/VeloraEpubReaderFragment;->isPageTurnAllowed$app()Z
-
-    move-result v0
-
-    if-eqz v0, :cond_1
-
+    # A footnote must open regardless of curl/scroll/page-turn mode.
     invoke-static {p0}, Lapp/velora/reader/crtui/PhysicalBookmarks;->isInteracting(Lapp/velora/reader/feature/reader/readium/VeloraEpubReaderFragment;)Z
 
     move-result v0

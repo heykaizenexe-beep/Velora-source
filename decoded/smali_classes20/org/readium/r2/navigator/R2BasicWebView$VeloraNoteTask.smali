@@ -246,8 +246,25 @@
 
     iget-object v3, p0, Lorg/readium/r2/navigator/R2BasicWebView$VeloraNoteTask;->noteHtml:Ljava/lang/String;
 
-    if-eqz v3, :cond_4
+    if-nez v3, :note_ready
 
+    # Keep explicit footnote references at the current reading position
+    # even if an EPUB resource is missing or its note structure is invalid.
+    iget-object v4, p0, Lorg/readium/r2/navigator/R2BasicWebView$VeloraNoteTask;->linkHtml:Ljava/lang/String;
+
+    invoke-virtual {v2}, Lorg/readium/r2/shared/util/AbsoluteUrl;->toString()Ljava/lang/String;
+
+    move-result-object v5
+
+    invoke-static {v4, v5}, Lapp/velora/reader/crtui/FootnoteContent;->likelyFootnote(Ljava/lang/String;Ljava/lang/String;)Z
+
+    move-result v4
+
+    if-eqz v4, :cond_4
+
+    const-string v3, "<p>Не удалось загрузить текст сноски.</p>"
+
+    :note_ready
     new-instance v4, Lorg/readium/r2/navigator/HyperlinkNavigator$FootnoteContext;
 
     invoke-direct {v4, v3}, Lorg/readium/r2/navigator/HyperlinkNavigator$FootnoteContext;-><init>(Ljava/lang/String;)V
