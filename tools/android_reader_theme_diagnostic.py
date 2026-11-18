@@ -61,7 +61,7 @@ def main():
         return
     smoke.cmd("adb","logcat","-c")
     a=dump("reader_before_settings")
-    found=click_match(a,["Атмосфера чтения","Настройки","Оформление","Aa","Тема","Параметры"])
+    found=click_match(a,["Текст","Настройки","Оформление","Aa","Тема","Параметры"])
     if not found:
         # Chrome may be hidden initially.
         size=smoke.cmd("adb","shell","wm","size")
@@ -69,7 +69,7 @@ def main():
         smoke.cmd("adb","shell","input","tap",w//2,h//2)
         time.sleep(2)
         a=dump("reader_toolbar")
-        found=click_match(a,["Атмосфера чтения","Настройки","Оформление","Aa","Тема","Параметры"])
+        found=click_match(a,["Текст","Настройки","Оформление","Aa","Тема","Параметры"])
     print("SETTINGS_TRIGGER_FOUND",found,flush=True)
     b=dump("settings_after_click")
     if click_match(b,["Оформление","Цвет","Тема"]):
