@@ -27,7 +27,12 @@ def snapshot(name):
     (OUT / (name + ".png")).write_bytes(screenshot)
 
 def main():
-    # android_emulator_smoke.py installed our APK, imported the fixture, and used adb root.
+    # Run independently before any long reader gestures so a stalled emulator
+    # cannot prevent the Cartoteka screenshot from being collected.
+    apk = ROOT / "build-output" / "Velora-CRT.apk"
+    adb("install", "-r", apk)
+    adb("root")
+    adb("wait-for-device")
     adb("shell", "am", "force-stop", PKG)
     preference = "/data/user/0/" + PKG + "/shared_prefs/velora_app_themes.xml"
     uid = adb("shell", "stat", "-c", "%u:%g", "/data/user/0/" + PKG).strip()
