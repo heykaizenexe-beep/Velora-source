@@ -25,6 +25,16 @@ checks = {
         "float yaw =" in shelf and "shelf.intersectsViewport(offset)" in deck,
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
+    "Cartoteka vector icons differ from pixel-cat without affecting it":
+        "if(AppTheme.isNoir()){smooth(p,rows);return;}" in
+           read(path + "PixelIconPaths.java")
+        and "private static void smooth(PathBuilder p,int[] rows)" in
+           read(path + "PixelIconPaths.java")
+        and "changedVectorStyle" in read(path + "AppTheme.java"),
+    "Cartoteka shelves draw rounded frames and outline icons":
+        "if(AppTheme.isNoir())" in read(path + "ReadingShelvesView.java")
+        and "c.drawRoundRect(rounded,dp(8),dp(8),p);" in
+            read(path + "ReadingShelvesView.java"),
     "Cartoteka compact navigation and long-press actions":
         "toolbar.setMinimumHeight(dp(52));" in home
         and "tab.setMinHeight(dp(40));" in home

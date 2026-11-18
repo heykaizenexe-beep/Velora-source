@@ -4,7 +4,105 @@
 package app.velora.reader.crtui;
 import androidx.compose.ui.graphics.vector.PathBuilder;
 public final class PixelIconPaths {
-private static void fill(PathBuilder p,int[] rows){
+
+private static boolean has(int[] rows,int x,int y){
+    return x>=0&&x<16&&y>=0&&y<16&&(rows[y]&(1<<x))!=0;
+}
+private static int addEdge(int a,int b,int count,int[] from,int[] to,int[] links,int[] heads){
+    from[count]=a;to[count]=b;
+    links[count]=heads[a];heads[a]=count;
+    return count+1;
+}
+private static int direction(int delta){
+    return delta==1?0:delta==17?1:delta==-1?2:3;
+}
+private static void roundedCorner(PathBuilder p,float sx,float sy,float cx,float cy,float ex,float ey){
+    p.lineTo(sx*1.5f,sy*1.5f);
+    for(int k=1;k<=4;k++){
+        float t=k*.25f,u=1f-t;
+        p.lineTo((u*u*sx+2*u*t*cx+t*t*ex)*1.5f,
+                 (u*u*sy+2*u*t*cy+t*t*ey)*1.5f);
+    }
+}
+/**
+ * Cartoteka alone draws anti-aliased, continuous round-contour icons instead of
+ * 16x16 CRT pixel squares. This works for every existing icon and preserves the
+ * original bit patterns and SVG silhouette for the pixel-cat theme.
+ */
+private static void smooth(PathBuilder p,int[] rows){
+    final int MAX=1024,GRID=17;
+    int[] from=new int[MAX],to=new int[MAX],links=new int[MAX],heads=new int[GRID*GRID];
+    java.util.Arrays.fill(heads,-1);
+    int count=0;
+    for(int y=0;y<16;y++)for(int x=0;x<16;x++){
+        if(!has(rows,x,y))continue;
+        int tl=y*GRID+x,tr=tl+1,bl=tl+GRID,br=bl+1;
+        if(!has(rows,x,y-1))count=addEdge(tl,tr,count,from,to,links,heads);
+        if(!has(rows,x+1,y))count=addEdge(tr,br,count,from,to,links,heads);
+        if(!has(rows,x,y+1))count=addEdge(br,bl,count,from,to,links,heads);
+        if(!has(rows,x-1,y))count=addEdge(bl,tl,count,from,to,links,heads);
+    }
+    boolean[] used=new boolean[count];
+    int[] contour=new int[count],clean=new int[count];
+    for(int start=0;start<count;start++){
+        if(used[start])continue;
+        int origin=from[start],edge=start,n=0;
+        do {
+            used[edge]=true;
+            contour[n++]=from[edge];
+            int end=to[edge];
+            if(end==origin)break;
+            int prev=direction(to[edge]-from[edge]),choice=-1,rank=5;
+            for(int candidate=heads[end];candidate!=-1;candidate=links[candidate]){
+                if(used[candidate])continue;
+                int turn=(direction(to[candidate]-from[candidate])-prev+4)%4;
+                int score=turn==1?0:turn==0?1:turn==3?2:3;
+                if(score<rank){rank=score;choice=candidate;}
+            }
+            edge=choice;
+        }while(edge>=0&&n<count);
+        if(n<3)continue;
+        int m=0;
+        for(int k=0;k<n;k++){
+            int a=contour[(k+n-1)%n],b=contour[k],c=contour[(k+1)%n];
+            int abx=(b%GRID)-(a%GRID),aby=(b/GRID)-(a/GRID);
+            int bcx=(c%GRID)-(b%GRID),bcy=(c/GRID)-(b/GRID);
+            if(abx*bcy-aby*bcx!=0)clean[m++]=b;
+        }
+        if(m<3)continue;
+        float firstEndX=0,firstEndY=0;
+        for(int k=0;k<m;k++){
+            int a=clean[(k+m-1)%m],b=clean[k],c=clean[(k+1)%m];
+            float vx=b%GRID,vy=b/GRID;
+            float inx=vx-a%GRID,iny=vy-a/GRID;
+            float outx=c%GRID-vx,outy=c/GRID-vy;
+            float il=(float)Math.sqrt(inx*inx+iny*iny);
+            float ol=(float)Math.sqrt(outx*outx+outy*outy);
+            if(il<=0||ol<=0)continue;
+            float radius=Math.min(.54f,Math.min(il,ol)*.40f);
+            float sx=vx-inx/il*radius,sy=vy-iny/il*radius;
+            float ex=vx+outx/ol*radius,ey=vy+outy/ol*radius;
+            if(k==0){
+                firstEndX=ex;firstEndY=ey;
+                p.moveTo(ex*1.5f,ey*1.5f);
+            }else roundedCorner(p,sx,sy,vx,vy,ex,ey);
+        }
+        int a=clean[m-1],b=clean[0],c=clean[1];
+        float vx=b%GRID,vy=b/GRID;
+        float dx=vx-a%GRID,dy=vy-a/GRID;
+        float inLength=(float)Math.sqrt(dx*dx+dy*dy);
+        float odx=c%GRID-vx,ody=c/GRID-vy;
+        float outLength=(float)Math.sqrt(odx*odx+ody*ody);
+        if(inLength>0&&outLength>0){
+            float radius=Math.min(.54f,Math.min(inLength,outLength)*.40f);
+            roundedCorner(p,vx-dx/inLength*radius,vy-dy/inLength*radius,
+                    vx,vy,firstEndX,firstEndY);
+        }
+        p.close();
+    }
+}
+
+private static void fill(PathBuilder p,int[] rows){if(AppTheme.isNoir()){smooth(p,rows);return;}
  for(int y=0;y<rows.length;y++){int x=0;while(x<16){if((rows[y]&(1<<x))==0){x++;continue;}int start=x;while(x<16&&(rows[y]&(1<<x))!=0)x++;float l=start*1.5f,r=x*1.5f,t=y*1.5f,b=t+1.5f;p.moveTo(l,t);p.lineTo(r,t);p.lineTo(r,b);p.lineTo(l,b);p.close();}}}
 public static void automirrored_outlined_ArrowBack_0(PathBuilder p){fill(p,new int[]{0x0,0x0,0x0,0x180,0xc0,0x60,0x30,0x1ff8,0x1ff8,0x30,0x60,0xc0,0x180,0x0,0x0,0x0});}
 public static void filled_Bookmark_0(PathBuilder p){fill(p,new int[]{0x0,0x0,0xff0,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1e78,0x1818,0x0,0x0});}

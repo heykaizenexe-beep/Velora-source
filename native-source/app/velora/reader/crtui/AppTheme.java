@@ -38,7 +38,14 @@ public final class AppTheme {
     public static int revision(){return revision;}
     public static synchronized void select(Context context,String value){
         initialize(context);String next=normalize(value);if(next.equals(current))return;
+        boolean changedVectorStyle = NOIR.equals(current) != NOIR.equals(next);
         current=next;revision++;preferences.edit().putString("theme_id",current).apply();
+        // Material icons memoize their paths; selecting the archive must rebuild
+        // their smooth outlines, without changing the saved pixel-cat vectors.
+        if(changedVectorStyle)try {
+            Class.forName("app.velora.reader.crtui.ArchiveVectorCache")
+                    .getMethod("clear").invoke(null);
+        }catch(Exception unavailable){}
         CrtPalette.setTheme(current);CrtTheme.onAppearanceChanged();
     }
 }

@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -313,6 +314,15 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
             path.reset();path.moveTo(l+cut,t);path.lineTo(r-cut,t);path.lineTo(r-cut,t+cut);path.lineTo(r,t+cut);
             path.lineTo(r,bot-cut);path.lineTo(r-cut,bot-cut);path.lineTo(r-cut,bot);path.lineTo(l+cut,bot);
             path.lineTo(l+cut,bot-cut);path.lineTo(l,bot-cut);path.lineTo(l,t+cut);path.lineTo(l+cut,t+cut);path.close();
+            if(AppTheme.isNoir()){
+                RectF rounded=new RectF(l,t,r,bot);
+                p.setAntiAlias(true);
+                p.setStyle(Paint.Style.FILL);p.setColor(color(fill));
+                c.drawRoundRect(rounded,dp(8),dp(8),p);
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(edge);p.setColor(color(stroke));
+                c.drawRoundRect(rounded,dp(8),dp(8),p);
+                return;
+            }
             p.setStyle(Paint.Style.FILL);p.setColor(color(fill));c.drawPath(path,p);
             p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(edge);p.setColor(color(stroke));c.drawPath(path,p);
         }
@@ -330,14 +340,36 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
     }
     /** Uses the same pixel silhouettes as the app's existing Material icon adaptations. */
     private final class IconView extends View {
-        final Paint p=new Paint();final int[] pixels;final int role;
+        final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);final int[] pixels;final int role;final boolean trash;
         IconView(Context c,boolean trash,int role){
-            super(c);this.role=role;
+            super(c);this.role=role;this.trash=trash;
             pixels=trash?new int[]{0,0,0xff0,0x1ff8,0xff0,0xff0,0xc30,0xc30,0xc30,0xc30,0xc30,0xc30,0xff0,0xff0,0,0}:
                 new int[]{0,0,0,0x180,0xc0,0x60,0x30,0x1ff8,0x1ff8,0x30,0x60,0xc0,0x180,0,0,0};
         }
         protected void onDraw(Canvas c){
-            float cell=Math.max(1,Math.round(dp(24)/16f)),ox=(getWidth()-cell*16)/2f,oy=(getHeight()-cell*16)/2f;p.setColor(color(role));
+            p.setColor(color(role));
+            if(AppTheme.isNoir()){
+                int save=c.save();
+                c.translate((getWidth()-dp(24))/2f,(getHeight()-dp(24))/2f);
+                c.scale(dp(24)/24f,dp(24)/24f);
+                p.setStyle(Paint.Style.STROKE);
+                p.setStrokeWidth(1.7f);p.setStrokeCap(Paint.Cap.ROUND);
+                p.setStrokeJoin(Paint.Join.ROUND);
+                if(trash){
+                    c.drawLine(6f,7f,18f,7f,p);
+                    c.drawLine(9f,5f,15f,5f,p);
+                    c.drawRoundRect(new RectF(8f,9f,16f,19f),1.4f,1.4f,p);
+                    c.drawLine(11f,11f,11f,16f,p);
+                    c.drawLine(13f,11f,13f,16f,p);
+                }else{
+                    c.drawLine(18.5f,12f,5.5f,12f,p);
+                    c.drawLine(5.5f,12f,11f,6.5f,p);
+                    c.drawLine(5.5f,12f,11f,17.5f,p);
+                }
+                c.restoreToCount(save);
+                return;
+            }
+            float cell=Math.max(1,Math.round(dp(24)/16f)),ox=(getWidth()-cell*16)/2f,oy=(getHeight()-cell*16)/2f;
             for(int y=0;y<16;y++)for(int x=0;x<16;x++)if((pixels[y]&(1<<x))!=0)c.drawRect(ox+x*cell,oy+y*cell,ox+(x+1)*cell,oy+(y+1)*cell,p);
         }
     }
@@ -345,6 +377,19 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
         final Paint p=new Paint();EmptyShelfArt(Context c){super(c);setImportantForAccessibility(2);}
         private void block(Canvas c,int x,int y,int w,int h,int role){p.setColor(color(role));c.drawRect(x,y,x+w,y+h,p);}
         protected void onDraw(Canvas c){
+            if(AppTheme.isNoir()){
+                int saved=c.save();
+                c.scale(getWidth()/48f,getHeight()/32f);
+                p.setAntiAlias(true);p.setStyle(Paint.Style.STROKE);
+                p.setStrokeWidth(1.2f);p.setColor(color(BORDER));
+                c.drawLine(3f,8f,45f,8f,p);c.drawLine(3f,26f,45f,26f,p);
+                c.drawLine(5f,5f,5f,28f,p);c.drawLine(43f,5f,43f,28f,p);
+                p.setColor(color(MUTED));
+                c.drawRoundRect(new RectF(9f,10f,16f,24f),1.2f,1.2f,p);
+                c.drawRoundRect(new RectF(18f,12f,26f,24f),1.2f,1.2f,p);
+                c.drawRoundRect(new RectF(29f,9f,37f,24f),1.2f,1.2f,p);
+                c.restoreToCount(saved);return;
+            }
             c.save();c.scale(getWidth()/48f,getHeight()/32f);
             block(c,2,4,2,26,BORDER);block(c,44,4,2,26,BORDER);
             block(c,2,28,44,2,GREEN);block(c,2,16,44,2,GREEN);block(c,2,4,44,2,GREEN);
