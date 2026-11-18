@@ -23,7 +23,7 @@ import app.velora.reader.core.model.Book;
 import java.util.Collections;
 import java.util.List;
 
-/** A five-cover window. Repositioning its cards never decodes an image. */
+/** Continuous full-screen 3D shelf: visible covers stay until offscreen. */
 final class NoirCoverDeck extends View {
     private final NoirBookArt art = new NoirBookArt();
     private final NoirSpine spine;
@@ -32,14 +32,15 @@ final class NoirCoverDeck extends View {
     private static final float[] SPINE_PLANE = {0, 0, SPINE_WIDTH, 0, SPINE_WIDTH, SPINE_HEIGHT, 0, SPINE_HEIGHT};
     private final Matrix spineProjection = new Matrix();
     private final float[] spineCorners = new float[8];
-    private final SparseArray<Card> cards = new SparseArray<>(5);
+    private static final int MAX_WINDOW_DISTANCE = 7;
+    private final SparseArray<Card> cards = new SparseArray<>(11);
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path outline = new Path();
     private final NoirShelfGeometry shelf = new NoirShelfGeometry();
     private final int touchSlop;
     private final Runnable selected, open;
     private List<Book> books = Collections.emptyList();
-    private int index, windowCenter = -1;
+    private int index, windowCenter = -1, windowFirst = -1, windowLast = -1;
     private float position, downX, downY, dragStart;
     private boolean attached, horizontal, vertical;
     private Shader floorShadow;
@@ -114,6 +115,8 @@ final class NoirCoverDeck extends View {
         float density = getResources().getDisplayMetrics().density;
         shelf.size(w, h, density, NoirBookArt.COVER_RATIO);
         glow.size(w, h, density);
+        windowFirst = windowLast = -1;
+        refreshWindow();
         floorShadow = new RadialGradient(0, 0, 1f,
                 new int[]{0x342e231d, 0x172e231d, 0x002e231d},
                 new float[]{0f, .52f, 1f}, Shader.TileMode.CLAMP);
@@ -136,7 +139,9 @@ final class NoirCoverDeck extends View {
         canvas.restoreToCount(shadow);
         ink.setShader(null);
         int near = limit(Math.round(position));
-        for (int distance = 2; distance > 0; distance--) {
+        // Keep the back-to-front 3D order over the whole physical screen.
+        int reach = Math.max(near - windowFirst, windowLast - near);
+        for (int distance = reach; distance > 0; distance--) {
             drawCard(canvas, near - distance);
             drawCard(canvas, near + distance);
         }
@@ -154,8 +159,7 @@ final class NoirCoverDeck extends View {
         Card card = cards.get(at);
         if (card == null) return;
         float offset = at - position;
-        if (Math.abs(offset) > NoirShelfGeometry.VISIBLE_DISTANCE) return;
-        shelf.project(offset);
+        if (!shelf.intersectsViewport(offset)) return;
         float[] front = shelf.front, back = shelf.back;
         silhouette(canvas, back, 0xff373b34);
         side(canvas, front, back, 0, 2, 0xffded8c7);
@@ -222,14 +226,29 @@ final class NoirCoverDeck extends View {
     private void refreshWindow() {
         if (!attached || books.isEmpty()) return;
         int center = limit(Math.round(position));
-        if (windowCenter == center) return;
+        int first = center, last = center;
+        for (int i = center - 1; i >= 0 && i >= center - MAX_WINDOW_DISTANCE; i--) {
+            if (!shelf.intersectsViewport(i - position)) break;
+            first = i;
+        }
+        for (int i = center + 1; i < books.size() && i <= center + MAX_WINDOW_DISTANCE; i++) {
+            if (!shelf.intersectsViewport(i - position)) break;
+            last = i;
+        }
+        // Preload only one cover outside each edge to prevent visible decoding.
+        first = Math.max(0, first - 1);
+        last = Math.min(books.size() - 1, last + 1);
+        if (windowCenter == center && windowFirst == first && windowLast == last) return;
         windowCenter = center;
+        windowFirst = first;
+        windowLast = last;
         for (int i = cards.size() - 1; i >= 0; i--) {
-            if (Math.abs(cards.keyAt(i) - center) <= 2) continue;
+            int key = cards.keyAt(i);
+            if (key >= first && key <= last) continue;
             cards.valueAt(i).cancel();
             cards.removeAt(i);
         }
-        for (int i = Math.max(0, center - 2); i <= Math.min(books.size() - 1, center + 2); i++) {
+        for (int i = first; i <= last; i++) {
             if (cards.get(i) == null) cards.put(i, new Card(books.get(i)));
         }
     }
@@ -237,7 +256,7 @@ final class NoirCoverDeck extends View {
     private void clearCards() {
         for (int i = 0; i < cards.size(); i++) cards.valueAt(i).cancel();
         cards.clear();
-        windowCenter = -1;
+        windowCenter = windowFirst = windowLast = -1;
     }
 
     private final class Card {
@@ -365,7 +384,9 @@ final class NoirCoverDeck extends View {
                     if (horizontal && getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                 }
                 if (horizontal) {
-                    float delta = Math.max(-1.35f, Math.min(1.35f, -dx / shelf.gestureStride()));
+                    // A swipe may travel through several books without sticking
+                    // at the old 1.35-cover movement limit.
+                    float delta = -dx / shelf.gestureStride();
                     float next = dragStart + delta;
                     position = next < 0 ? next * .22f
                             : next > books.size() - 1 ? books.size() - 1 + (next - books.size() + 1) * .22f : next;
@@ -385,7 +406,7 @@ final class NoirCoverDeck extends View {
                     float dragged = position - dragStart;
                     target = Math.round(position);
                     if (Math.abs(speed) > dp(500) && Math.abs(dragged) > .07f && speed * dragged < 0) {
-                        target = Math.round(dragStart) + (speed < 0 ? 1 : -1);
+                        target = Math.round(position) + (speed < 0 ? 1 : -1);
                     }
                 }
                 endTouch();
