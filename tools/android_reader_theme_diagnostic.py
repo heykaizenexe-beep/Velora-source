@@ -73,6 +73,11 @@ def main():
     if not smoke.await_reader(): raise AssertionError("Reader did not open EPUB fixture")
     smoke.cmd("adb","logcat","-c")
     content=page_settings()
+    if not any("Размер шрифта" in label for label,_ in content):
+        raise AssertionError("Compact reading controls were not rendered")
+    if not any("Межстрочный интервал" in label for label,_ in content):
+        raise AssertionError("Compact line-height slider was not rendered")
+    print("PASS: compact font and line-height settings visible on opening",flush=True)
     found=False
     for attempt in range(8):
         if tap_match(content,"Газета"):
