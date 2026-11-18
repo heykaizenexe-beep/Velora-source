@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression guards for distinct reading palettes in Velora 0.9.143."""
+"""Guard four visible reader palettes and safe Readium compatibility in Velora 0.9.146."""
 from pathlib import Path
 from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,6 +9,7 @@ reader=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/Rea
 ui=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderUiKt.smali")
 activity=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderActivity.smali")
 fragment=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/VeloraEpubReaderFragment.smali")
+page_turn=read("native-source/app/velora/reader/crtui/PageTurnSettings.java")
 readium=read("decoded/smali_classes20/org/readium/r2/navigator/preferences/Theme.smali")
 model=read("decoded/smali_classes12/app/velora/reader/core/model/ReaderPageTheme.smali")
 candidates={
@@ -18,7 +19,14 @@ candidates={
 "newspaper fixed warm paper":'if("NEWSPAPER".equals(name)) return 0xfff3eee5;' in paper,
 "newspaper independent text":'return 0xff302620;' in paper,
 "Readium theme mapped to fixed colors":'ReaderPaper;->pageBackground' in reader and 'ReaderPaper;->pageText' in reader,
-"Reader backdrop uses same colors":'ReaderPaper;->pageBackground' in activity and 'ReaderPaper;->pageBackground' in fragment,
+"Reader backdrop uses effective selected colors": 'ReaderPaper;->effectivePageBackground' in activity and 'ReaderPaper;->effectivePageBackground' in fragment,
+"supported navigator enum for Gazette": 'ReaderPaper;->setNewspaperSelected(Z)V' in reader and 'sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->LIGHT:' in reader,
+"no unsupported Readium theme is passed on Apply": ':cond_theme_navigator_ready' in reader and 'move-object/from16 v23, v0' in reader and 'ReaderPaper;->isNewspaperSelected()Z' in reader,
+"Gazette selection persists independently": 'ReaderPageTheme;->NEWSPAPER:' in reader and 'public static boolean isNewspaperSelected()' in paper,
+"independent user palette remains selected on reopening": ':cond_reader_palette_initial_done' in ui and 'ReaderPaper;->isNewspaperSelected()Z' in ui,
+"theme selector shows genuine paper and ink colors": 'PHOTO_READER_COLOR_SWATCHES' in ui and 'ReaderPaper;->composeArgb(I)J' in ui and 'const/16 v97, 0xc' in ui,
+"selected color swatch has checkmark": ':cond_reader_swatch_label_done' in ui and 'const-string v13, "✓ "' in ui,
+"large page-turn options reduced to side-by-side controls": 'choices.setOrientation(HORIZONTAL)' in page_turn and 'new RadioGroup.LayoutParams(0, dp(50), 1f)' in page_turn,
 "UI retains existing light/sepia/dark choices": all(x in ui for x in ('Theme;->LIGHT:', 'Theme;->SEPIA:', 'Theme;->DARK:', 'const-string v10, "Газета"')),
 "UI includes fourth readium theme":'Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:' in ui and '    const/4 v1, 0x4\n\n    new-array v1, v1, [Lkotlin/Pair;' in ui,
 "model theme persists independently":'enum NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;' in model,
