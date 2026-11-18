@@ -3,6 +3,7 @@ package app.velora.reader.crtui;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +13,8 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import java.io.InputStream;
+import java.io.IOException;
 
 /**
  * Subtle newspaper-paper backdrop for Cartoteka's HOME screen ONLY.
@@ -45,6 +48,8 @@ final class NoirNewspaperPaper extends Drawable {
     }
     private final Paint paper = new Paint();
     private final Paint grain = new Paint();
+    private final Paint photograph = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private boolean hasPhoto;
     private final Paint ghostInk = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float density;
     private int alpha = 255;
@@ -53,6 +58,7 @@ final class NoirNewspaperPaper extends Drawable {
     NoirNewspaperPaper(Context context) {
         density = context.getResources().getDisplayMetrics().density;
         strength = readStrength(context);
+        loadRealPaperTexture(context);
         Bitmap texture = Bitmap.createBitmap(TILE, TILE, Bitmap.Config.ARGB_8888);
         int[] pixels = new int[TILE * TILE];
         int seed = 0x5a3c29e1;
@@ -78,6 +84,30 @@ final class NoirNewspaperPaper extends Drawable {
         ghostInk.setStyle(Paint.Style.STROKE);
     }
 
+    /**
+     * Genuine CC0 photographic paper scan (Iroi su, Wikimedia Commons).
+     * The user can choose how much of the photo to blend with clean ivory.
+     * Falls back to our grain only if an old local build lacks the asset.
+     */
+    private void loadRealPaperTexture(Context context) {
+        InputStream stream = null;
+        try {
+            stream = context.getAssets().open("noir/newsprint-paper.jpg");
+            Bitmap bitmap = BitmapFactory.decodeStream(stream);
+            if (bitmap != null) {
+                photograph.setShader(new BitmapShader(bitmap, Shader.TileMode.MIRROR,
+                        Shader.TileMode.MIRROR));
+                hasPhoto = true;
+            }
+        } catch (IOException unavailable) {
+            hasPhoto = false;
+        } finally {
+            if (stream != null) {
+                try { stream.close(); } catch (IOException ignored) {}
+            }
+        }
+    }
+
     void setStrength(int value) {
         int next = clamp(value);
         if (strength == next) return;
@@ -95,8 +125,16 @@ final class NoirNewspaperPaper extends Drawable {
         // The grain is adjustable separately from the opaque paper base.
         // At 0% the background is perfectly clean; at 35% it matches v0.9.144.
         if (strength == 0) return;
-        grain.setAlpha((strength * alpha + 50) / 100);
-        canvas.drawRect(bounds, grain);
+        if (hasPhoto) {
+            // 35% exposes recognizable fibers, but keeps the carousel readable.
+            // Blend the actual photograph instead of replacing the base color.
+            photograph.setAlpha((Math.min(150, Math.round(strength * 1.5f))
+                    * alpha + 127) / 255);
+            canvas.drawRect(bounds, photograph);
+        } else {
+            grain.setAlpha((strength * alpha + 50) / 100);
+            canvas.drawRect(bounds, grain);
+        }
 
         // The ghosted print never exceeds ~10% opacity, even at 100%.
         // Restrict it to the edges; keep the 3D carousel's centre clean.
@@ -137,6 +175,7 @@ final class NoirNewspaperPaper extends Drawable {
     @Override public void setColorFilter(ColorFilter filter) {
         paper.setColorFilter(filter);
         grain.setColorFilter(filter);
+        photograph.setColorFilter(filter);
         ghostInk.setColorFilter(filter);
         invalidateSelf();
     }
