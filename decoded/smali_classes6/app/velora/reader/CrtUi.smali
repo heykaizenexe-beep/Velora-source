@@ -68,7 +68,8 @@
 
     move v3, v4
 
-    const/4 v5, 0x0
+    # Cartoteka uses dark status/navigation icons on light dotted paper.
+    const/4 v5, 0x1
 
     :window_background
     instance-of v4, v2, Landroid/graphics/drawable/ColorDrawable;

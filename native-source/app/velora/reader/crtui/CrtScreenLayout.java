@@ -123,7 +123,10 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
                 content.addView(children.get(i), Math.min(positions.get(i).intValue(), content.getChildCount()), params.get(i));
             return null;
         }
-        content.setBackgroundColor(ReaderPaper.background(activity));
+        if (AppTheme.isNoir()) {
+            content.setBackgroundDrawable(new NoirDotPaper(activity, content));
+            screen.setBackgroundDrawable(new NoirDotPaper(activity, screen));
+        } else content.setBackgroundColor(ReaderPaper.background(activity));
         return screen;
     }
 
@@ -155,8 +158,17 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
     }
 
     public void onCrtThemeChanged() {
-        setBackgroundColor(ReaderPaper.background(getContext()));
-        if (getParent() instanceof View) ((View) getParent()).setBackgroundColor(ReaderPaper.background(getContext()));
+        if (AppTheme.isNoir()) {
+            setBackgroundDrawable(new NoirDotPaper(getContext(), this));
+            if (getParent() instanceof View) {
+                View root = (View) getParent();
+                root.setBackgroundDrawable(new NoirDotPaper(getContext(), root));
+            }
+        } else {
+            setBackgroundColor(ReaderPaper.background(getContext()));
+            if (getParent() instanceof View)
+                ((View) getParent()).setBackgroundColor(ReaderPaper.background(getContext()));
+        }
         updateWarp(false);
     }
 
@@ -295,7 +307,9 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
         viewport=next;
         setPadding(l,t,r,b);
         try{View.class.getMethod("requestApplyInsets").invoke(this);}catch(Exception ignored){}
-        setBackgroundColor(ReaderPaper.background(getContext()));
+        if (AppTheme.isNoir())
+            setBackgroundDrawable(new NoirDotPaper(getContext(), this));
+        else setBackgroundColor(ReaderPaper.background(getContext()));
         return true;
     }
 

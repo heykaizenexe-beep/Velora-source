@@ -50,6 +50,18 @@ checks = {
     "Other themes retain their own theme-settings wallpaper":
         "if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));"
         in read(path + "ThemeSettingsActivity.java"),
+    "Cartoteka keeps library visible without scrolling":
+        "addView(library, librarySize);" in home
+        and "page.addView(library, librarySize);" not in home
+        and "fitDeckToViewport(w, h);" in home
+        and "height - reserved" in home,
+    "Cartoteka paper reaches CRT host and Android system-bar insets":
+        "content.setBackgroundDrawable(new NoirDotPaper(activity, content))" in
+            read(path + "NoirDotPaper.java")
+        and "screen.setBackgroundDrawable(new NoirDotPaper(activity, screen));" in
+            read(path + "CrtScreenLayout.java")
+        and "const/4 v5, 0x1" in
+            read("decoded/smali_classes6/app/velora/reader/CrtUi.smali"),
     "full-width 3D shelf and original narrow editorial ticket":
         "contentSize.width = w;" in home
         and "contentSize.leftMargin = -margin;" in home
@@ -102,8 +114,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.153":
-        bool(re.search(r"versionCode:\s*253\s+versionName:\s*0\.9\.153",manifest)),
+    "version 0.9.154":
+        bool(re.search(r"versionCode:\s*254\s+versionName:\s*0\.9\.154",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

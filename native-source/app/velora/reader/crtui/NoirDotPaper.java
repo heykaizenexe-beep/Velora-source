@@ -61,5 +61,10 @@ public final class NoirDotPaper extends Drawable {
         View decor = activity.getWindow().getDecorView();
         if (!(decor.getBackground() instanceof NoirDotPaper))
             activity.getWindow().setBackgroundDrawable(new NoirDotPaper(activity, decor));
+        // Window wallpaper alone is not enough: the CRT screen host had an
+        // opaque ReaderPaper background over both safe inset regions.
+        View content = activity.findViewById(android.R.id.content);
+        if (content != null && !(content.getBackground() instanceof NoirDotPaper))
+            content.setBackgroundDrawable(new NoirDotPaper(activity, content));
     }
 }

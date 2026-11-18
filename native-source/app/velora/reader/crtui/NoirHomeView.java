@@ -57,7 +57,7 @@ final class NoirHomeView extends LinearLayout {
     NoirHomeView(Context c) {
         super(c);
         setOrientation(VERTICAL);
-        setBackgroundColor(NoirHomeStyle.WALL);
+        setBackgroundDrawable(new NoirDotPaper(c, this));
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
@@ -65,7 +65,8 @@ final class NoirHomeView extends LinearLayout {
         scroll.setClipToPadding(false);
         // The notebook print is continuous with the Window behind the system bars.
         scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));
-        addView(scroll, new LayoutParams(-1, -1));
+        // Reserve a real footer for the library: it never requires vertical scrolling.
+        addView(scroll, new LayoutParams(-1, 0, 1f));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
         page.setFocusableInTouchMode(true);
@@ -228,8 +229,11 @@ final class NoirHomeView extends LinearLayout {
         library.addView(entry, new LayoutParams(-1, -2));
         LayoutParams librarySize = new LayoutParams(-1, -2);
         librarySize.gravity = Gravity.CENTER_HORIZONTAL;
-        librarySize.topMargin = dp(18);
-        page.addView(library, librarySize);
+        librarySize.leftMargin = dp(14);
+        librarySize.rightMargin = dp(14);
+        librarySize.bottomMargin = dp(8);
+        // A fixed footer, outside the scroll view, keeps the library always visible.
+        addView(library, librarySize);
         library.setVisibility(GONE);
         updateFilterTabs();
     }
@@ -250,7 +254,49 @@ final class NoirHomeView extends LinearLayout {
             layoutHeight = h;
             layoutForSize(w, h);
         }
+        // Book titles, accessible font scaling and search can change ticket height.
+        // Refit in the current pass so the library stays visible without scrolling.
+        if (w > 0 && h > 0) fitDeckToViewport(w, h);
         super.onMeasure(widthSpec, heightSpec);
+    }
+
+    private int measuredHeight(View child, int width) {
+        if (child.getVisibility() == GONE) return 0;
+        child.measure(MeasureSpec.makeMeasureSpec(Math.max(1, width), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        int result = child.getMeasuredHeight();
+        if (child.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+            android.view.ViewGroup.MarginLayoutParams margins =
+                    (android.view.ViewGroup.MarginLayoutParams) child.getLayoutParams();
+            result += margins.topMargin + margins.bottomMargin;
+        }
+        return result;
+    }
+
+    private void fitDeckToViewport(int width, int height) {
+        if (height <= 0 || width <= 0) return;
+        int margin = page.getPaddingLeft();
+        int space = Math.max(1, width - margin * 2);
+        int masthead = 0;
+        for (int i = 0; i < page.getChildCount(); i++) {
+            View child = page.getChildAt(i);
+            if (child == content) break;
+            masthead += measuredHeight(child, space);
+        }
+        int ticketHeight = measuredHeight(ticket, Math.min(space, dp(420)));
+        // The library is a real footer of this root LinearLayout, not page content.
+        int libraryHeight = measuredHeight(library, Math.min(space, dp(420)));
+        int reserved = masthead + ticketHeight + libraryHeight
+                + page.getPaddingTop() + page.getPaddingBottom() + dp(8);
+        // A low landscape viewport may still use scrolling; portrait fits normally.
+        int free = Math.max(dp(105), height - reserved);
+        int ideal = Math.min(dp(460), Math.round(space * .76f) + dp(85));
+        int target = Math.min(free, ideal);
+        if (deck.getLayoutParams().height != target) {
+            LayoutParams size = (LayoutParams) deck.getLayoutParams();
+            size.height = target;
+            deck.setLayoutParams(size);
+        }
     }
 
     private void layoutForSize(int w, int h) {
@@ -270,11 +316,11 @@ final class NoirHomeView extends LinearLayout {
         ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
         LayoutParams librarySize = (LayoutParams) library.getLayoutParams();
         librarySize.width = Math.min(space, dp(420));
+        // Gravity and bottom margin belong to the main root, not the page.
         library.setLayoutParams(librarySize);
-        // Give the halo room to reach zero alpha before the stage edges.
-        int height = Math.min(dp(590), Math.min(Math.round(space * .82f) + dp(145),
-                Math.max(dp(310), h - dp(205))));
-        deck.setLayoutParams(new LayoutParams(-1, height));
+        // Height is fitted against the ACTUAL masthead, ticket and footer by
+        // fitDeckToViewport(). Do not reintroduce a fixed 310dp minimum here.
+        fitDeckToViewport(w, h);
         if (catalog != null) catalog.resize(w, h);
     }
 
