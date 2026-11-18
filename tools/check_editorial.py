@@ -25,6 +25,20 @@ checks = {
         "float yaw =" in shelf and "shelf.project(offset)" in deck,
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
+    "full-width 3D shelf and original narrow editorial ticket":
+        "contentSize.width = w;" in home
+        and "contentSize.leftMargin = -margin;" in home
+        and "ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));" in home,
+    "book visibility uses physical screen edges rather than an arbitrary index":
+        "shelf.intersectsViewport(offset)" in deck
+        and "MAX_WINDOW_DISTANCE = 7" in deck
+        and "if (!shelf.intersectsViewport(i - position)) break;" in deck
+        and "VISIBLE_DISTANCE" not in shelf,
+    "unclamped multi-book touch interaction":
+        "float delta = -dx / shelf.gestureStride();" in deck,
+    "halo has a smooth elliptical zero-alpha feather":
+        "smoothstep(.73f, 1f, distance)" in read(path + "NoirShelfGlow.java")
+        and "SPREAD_Y = .23f" in read(path + "NoirShelfGlow.java"),
     "original centered-cover layout stays":
         "centeredCoverTop()" in home and "centeredTop" in home,
     "Cartoteka masthead and filter controls stay":
@@ -63,8 +77,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.151":
-        bool(re.search(r"versionCode:\s*251\s+versionName:\s*0\.9\.151",manifest)),
+    "version 0.9.152":
+        bool(re.search(r"versionCode:\s*252\s+versionName:\s*0\.9\.152",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
