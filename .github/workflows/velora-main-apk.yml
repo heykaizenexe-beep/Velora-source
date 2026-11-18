@@ -27,10 +27,12 @@ jobs:
         run: python3 tools/check_editorial.py
       - name: Check independent reading themes
         run: python3 tools/check_reader_palettes.py
+      - name: Test EPUB and FB2 footnote extraction and popup placement
+        run: python3 tools/run_tests.py app.velora.reader.crtui.FootnoteContentRegressionTest app.velora.reader.crtui.FootnotePopupLayoutRegressionTest
       - name: Publish build artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.147-main-APK
+          name: Velora-0.9.156-EPUB-FB2-Footnotes
           path: build-output/Velora-CRT.apk
           retention-days: 14
