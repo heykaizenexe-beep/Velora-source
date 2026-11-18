@@ -146,7 +146,7 @@ final class EditorialHomeView extends LinearLayout {
         header.setBackgroundColor(MINT);
         FrameLayout.LayoutParams titleParams=new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER);
         TextView name=text("VELORA",22,INK,SERIF);
-        name.setLetterSpacing(.18f);
+        NoirUi.tracking(name,.18f);
         header.addView(name,titleParams);
         Icon menu=new Icon(getContext(),Icon.MENU,INK);
         menu.setContentDescription("Открыть меню Velora");
@@ -187,7 +187,6 @@ final class EditorialHomeView extends LinearLayout {
         block.setPadding(dp(20),0,dp(18),0);
         View sun=new View(getContext());
         sun.setBackgroundDrawable(shape(SUN,100));
-        sun.setElevation(dp(3));
         LinearLayout.LayoutParams sunSize=new LayoutParams(dp(54),dp(54));
         sunSize.rightMargin=dp(16);
         block.addView(sun,sunSize);
