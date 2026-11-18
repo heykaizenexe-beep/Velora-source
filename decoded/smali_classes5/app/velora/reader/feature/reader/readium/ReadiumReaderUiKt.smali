@@ -1903,6 +1903,14 @@
 
 .method private static final PreferenceSlider(Ljava/lang/String;FLkotlin/ranges/ClosedFloatingPointRange;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
     .locals 87
+
+    # READER_COMPACT_APPEARANCE_SLIDER: keep the surrounding Compose API,
+    # render label/seekbar/value on one row instead of stacked controls.
+    # A separate AndroidView group handles recomposition and accessibility.
+    invoke-static/range {p0 .. p4}, Lapp/velora/reader/crtui/ReaderCompactSlider;->compose(Ljava/lang/String;FLjava/lang/Object;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;)V
+
+    return-void
+
     .param p0, "title"    # Ljava/lang/String;
     .param p1, "value"    # F
     .param p2, "range"    # Lkotlin/ranges/ClosedFloatingPointRange;
