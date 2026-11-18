@@ -9,6 +9,10 @@ import zipfile
 from tools.fetch_tool import fetch_tool
 from tools.restore_dependencies import restore_media_libraries
 
+# Keep preview-only credentials out of all release artifacts.
+if '--release' in sys.argv:
+    raise SystemExit("Production signing is not configured. "
+                     "Do not publish test-signed APKs; see docs/RELEASE_SIGNING.md.")
 ROOT = Path(__file__).resolve().parent
 TOOLS = ROOT / 'tool-cache'
 OUT = ROOT / 'build-output'

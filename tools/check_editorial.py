@@ -37,7 +37,7 @@ checks = {
             read(path + "ReadingShelvesView.java"),
     "Cartoteka compact navigation and long-press actions":
         "toolbar.setMinimumHeight(dp(52));" in home
-        and "tab.setMinHeight(dp(40));" in home
+        and "tab.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));" in home
         and "deck.setOnLongClickListener" in home
         and "performLongClick()" in deck,
     "Cartoteka archival reading progress and catalog number":
@@ -131,7 +131,8 @@ checks = {
         "archive_gallery_lab" not in themes and "ARCHIVE_GALLERY" not in routing
         and "Архивная галерея" not in settings,
     "original beige and rust palette remains":
-        "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
+        "NoirDotPaper.PAPER" in style and "VeloraDesign.EDITORIAL_ACCENT" in style
+        and "0xffa94f3b" in read(path + "VeloraDesign.java"),
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
     "EPUB footnotes do not navigate away for marked notes":
@@ -144,8 +145,8 @@ checks = {
         and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
         and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
             read(path + "FootnotePopup.java"),
-    "version 0.9.156":
-        bool(re.search(r"versionCode:\s*256\s+versionName:\s*0\.9\.156",manifest)),
+    "version 0.9.157":
+        bool(re.search(r"versionCode:\s*257\s+versionName:\s*0\.9\.157",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
