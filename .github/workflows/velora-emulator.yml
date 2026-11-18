@@ -75,7 +75,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect
-          script: python3 tools/android_emulator_smoke.py
+          script: bash -c 'python3 tools/android_emulator_smoke.py && python3 tools/android_emulator_cartoteka_smoke.py'
 
       - name: Upload screenshots and logcat (even on failure)
         if: always()
