@@ -61,12 +61,16 @@ final class NoirHomeView extends LinearLayout {
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
+        scroll.setClipChildren(false);
+        scroll.setClipToPadding(false);
         // The notebook print is continuous with the Window behind the system bars.
         scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
         page.setFocusableInTouchMode(true);
+        page.setClipChildren(false);
+        page.setClipToPadding(false);
         scroll.addView(page, new ScrollView.LayoutParams(-1, -2));
 
         // Editorial masthead: traditional newspaper hierarchy above the existing carousel.
@@ -157,6 +161,8 @@ final class NoirHomeView extends LinearLayout {
 
         display = NoirUi.column(c);
         display.setGravity(Gravity.CENTER_HORIZONTAL);
+        display.setClipChildren(false);
+        display.setClipToPadding(false);
         deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
         display.addView(deck, new LayoutParams(-1, dp(280)));
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
@@ -184,6 +190,8 @@ final class NoirHomeView extends LinearLayout {
                 display.offsetTopAndBottom(displayTop - display.getTop());
             }
         };
+        content.setClipChildren(false);
+        content.setClipToPadding(false);
         content.addView(display, new FrameLayout.LayoutParams(-1, -2));
         empty = NoirUi.text(c, "Загрузка книг…", 16, NoirHomeStyle.INK_MUTED, NoirUi.SERIF);
         empty.setGravity(Gravity.CENTER);
@@ -247,12 +255,20 @@ final class NoirHomeView extends LinearLayout {
         LayoutParams tabsSize = (LayoutParams) tabs.getLayoutParams();
         tabsSize.width = Math.min(dp(270), space);
         tabs.setLayoutParams(tabsSize);
+        // The carousel gets the whole display, while ticket/header margins
+        // stay narrow. Negative margins cancel only the page's side padding.
+        LayoutParams contentSize = (LayoutParams) content.getLayoutParams();
+        contentSize.width = w;
+        contentSize.leftMargin = -margin;
+        contentSize.rightMargin = -margin;
+        content.setLayoutParams(contentSize);
         ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
         LayoutParams librarySize = (LayoutParams) library.getLayoutParams();
         librarySize.width = Math.min(space, dp(420));
         library.setLayoutParams(librarySize);
-        int height = Math.min(dp(500), Math.min(Math.round(space * .76f) + dp(40),
-                Math.max(dp(190), h - dp(244))));
+        // Give the halo room to reach zero alpha before the stage edges.
+        int height = Math.min(dp(590), Math.min(Math.round(space * .82f) + dp(145),
+                Math.max(dp(310), h - dp(205))));
         deck.setLayoutParams(new LayoutParams(-1, height));
         if (catalog != null) catalog.resize(w, h);
     }
