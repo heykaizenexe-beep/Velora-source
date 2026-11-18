@@ -25,7 +25,7 @@ private static void roundedCorner(PathBuilder p,float sx,float sy,float cx,float
     }
 }
 /**
- * Cartoteka alone draws anti-aliased, continuous round-contour icons instead of
+ * Cartoteka and the signature Editorial Velora draw smooth round-contour icons instead of
  * 16x16 CRT pixel squares. This works for every existing icon and preserves the
  * original bit patterns and SVG silhouette for the pixel-cat theme.
  */
@@ -102,7 +102,7 @@ private static void smooth(PathBuilder p,int[] rows){
     }
 }
 
-private static void fill(PathBuilder p,int[] rows){if(AppTheme.isNoir()){smooth(p,rows);return;}
+private static void fill(PathBuilder p,int[] rows){if(AppTheme.isNoir() || AppTheme.CLASSIC.equals(AppTheme.id())){smooth(p,rows);return;}
  for(int y=0;y<rows.length;y++){int x=0;while(x<16){if((rows[y]&(1<<x))==0){x++;continue;}int start=x;while(x<16&&(rows[y]&(1<<x))!=0)x++;float l=start*1.5f,r=x*1.5f,t=y*1.5f,b=t+1.5f;p.moveTo(l,t);p.lineTo(r,t);p.lineTo(r,b);p.lineTo(l,b);p.close();}}}
 public static void automirrored_outlined_ArrowBack_0(PathBuilder p){fill(p,new int[]{0x0,0x0,0x0,0x180,0xc0,0x60,0x30,0x1ff8,0x1ff8,0x30,0x60,0xc0,0x180,0x0,0x0,0x0});}
 public static void filled_Bookmark_0(PathBuilder p){fill(p,new int[]{0x0,0x0,0xff0,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1ff8,0x1e78,0x1818,0x0,0x0});}

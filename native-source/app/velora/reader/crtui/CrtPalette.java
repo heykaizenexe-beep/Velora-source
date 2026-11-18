@@ -143,7 +143,9 @@ public final class CrtPalette {
         String selected = theme;
         if (AppTheme.NOIR.equals(selected)) return NOIR_PAPER[role];
         if (AppTheme.JOURNAL.equals(selected)) return (dark ? JOURNAL_DARK : JOURNAL_LIGHT)[role];
-        if (AppTheme.CLASSIC.equals(selected)) return (dark ? CLASSIC_DARK : CLASSIC_LIGHT)[role];
+        // Editorial Velora intentionally opens as warm paper even on a phone
+        // configured for dark mode; reader paper remains independently selected.
+        if (AppTheme.CLASSIC.equals(selected)) return CLASSIC_LIGHT[role];
         int[] custom=dark?customDark:customLight;
         return (custom!=null?custom:dark?DARK:LIGHT)[role];
     }

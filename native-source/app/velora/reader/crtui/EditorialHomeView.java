@@ -34,7 +34,6 @@ final class EditorialHomeView extends LinearLayout implements CrtTheme.Listener 
     private static final Typeface MEDIUM=Typeface.create("sans-serif-medium",Typeface.NORMAL);
     private final ScrollView scroll;
     private final LinearLayout page;
-    private final LinearLayout navigation;
     private HomeBinding binding;
     private List<Book> all;
     private String fingerprint;
@@ -49,11 +48,10 @@ final class EditorialHomeView extends LinearLayout implements CrtTheme.Listener 
         page=column();
         page.setPadding(dp(20),dp(16),dp(20),dp(28));
         scroll.addView(page,new ScrollView.LayoutParams(-1,-2));
-        addView(scroll,new LayoutParams(-1,0,1));
-        navigation=column();
-        navigation.setPadding(dp(16),dp(4),dp(16),dp(12));
-        addView(navigation,new LayoutParams(-1,-2));
-        dark=CrtTheme.isDark();
+        // The surrounding Compose scaffold already owns the application's
+        // persistent five-tab navigation; never add a second navigation bar.
+        addView(scroll,new LayoutParams(-1,-1));
+        dark=false; // Signature light book-paper design, independent of OS night mode.
         setBackgroundColor(background());
     }
 
@@ -131,12 +129,12 @@ final class EditorialHomeView extends LinearLayout implements CrtTheme.Listener 
         super.onDetachedFromWindow();
     }
     @Override public void onCrtThemeChanged(){
-        boolean updated=CrtTheme.isDark();
+        boolean updated=false;
         if(updated!=dark){dark=updated;fingerprint=null;setBackgroundColor(background());if(binding!=null)bind(all,binding);}
     }
 
     private void render(){
-        page.removeAllViews();navigation.removeAllViews();
+        page.removeAllViews();
         setBackgroundColor(background());
         renderHeader();
         space(page,28);
@@ -152,7 +150,6 @@ final class EditorialHomeView extends LinearLayout implements CrtTheme.Listener 
         renderBooks();
         space(page,25);
         renderClosingNote();
-        renderNavigation();
     }
     private void renderHeader(){
         LinearLayout header=row();
@@ -296,31 +293,6 @@ final class EditorialHomeView extends LinearLayout implements CrtTheme.Listener 
         note.addView(words,new LayoutParams(-1,-2));
         page.addView(note);
     }
-    private void renderNavigation(){
-        navigation.setBackgroundColor(background());
-        LinearLayout bar=row();
-        bar.setPadding(dp(4),dp(4),dp(4),dp(4));
-        bar.setBackgroundDrawable(bordered(surface(),tint(0xffeeeee6,0xff4e5653),28));
-        navItem(bar,"⌂","Главная",true,()->scroll.smoothScrollTo(0,0));
-        navItem(bar,"▤","Библиотека",false,()->perform(binding.library));
-        navItem(bar,"+","Добавить",false,()->perform(binding.add));
-        navItem(bar,"◷","Статистика",false,()->perform(binding.statistics));
-        navItem(bar,"⚙","Настройки",false,()->perform(binding.settings));
-        navigation.addView(bar,new LayoutParams(-1,dp(58)));
-    }
-    private void navItem(LinearLayout bar,String icon,String label,boolean selected,Runnable action){
-        LinearLayout slot=column();slot.setGravity(Gravity.CENTER);
-        if(selected)slot.setBackgroundDrawable(shape(tint(0xffe5eee9,0xff455c54),23));
-        TextView symbol=text(icon,23,foreground(),BODY);symbol.setGravity(Gravity.CENTER);
-        slot.addView(symbol);
-        TextView title=text(label,9,selected?foreground():secondary(),MEDIUM);
-        title.setGravity(Gravity.CENTER);slot.addView(title);
-        slot.setContentDescription(label);
-        slot.setFocusable(true);
-        slot.setOnClickListener(v->action.run());
-        bar.addView(slot,new LayoutParams(0,-1,1));
-    }
-
     private static final class Cover extends FrameLayout {
         private final Book book;
         private final String path;

@@ -26,7 +26,7 @@ checks = {
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
     "Cartoteka vector icons differ from pixel-cat without affecting it":
-        "if(AppTheme.isNoir()){smooth(p,rows);return;}" in
+        "if(AppTheme.isNoir() || AppTheme.CLASSIC.equals(AppTheme.id())){smooth(p,rows);return;}" in
            read(path + "PixelIconPaths.java")
         and "private static void smooth(PathBuilder p,int[] rows)" in
            read(path + "PixelIconPaths.java")

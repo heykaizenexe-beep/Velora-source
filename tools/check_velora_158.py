@@ -17,7 +17,7 @@ checks={
  "dedicated signature home": 'new EditorialHomeView(' in routing and 'AppTheme.CLASSIC.equals(AppTheme.id())' in routing,
  "editorial covers use real library model": 'binding.openShownBook(book)' in home and 'CoverLoader.get(getContext())' in home,
  "continue reading and book collection": 'renderContinue();' in home and 'renderBooks();' in home,
- "editorial navbar has accessible actions": 'navItem(bar' in home and 'slot.setContentDescription(label)' in home,
+ "single bottom navbar retained": 'renderNavigation();' not in home and 'The surrounding Compose scaffold already owns' in home,
  "distinct pastel classic palette": "0xfffaf8f2" in palette and "0xff477c70" in palette,
  "visual theme chips": 'swatches.addView(chip' in themes and 'Velora · Основная' in themes,
  "edge grace does not affect middle selection": 'edgeGrab ? Math.max(longPressTimeout, EDGE_HOLD_GRACE_MS)' in gesture,
