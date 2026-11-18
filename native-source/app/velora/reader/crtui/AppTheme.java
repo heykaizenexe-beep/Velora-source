@@ -14,7 +14,7 @@ public final class AppTheme {
         if(preferences!=null)return;
         Context app=context.getApplicationContext();if(app==null)app=context;
         preferences=app.getSharedPreferences("velora_app_themes",Context.MODE_PRIVATE);
-        // Existing CRT installations retain their appearance; new installs start with Classic.
+        // Existing CRT installations retain their appearance; new installs start with Editorial Velora.
         boolean existing=!app.getSharedPreferences("velora_crt_screen",Context.MODE_PRIVATE).getAll().isEmpty()
             ||!app.getSharedPreferences("velora_crt_appearance",Context.MODE_PRIVATE).getAll().isEmpty();
         String fallback=existing?PIXEL_CAT:CLASSIC;

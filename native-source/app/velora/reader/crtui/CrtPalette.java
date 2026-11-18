@@ -60,15 +60,16 @@ public final class CrtPalette {
     static void setTheme(String value){if(!theme.equals(value)){theme=value;paletteRevision++;}}
     private static int[] classicPalette(boolean dark){
         int[] p=(dark?DARK:LIGHT).clone();
-        int bg=dark?0xff13171e:0xfff7f8fa,surface=dark?0xff1c222c:0xffffffff;
-        int ink=dark?0xffe8edf5:0xff202735,muted=dark?0xffb1bdce:0xff566277;
-        int accent=dark?0xffacc8ff:0xff365d9b,border=dark?0xff414d60:0xffc2cad6;
+        // Editorial Velora: bookish milk paper, charcoal ink and soft sage.
+        int bg=dark?0xff1f2727:0xfffaf8f2,surface=dark?0xff303b39:0xffffffff;
+        int ink=dark?0xfffaf7f0:0xff232b28,muted=dark?0xffb9c5bd:0xff6c7770;
+        int accent=dark?0xffa4d7c7:0xff477c70,border=dark?0xff4e5653:0xffdedfd7;
         p[BACKGROUND]=p[SURFACE_DIM]=bg;p[SURFACE]=p[SURFACE_CONTAINER]=surface;
-        p[SURFACE_VARIANT]=p[SURFACE_CONTAINER_HIGH]=p[SURFACE_CONTAINER_HIGHEST]=dark?0xff283242:0xffe9edf4;
+        p[SURFACE_VARIANT]=p[SURFACE_CONTAINER_HIGH]=p[SURFACE_CONTAINER_HIGHEST]=dark?0xff3a4545:0xffe5eee9;
         p[SURFACE_BRIGHT]=p[SURFACE_CONTAINER_LOW]=p[SURFACE_CONTAINER_LOWEST]=surface;
         p[ON_BACKGROUND]=p[ON_SURFACE]=ink;p[ON_SURFACE_VARIANT]=muted;
         p[PRIMARY]=p[SECONDARY]=p[TERTIARY]=p[SURFACE_TINT]=accent;
-        p[ON_PRIMARY]=p[ON_SECONDARY]=p[ON_TERTIARY]=dark?0xff142849:0xffffffff;
+        p[ON_PRIMARY]=p[ON_SECONDARY]=p[ON_TERTIARY]=dark?0xff1f2727:0xffffffff;
         p[PRIMARY_CONTAINER]=p[SECONDARY_CONTAINER]=p[TERTIARY_CONTAINER]=CrtColorMath.mix(bg,accent,.18f);
         p[ON_PRIMARY_CONTAINER]=p[ON_SECONDARY_CONTAINER]=p[ON_TERTIARY_CONTAINER]=ink;
         p[BORDER]=p[OUTLINE]=p[OUTLINE_VARIANT]=border;p[PRESSED]=CrtColorMath.mix(bg,accent,.16f);return p;

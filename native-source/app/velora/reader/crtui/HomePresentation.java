@@ -25,6 +25,9 @@ import kotlinx.coroutines.flow.Flow;
 public final class HomePresentation {
     // The window can receive focus or mode updates while the Noir home is still shown.
     private static final WeakHashMap<Activity, Boolean> noirWindows = new WeakHashMap<>();
+    private static final Function1 EDITORIAL_FACTORY = new Function1() {
+        @Override public Object invoke(Object context) { return new EditorialHomeView((Context) context); }
+    };
     private static final Function1 NOIR_FACTORY = new Function1() {
         @Override public Object invoke(Object context) { return new NoirHomeView((Context) context); }
     };
@@ -81,6 +84,16 @@ public final class HomePresentation {
             AndroidView_androidKt.AndroidView(JOURNAL_FACTORY, modifier, new Function1() {
                 @Override public Object invoke(Object view) {
                     ((JournalHomeView) view).bind(books, home);
+                    return Unit.INSTANCE;
+                }
+            }, composer, 0, 0);
+            composer.endReplaceGroup();
+        } else if (AppTheme.CLASSIC.equals(AppTheme.id())) {
+            composer.startReplaceGroup(0x56454448);
+            final List<Book> books = collectBooks(composer);
+            AndroidView_androidKt.AndroidView(EDITORIAL_FACTORY, modifier, new Function1() {
+                @Override public Object invoke(Object view) {
+                    ((EditorialHomeView) view).bind(books, home);
                     return Unit.INSTANCE;
                 }
             }, composer, 0, 0);

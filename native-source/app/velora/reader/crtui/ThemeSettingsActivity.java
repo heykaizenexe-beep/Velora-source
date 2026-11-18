@@ -49,12 +49,34 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
             card=new LinearLayout(ThemeSettingsActivity.this);card.setOrientation(LinearLayout.VERTICAL);
             card.setPadding(dp(12),dp(12),dp(12),dp(10));
             heading=label(name,18);
+            if(AppTheme.CLASSIC.equals(id))heading.setTypeface(Typeface.SERIF,Typeface.BOLD);
             if(AppTheme.PIXEL_CAT.equals(id))heading.setTypeface(CrtFonts.pixelAsset());
             if(AppTheme.JOURNAL.equals(id))heading.setTypeface(Typeface.SERIF);
             if(AppTheme.NOIR.equals(id))heading.setTypeface(NoirUi.HEADLINE);
             card.addView(heading,new LinearLayout.LayoutParams(-1,-2));
             detail=label(description,14);detail.setPadding(0,dp(5),0,dp(8));
             card.addView(detail,new LinearLayout.LayoutParams(-1,-2));
+            // Always-visible color chips: choose a skin by seeing its actual palette.
+            LinearLayout swatches=new LinearLayout(ThemeSettingsActivity.this);
+            swatches.setOrientation(LinearLayout.HORIZONTAL);
+            int[] colors=AppTheme.CLASSIC.equals(id)
+                    ? new int[]{0xfffaf8f2,0xffc5dcd1,0xfff5dfcf,0xffe6def1,0xff232b28}
+                    : AppTheme.PIXEL_CAT.equals(id)
+                    ? new int[]{0xff0e160f,0xffc5df8b,0xff273a28,0xffe1e8d7,0xff18220d}
+                    : AppTheme.JOURNAL.equals(id)
+                    ? new int[]{0xffededed,0xffdedede,0xfff7f7f7,0xff454545,0xff262626}
+                    : new int[]{NoirDotPaper.PAPER,0xfffaf6ed,0xffe8dfd2,0xffa94f3b,0xff302620};
+            for(int color:colors){
+                View chip=new View(ThemeSettingsActivity.this);
+                chip.setBackgroundDrawable(shape(color,0xffcbc4bb,1));
+                LinearLayout.LayoutParams chipSize=new LinearLayout.LayoutParams(0,dp(28),1);
+                chipSize.rightMargin=dp(6);
+                swatches.addView(chip,chipSize);
+            }
+            swatches.setContentDescription("Цвета темы "+name);
+            card.addView(swatches,new LinearLayout.LayoutParams(-1,dp(28)));
+            View separator=new View(ThemeSettingsActivity.this);
+            card.addView(separator,new LinearLayout.LayoutParams(1,dp(10)));
             LinearLayout actions=new LinearLayout(ThemeSettingsActivity.this);
             actions.setOrientation(LinearLayout.HORIZONTAL);actions.setGravity(Gravity.CENTER_VERTICAL);
             select=label("",15);select.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));select.setGravity(Gravity.CENTER);
@@ -99,7 +121,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
         title=label("Темы",26);body.addView(title,new LinearLayout.LayoutParams(-1,-2));space(6);
         help=label("Оформление приложения. Параметры книги — в читалке.",13);
         body.addView(help,new LinearLayout.LayoutParams(-1,-2));space(12);
-        classic=new ThemeCard(AppTheme.CLASSIC,"Классическая","Спокойные цвета и обычный шрифт.");space(10);
+        classic=new ThemeCard(AppTheme.CLASSIC,"Velora · Основная","Книжный минимализм, пастельные акценты и большие обложки.");space(10);
         pixel=new ThemeCard(AppTheme.PIXEL_CAT,"Пиксельный кот","Пиксельный шрифт, котик и ЭЛТ-эффект.");
         space(10);
         journal=new ThemeCard(AppTheme.JOURNAL,"Журнал","Одна книга на экране. Листай вверх и вниз на телефоне, влево и вправо на планшете.");
