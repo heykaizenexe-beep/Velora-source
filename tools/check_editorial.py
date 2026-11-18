@@ -31,7 +31,7 @@ checks = {
         and "ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));" in home,
     "book visibility uses physical screen edges rather than an arbitrary index":
         "shelf.intersectsViewport(offset)" in deck
-        and "MAX_WINDOW_DISTANCE = 7" in deck
+        and "MAX_WINDOW_DISTANCE" not in deck
         and "if (!shelf.intersectsViewport(i - position)) break;" in deck
         and "VISIBLE_DISTANCE" not in shelf,
     "unclamped multi-book touch interaction":

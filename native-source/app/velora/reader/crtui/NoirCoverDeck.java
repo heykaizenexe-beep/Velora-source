@@ -32,7 +32,6 @@ final class NoirCoverDeck extends View {
     private static final float[] SPINE_PLANE = {0, 0, SPINE_WIDTH, 0, SPINE_WIDTH, SPINE_HEIGHT, 0, SPINE_HEIGHT};
     private final Matrix spineProjection = new Matrix();
     private final float[] spineCorners = new float[8];
-    private static final int MAX_WINDOW_DISTANCE = 7;
     private final SparseArray<Card> cards = new SparseArray<>(11);
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path outline = new Path();
@@ -227,11 +226,11 @@ final class NoirCoverDeck extends View {
         if (!attached || books.isEmpty()) return;
         int center = limit(Math.round(position));
         int first = center, last = center;
-        for (int i = center - 1; i >= 0 && i >= center - MAX_WINDOW_DISTANCE; i--) {
+        for (int i = center - 1; i >= 0; i--) {
             if (!shelf.intersectsViewport(i - position)) break;
             first = i;
         }
-        for (int i = center + 1; i < books.size() && i <= center + MAX_WINDOW_DISTANCE; i++) {
+        for (int i = center + 1; i < books.size(); i++) {
             if (!shelf.intersectsViewport(i - position)) break;
             last = i;
         }
