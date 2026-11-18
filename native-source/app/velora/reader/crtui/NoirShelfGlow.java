@@ -2,8 +2,8 @@ package app.velora.reader.crtui;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
-import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
@@ -11,67 +11,78 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
 import android.graphics.Shader;
 
-/** Soft light projected around a book's front cover. */
+/**
+ * Cover-matched colored halo against the bright dotted Cartoteka paper.
+ * Three falloff bands are baked into one reusable mask rather than blurring
+ * or allocating a shader during animation. Neighbor glows crossfade naturally.
+ */
 final class NoirShelfGlow {
-    private static final int WIDTH = 112, HEIGHT = 128;
-    private static final float SPREAD_X = .08f, SPREAD_Y = .057f;
+    private static final int WIDTH = 160, HEIGHT = 176;
+    private static final float SPREAD_X = .31f, SPREAD_Y = .22f;
     private static final float[] FRONT = {0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f};
 
     private final Bitmap mask = makeMask();
     private final RectF area = new RectF(-SPREAD_X, -SPREAD_Y, 1f + SPREAD_X, 1f + SPREAD_Y);
     private final Matrix projection = new Matrix();
-    private final Paint light = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
-    private final Paint edge = new Paint(Paint.DITHER_FLAG);
-    private Shader horizontalFade, verticalFade;
+    private final Paint light = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
 
     void size(int width, int height, float density) {
-        if (width <= 0 || height <= 0) return;
-        int wall = NoirHomeStyle.WALL;
-        int clear = wall & 0xffffff;
-        int[] colors = {wall, clear, clear, wall};
-        float x = Math.min(.18f, 28f * density / width);
-        float y = Math.min(.18f, 22f * density / height);
-        horizontalFade = new LinearGradient(0, 0, width, 0, colors,
-                new float[]{0f, x, 1f - x, 1f}, Shader.TileMode.CLAMP);
-        verticalFade = new LinearGradient(0, 0, 0, height, colors,
-                new float[]{0f, y, 1f - y, 1f}, Shader.TileMode.CLAMP);
+        // The mask scales with cover perspective; no view-sized textures needed.
     }
 
     void draw(Canvas canvas, float[] cover, ColorFilter tint, float strength) {
-        if (!projection.setPolyToPoly(FRONT, 0, cover, 0, 4)) return;
+        if (strength <= 0f || tint == null || !projection.setPolyToPoly(FRONT, 0, cover, 0, 4)) return;
         int saved = canvas.save();
         canvas.concat(projection);
         light.setColorFilter(tint);
-        light.setAlpha(Math.round(strength * 255f));
+        light.setAlpha(Math.max(0, Math.min(255, Math.round(strength * 255f))));
         canvas.drawBitmap(mask, null, area, light);
         canvas.restoreToCount(saved);
     }
 
-    void fadeAtEdges(Canvas canvas, int width, int height) {
-        if (horizontalFade == null || verticalFade == null) return;
-        edge.setShader(horizontalFade);
-        canvas.drawRect(0, 0, width, height, edge);
-        edge.setShader(verticalFade);
-        canvas.drawRect(0, 0, width, height, edge);
-    }
+    /** Leave dots visible across the whole page, never paint opaque edge strips. */
+    void fadeAtEdges(Canvas canvas, int width, int height) {}
 
     static ColorFilter filter(int coverColor) {
         return new PorterDuffColorFilter(tint(coverColor), PorterDuff.Mode.SRC_IN);
     }
 
+    /** Separate accent from the cover's paper/typography; cache once per cover load. */
+    static int accent(Bitmap cover, int fallback) {
+        if (cover == null || cover.isRecycled()) return fallback;
+        int[] weight = new int[512];
+        int[] red = new int[512], green = new int[512], blue = new int[512], count = new int[512];
+        int best = -1, highest = 0;
+        try {
+            for (int y = 0; y < 14; y++) {
+                int sy = Math.min(cover.getHeight() - 1, (y * 2 + 1) * cover.getHeight() / 28);
+                for (int x = 0; x < 12; x++) {
+                    int sx = Math.min(cover.getWidth() - 1, (x * 2 + 1) * cover.getWidth() / 24);
+                    int color = cover.getPixel(sx, sy);
+                    if ((color >>> 24) < 160) continue;
+                    int r = Color.red(color), g = Color.green(color), b = Color.blue(color);
+                    int hi = Math.max(r, Math.max(g, b)), lo = Math.min(r, Math.min(g, b));
+                    if (hi < 45 || lo > 239 || hi - lo < 30) continue;
+                    int bin = (r >> 5) * 64 + (g >> 5) * 8 + (b >> 5);
+                    count[bin]++; red[bin] += r; green[bin] += g; blue[bin] += b;
+                    weight[bin] += 2 + (hi - lo) / 45;
+                    if (weight[bin] > highest) { highest = weight[bin]; best = bin; }
+                }
+            }
+        } catch (RuntimeException unsupported) {
+            return fallback;
+        }
+        if (best < 0 || count[best] < 2) return fallback;
+        return Color.rgb(red[best] / count[best], green[best] / count[best], blue[best] / count[best]);
+    }
+
+    /** Saturated enough to read clearly on ivory paper without neon white centers. */
     static int tint(int coverColor) {
-        int r = coverColor >> 16 & 255;
-        int g = coverColor >> 8 & 255;
-        int b = coverColor & 255;
-        int peak = Math.max(r, Math.max(g, b));
-        float scale = Math.max(1f, 198f / Math.max(72, peak));
-        // On a paper background the tint should be a subtle warm reflection, not neon.
-        float brightness = peak * scale;
-        float neutral = brightness < 158f ? (158f - brightness) / (255f - brightness) : 0f;
-        int boosted = 0xff000000 | (Math.round(r * scale) << 16)
-                | (Math.round(g * scale) << 8) | Math.round(b * scale);
-        int colored = CrtColorMath.mix(boosted, 0xffeee4d8, neutral);
-        return CrtColorMath.mix(colored, 0xff9e8168, .22f);
+        float[] hsv = new float[3];
+        Color.colorToHSV(coverColor | 0xff000000, hsv);
+        hsv[1] = Math.max(.54f, Math.min(.78f, hsv[1] * 1.14f));
+        hsv[2] = Math.max(.68f, Math.min(.83f, hsv[2] * 1.10f));
+        return Color.HSVToColor(hsv);
     }
 
     static float strength(float offset) {
@@ -95,6 +106,13 @@ final class NoirShelfGlow {
         float dx = Math.max(0f, Math.abs(x - .5f) - .5f) / SPREAD_X;
         float dy = Math.max(0f, Math.abs(y - .5f) - .5f) / SPREAD_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        return Math.round(54f * strength(distance));
+        if (distance >= 1f) return 0;
+        // Wide diffuse color, saturated mid halo and a soft near-cover rim.
+        float outer = 58f * (1f - distance) * (1f - distance);
+        float middle = 112f * square(Math.max(0f, 1f - distance / .74f));
+        float inner = 44f * square(Math.max(0f, 1f - distance / .24f));
+        return Math.min(214, Math.round(outer + middle + inner));
     }
+
+    private static float square(float value) { return value * value; }
 }

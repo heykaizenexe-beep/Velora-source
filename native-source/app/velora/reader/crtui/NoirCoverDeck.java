@@ -126,7 +126,7 @@ final class NoirCoverDeck extends View {
         int left = (int) glowPosition;
         drawGlow(canvas, left, NoirShelfGlow.strength(left - glowPosition));
         if (glowPosition != left) drawGlow(canvas, left + 1, NoirShelfGlow.strength(left + 1 - glowPosition));
-        glow.fadeAtEdges(canvas, getWidth(), getHeight());
+        // The halo mask already tapers to transparent; preserve the dotted wallpaper.
         ink.setColor(0xffffffff);
         int shadow = canvas.save();
         canvas.translate(getWidth() * .5f, (getHeight() + shelf.bookHeight()) * .5f + dp(9));
@@ -258,7 +258,8 @@ final class NoirCoverDeck extends View {
         private void setCover(Bitmap value) {
             bitmap = value;
             cloth = NoirSpine.color(value, NoirBookArt.cloth(book.getId()));
-            glowTint = NoirShelfGlow.filter(cloth);
+            glowTint = NoirShelfGlow.filter(NoirShelfGlow.accent(value,
+                    NoirBookArt.cloth(book.getId())));
         }
 
         Card(Book book) {

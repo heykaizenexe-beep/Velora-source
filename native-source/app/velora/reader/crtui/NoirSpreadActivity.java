@@ -69,7 +69,9 @@ public final class NoirSpreadActivity extends Activity {
 
     private void createLayout() {
         backdrop = new FrameLayout(this);
-        backdrop.setBackgroundColor(NoirUi.BACKGROUND);
+        // The reading diary uses the exact dot grid from the Cartoteka home.
+        backdrop.setBackgroundDrawable(new NoirDotPaper(this, backdrop));
+        getWindow().setBackgroundDrawable(new NoirDotPaper(this, getWindow().getDecorView()));
         layout = NoirUi.column(this);
         layout.setPadding(0, dp(6), 0, dp(8));
         backdrop.addView(layout, new FrameLayout.LayoutParams(-1, -1));

@@ -32,6 +32,15 @@ checks = {
         and "NoirHomeStyle.EDGE, 20" in home,
     "reading and book-journal actions remain":
         'read = action(c, "Читать"' in ticket and 'diary = action(c, "Дневник"' in ticket,
+    "cover-matched three-band glow stays behind selected 3D book":
+        "NoirShelfGlow.accent(value," in deck
+        and "drawGlow(canvas, left" in deck
+        and "new NoirShelfGlow()" in deck
+        and "glow.fadeAtEdges(canvas" not in deck
+        and "outer + middle + inner" in read(path + "NoirShelfGlow.java"),
+    "diary uses the same dot-grid drawable as Cartoteka":
+        "backdrop.setBackgroundDrawable(new NoirDotPaper(this, backdrop));" in
+          read(path + "NoirSpreadActivity.java"),
     "dotted paper replaces newspaper texture":
         "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home
         and "new NoirNewspaperPaper" not in home and "newspaperPaper" not in home,
@@ -54,8 +63,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.150":
-        bool(re.search(r"versionCode:\s*250\s+versionName:\s*0\.9\.150",manifest)),
+    "version 0.9.151":
+        bool(re.search(r"versionCode:\s*251\s+versionName:\s*0\.9\.151",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
