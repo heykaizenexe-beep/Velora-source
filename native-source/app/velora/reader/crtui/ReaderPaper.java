@@ -28,6 +28,18 @@ public final class ReaderPaper {
   if("NEWSPAPER".equals(name)) return 0xfff3eee5;
   return 0xfffaf8f3;
  }
+ // The app can keep an independent Gazette selection while the Readium navigator
+ // receives the supported LIGHT enum with explicit custom background/text colors.
+ private static volatile boolean newspaperSelected;
+ public static void setNewspaperSelected(boolean selected){newspaperSelected=selected;}
+ public static boolean isNewspaperSelected(){return newspaperSelected;}
+ public static int effectivePageBackground(String themeName){
+  return newspaperSelected && "LIGHT".equals(themeName)
+   ? pageBackground("NEWSPAPER") : pageBackground(themeName);
+ }
+ public static long composeArgb(int argb){
+  return (((long)argb)&0xffffffffL)<<32;
+ }
  public static int pageText(String name){
   if("DARK".equals(name)) return 0xffe9e8e4;
   if("SEPIA".equals(name)) return 0xff5b3a21;
