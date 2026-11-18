@@ -18,7 +18,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
     private LinearLayout body;
     private ScrollView scroll;
     private TextView back,title,help;
-    private ThemeCard classic,pixel,journal,noir;
+    private ThemeCard classic,pixel,journal,noir,archiveGallery;
 
     protected void onCreate(Bundle state){
         super.onCreate(state);CrtTheme.bind(this);CrtTheme.restoreAppTheme();buildUi();
@@ -59,7 +59,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
             heading=label(name,18);
             if(AppTheme.PIXEL_CAT.equals(id))heading.setTypeface(CrtFonts.pixelAsset());
             if(AppTheme.JOURNAL.equals(id))heading.setTypeface(Typeface.SERIF);
-            if(AppTheme.NOIR.equals(id))heading.setTypeface(NoirUi.HEADLINE);
+            if(AppTheme.NOIR.equals(id) || AppTheme.ARCHIVE_GALLERY.equals(id))heading.setTypeface(NoirUi.HEADLINE);
             card.addView(heading,new LinearLayout.LayoutParams(-1,-2));
             detail=label(description,14);detail.setPadding(0,dp(5),0,dp(8));
             card.addView(detail,new LinearLayout.LayoutParams(-1,-2));
@@ -188,13 +188,15 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
         journal=new ThemeCard(AppTheme.JOURNAL,"Журнал","Одна книга на экране. Листай вверх и вниз на телефоне, влево и вправо на планшете.");
         space(10);
         noir=new ThemeCard(AppTheme.NOIR,"Картотека","Газетная типографика, бумажная палитра и карусель книг.");
+        space(10);
+        archiveGallery=new ThemeCard(AppTheme.ARCHIVE_GALLERY,"Архивная галерея · Эксперимент","Обложки без нагромождения, компактная каталожная карточка и мягкая бумажная палитра. Исходная Картотека сохранена.");
         refresh();setContentView(scroll);CrtOverlay.install(this);ReaderStatus.hideSystemStatus(this);
     }
     private void refresh(){
         if(scroll==null)return;
         scroll.setBackgroundColor(CrtTheme.background());back.setTextColor(CrtTheme.text());
         title.setTextColor(CrtTheme.text());help.setTextColor(CrtTheme.muted());
-        if(classic!=null)classic.refresh();if(pixel!=null)pixel.refresh();if(journal!=null)journal.refresh();if(noir!=null)noir.refresh();
+        if(classic!=null)classic.refresh();if(pixel!=null)pixel.refresh();if(journal!=null)journal.refresh();if(noir!=null)noir.refresh();if(archiveGallery!=null)archiveGallery.refresh();
     }
     public void onCrtThemeChanged(){refresh();}
     public void onWindowFocusChanged(boolean focus){super.onWindowFocusChanged(focus);if(focus)ReaderStatus.hideSystemStatus(this);}
