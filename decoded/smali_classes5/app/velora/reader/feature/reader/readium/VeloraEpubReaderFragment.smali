@@ -11029,7 +11029,7 @@
     move-result-object v0
 
     :goto_read_theme
-    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
+    invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->effectivePageBackground(Ljava/lang/String;)I
 
     move-result v0
 
