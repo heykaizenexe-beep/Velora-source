@@ -17,7 +17,8 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
  private final java.util.ArrayList<TextView> labels=new java.util.ArrayList<TextView>();
  private final java.util.ArrayList<TextView> buttons=new java.util.ArrayList<TextView>();
  public MetadataEditorView(Context c){
-  super(c);setFillViewport(false);setVerticalScrollBarEnabled(false);setBackgroundColor(CrtTheme.background());
+  super(c);setFillViewport(false);setVerticalScrollBarEnabled(false);if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        else setBackgroundColor(CrtTheme.background());
   host=new LinearLayout(c);host.setOrientation(1);host.setPadding(dp(2),dp(4),dp(2),dp(8));addView(host,new ScrollView.LayoutParams(-1,-2));
   LinearLayout top=new LinearLayout(c);top.setGravity(Gravity.CENTER_VERTICAL);cover=new CoverImageView(c);top.addView(cover,new LinearLayout.LayoutParams(dp(72),dp(108)));
   LinearLayout actions=new LinearLayout(c);actions.setOrientation(1);actions.setPadding(dp(12),0,0,0);actions.addView(label("ОБЛОЖКА",20,CrtTheme.muted()));gap(actions,6);
@@ -28,7 +29,7 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
   for(int i=0;i<4;i++){
    gap(host,10);host.addView(label(names[i],20,CrtTheme.muted()));gap(host,4);final EditText edit=new EditText(c);final int n=i;fields[i]=edit;
    edit.setTextColor(CrtTheme.text());edit.setHintTextColor(CrtTheme.muted());edit.setTextSize(23);edit.setPadding(dp(10),dp(8),dp(10),dp(8));edit.setMinHeight(dp(48));edit.setSingleLine(true);edit.setSelectAllOnFocus(false);edit.setImeOptions(i==3?EditorInfo.IME_ACTION_DONE:EditorInfo.IME_ACTION_NEXT);
-   edit.setInputType(i==3?InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL:InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);edit.setTypeface(CrtFonts.pixel());edit.setBackgroundDrawable(box(false));edit.setContentDescription(names[i]);
+   edit.setInputType(i==3?InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL:InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);edit.setTypeface(AppTheme.isNoir()?NoirUi.SANS:CrtFonts.pixel());edit.setBackgroundDrawable(box(false));edit.setContentDescription(names[i]);
    edit.setOnFocusChangeListener(new View.OnFocusChangeListener(){public void onFocusChange(View v,boolean focused){edit.setBackgroundDrawable(box(focused));if(focused)post(new Runnable(){public void run(){smoothScrollTo(0,Math.max(0,edit.getTop()-dp(32)));}});}});
    edit.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){}public void afterTextChanged(Editable value){if(syncing||binding==null)return;String text=value.toString();if(n==3){String cleaned=MetadataInput.seriesIndex(text);if(!cleaned.equals(text)){syncing=true;edit.setText(cleaned);edit.setSelection(cleaned.length());syncing=false;text=cleaned;}}state(n).setValue(text);}});
    host.addView(edit,new LinearLayout.LayoutParams(-1,-2));
@@ -38,7 +39,8 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
  protected void onAttachedToWindow(){super.onAttachedToWindow();CrtTheme.addListener(this);onCrtThemeChanged();}
  protected void onDetachedFromWindow(){CrtTheme.removeListener(this);super.onDetachedFromWindow();}
  public void onCrtThemeChanged(){
-  setBackgroundColor(CrtTheme.background());
+  if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        else setBackgroundColor(CrtTheme.background());
   for(TextView label:labels)label.setTextColor(CrtTheme.muted());
   for(TextView button:buttons){button.setTextColor(CrtTheme.accent());button.setBackgroundDrawable(box(false));}
   error.setTextColor(CrtTheme.danger());indexError.setTextColor(CrtTheme.danger());

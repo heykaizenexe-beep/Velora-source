@@ -62,7 +62,8 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
 
     public ReadingShelvesView(Context context) {
         super(context);
-        setId(0x00c7a030); setBackgroundColor(color(BG));
+        setId(0x00c7a030); if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        else setBackgroundColor(color(BG));
         content=column();
         addView(content,new FrameLayout.LayoutParams(-1,-1,Gravity.TOP|Gravity.CENTER_HORIZONTAL));
 
@@ -113,7 +114,8 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
 
     protected void onAttachedToWindow(){super.onAttachedToWindow();CrtTheme.addListener(this);onCrtThemeChanged();}
     protected void onDetachedFromWindow(){CrtTheme.removeListener(this);super.onDetachedFromWindow();}
-    public void onCrtThemeChanged(){setBackgroundColor(color(BG));retint(content);}
+    public void onCrtThemeChanged(){if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        else setBackgroundColor(color(BG));retint(content);}
     private void retint(View view){
         if(view instanceof PaletteLabel)((PaletteLabel)view).refreshColor();
         view.invalidate();
@@ -196,7 +198,7 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
     private void gap(LinearLayout parent,int h){parent.addView(new View(getContext()),new LinearLayout.LayoutParams(1,dp(h)));}
     private TextView text(String value,int size,int role){
         TextView v=new PaletteLabel(getContext(),role);v.setText(value);v.setTextSize(size);
-        v.setTypeface(CrtFonts.pixel());v.setIncludeFontPadding(false);return v;
+        v.setTypeface(AppTheme.isNoir()?NoirUi.SANS:CrtFonts.pixel());v.setIncludeFontPadding(false);return v;
     }
     private TextView button(String label,boolean primary,View.OnClickListener action){
         TextView v=text(label,22,primary?ON_ACCENT:TEXT);v.setGravity(Gravity.CENTER);

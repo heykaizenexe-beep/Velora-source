@@ -139,6 +139,7 @@ public final class RichNoteEditorActivity extends Activity implements CrtTheme.L
             colors.put("accent",hex(CrtTheme.accent()));
             colors.put("border",hex(CrtTheme.border()));
             colors.put("pixel",AppTheme.isPixel());
+            colors.put("archive",AppTheme.isNoir());
         }catch(Exception ignored){}
         eval("if(window.veloraPalette)window.veloraPalette("+colors.toString()+");");
     }

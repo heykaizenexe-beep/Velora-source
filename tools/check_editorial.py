@@ -36,6 +36,17 @@ checks = {
     "Cartoteka catalog and drawer share the dotted sheet":
         "panel.setBackgroundDrawable(new NoirDotPaper(c, panel));" in read(path + "NoirCatalogSheet.java")
         and "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home,
+    "Cartoteka-only dots on shelves, metadata and statistics":
+        "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+            read(path + "MinimalStatsView.java")
+        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+            read(path + "MetadataEditorView.java")
+        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+            read(path + "ReadingShelvesView.java"),
+    "Cartoteka-only dot paper in the notes editor":
+        'colors.put("archive",AppTheme.isNoir());' in read(path + "RichNoteEditorActivity.java")
+        and "classList.toggle('archive-theme',!!colors.archive)" in
+            read("decoded/assets/velora-rich-notes/editor.html"),
     "Other themes retain their own theme-settings wallpaper":
         "if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));"
         in read(path + "ThemeSettingsActivity.java"),
