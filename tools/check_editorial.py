@@ -28,6 +28,7 @@ checks = {
     "fixed-grain tile has no frame flicker": "BitmapShader(texture, Shader.TileMode.REPEAT" in texture and "Fixed-seed noise" in texture and "for (int i = 0; i < pixels.length; i++)" in texture,
     "ghost ink remains translucent at 100%": "Math.min(27, Math.round(11f * strength / DEFAULT_STRENGTH))" in texture and ".17f" in texture,
     "background keeps central carousel clean": "bounds.width() * .17f" in texture,
+    "paper photo has stronger adjustable contrast": "DEFAULT_STRENGTH = 45;" in texture and "Math.min(190, Math.round(strength * 2.1f))" in texture,
     "real CC0 photo is bundled with Android assets": (ROOT / "decoded/assets/noir/newsprint-paper.jpg").is_file() and (ROOT / "decoded/assets/noir/newsprint-paper.jpg").stat().st_size > 10000,
     "photographic paper blends at adjustable opacity": 'getAssets().open("noir/newsprint-paper.jpg")' in texture and 'BitmapFactory.decodeStream(stream)' in texture and 'photograph.setAlpha(' in texture,
     "0% gives clean paper": "if (strength == 0) return;" in texture,
@@ -39,7 +40,7 @@ checks = {
     "live theme reacts to changes": "registerOnSharedPreferenceChangeListener(texturePreferenceListener)" in home and "unregisterOnSharedPreferenceChangeListener(" in home,
     "Schueler not loaded": "schuelerBold" not in fonts,
     "Schueler no longer required": "restore_noir_font" not in rebuild,
-    "correct 0.9.146 version": bool(re.search(r"versionCode:\s*246\s+versionName:\s*0\.9\.146",manifest)),
+    "correct 0.9.147 version": bool(re.search(r"versionCode:\s*247\s+versionName:\s*0\.9\.147",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
