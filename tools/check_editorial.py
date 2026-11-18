@@ -134,8 +134,18 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.155":
-        bool(re.search(r"versionCode:\s*255\s+versionName:\s*0\.9\.155",manifest)),
+    "EPUB footnotes do not navigate away for marked notes":
+        "FootnoteContent;->likelyFootnote" in
+            read("decoded/smali_classes20/org/readium/r2/navigator/R2BasicWebView$VeloraNoteTask.smali")
+        and "note_ready" in
+            read("decoded/smali_classes20/org/readium/r2/navigator/R2BasicWebView$VeloraNoteTask.smali"),
+    "Footnote popup follows tap location and Cartoteka reading paper":
+        "float tapX=Float.NaN,tapY=frame.centerY();" in read(path + "FootnotePopup.java")
+        and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
+        and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
+            read(path + "FootnotePopup.java"),
+    "version 0.9.156":
+        bool(re.search(r"versionCode:\s*256\s+versionName:\s*0\.9\.156",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
