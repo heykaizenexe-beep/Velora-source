@@ -57,7 +57,9 @@ public final class NoirDotPaper extends Drawable {
     @Override public int getOpacity() { return PixelFormat.OPAQUE; }
 
     public static void applyWindow(Activity activity) {
-        if (!AppTheme.isNoir()) return;
+        // Cartoteka's dot wallpaper is ONLY for archive UI windows, never for
+        // the EPUB/PDF reader. The reader owns its paper colour independently.
+        if (!AppTheme.isNoir() || ReaderStatus.isReader(activity)) return;
         View decor = activity.getWindow().getDecorView();
         if (!(decor.getBackground() instanceof NoirDotPaper))
             activity.getWindow().setBackgroundDrawable(new NoirDotPaper(activity, decor));

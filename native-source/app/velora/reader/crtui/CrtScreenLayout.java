@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.graphics.Shader;
 import android.graphics.ColorFilter;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.ColorMatrixColorFilter;
 import android.os.Build;
 import android.view.ActionMode;
@@ -123,10 +124,19 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
                 content.addView(children.get(i), Math.min(positions.get(i).intValue(), content.getChildCount()), params.get(i));
             return null;
         }
-        if (AppTheme.isNoir()) {
+        // This wrapper is also used by the Readium/fixed-page reader.
+        // The archive's dots must never leak into the top or bottom reader insets.
+        if (AppTheme.isNoir() && !ReaderStatus.isReader(activity)) {
             content.setBackgroundDrawable(new NoirDotPaper(activity, content));
             screen.setBackgroundDrawable(new NoirDotPaper(activity, screen));
-        } else content.setBackgroundColor(ReaderPaper.background(activity));
+        } else {
+            int paper = ReaderPaper.background(activity);
+            content.setBackgroundColor(paper);
+            if (AppTheme.isNoir() && ReaderStatus.isReader(activity)) {
+                screen.setBackgroundColor(paper);
+                activity.getWindow().setBackgroundDrawable(new ColorDrawable(paper));
+            }
+        }
         return screen;
     }
 
@@ -137,6 +147,7 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
         getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
         installAccessibilityObserver();
         installInsetsObserver();
+        updatePaperBackground();
         updateWarp(false);
     }
 
@@ -158,18 +169,31 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
     }
 
     public void onCrtThemeChanged() {
-        if (AppTheme.isNoir()) {
+        // ReaderPaper.update() dispatches a theme refresh when the page theme
+        // changes (light, sepia, dark), so the outer gutters follow that colour.
+        updatePaperBackground();
+        updateWarp(false);
+    }
+
+    private void updatePaperBackground() {
+        boolean reader = ReaderStatus.isReader(getContext());
+        if (AppTheme.isNoir() && !reader) {
             setBackgroundDrawable(new NoirDotPaper(getContext(), this));
             if (getParent() instanceof View) {
                 View root = (View) getParent();
                 root.setBackgroundDrawable(new NoirDotPaper(getContext(), root));
             }
-        } else {
-            setBackgroundColor(ReaderPaper.background(getContext()));
-            if (getParent() instanceof View)
-                ((View) getParent()).setBackgroundColor(ReaderPaper.background(getContext()));
+            return;
         }
-        updateWarp(false);
+        int paper = ReaderPaper.background(getContext());
+        setBackgroundColor(paper);
+        if (getParent() instanceof View)
+            ((View) getParent()).setBackgroundColor(paper);
+        if (AppTheme.isNoir() && reader && getContext() instanceof Activity) {
+            // Window background also fills status/navigation areas outside
+            // the native content root; keep it identical to the reading page.
+            ((Activity)getContext()).getWindow().setBackgroundDrawable(new ColorDrawable(paper));
+        }
     }
 
     public void onCrtScreenSettingsChanged() {
@@ -307,7 +331,7 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
         viewport=next;
         setPadding(l,t,r,b);
         try{View.class.getMethod("requestApplyInsets").invoke(this);}catch(Exception ignored){}
-        if (AppTheme.isNoir())
+        if (AppTheme.isNoir() && !ReaderStatus.isReader(getContext()))
             setBackgroundDrawable(new NoirDotPaper(getContext(), this));
         else setBackgroundColor(ReaderPaper.background(getContext()));
         return true;

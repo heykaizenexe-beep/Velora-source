@@ -65,6 +65,16 @@ checks = {
         and "page.addView(library, librarySize);" not in home
         and "fitDeckToViewport(w, h);" in home
         and "height - reserved" in home,
+    "Reading page never inherits Cartoteka dots in top and bottom gutters":
+        "!AppTheme.isNoir() || ReaderStatus.isReader(activity)" in
+           read(path + "NoirDotPaper.java")
+        and "AppTheme.isNoir() && !ReaderStatus.isReader(activity)" in
+           read(path + "CrtScreenLayout.java")
+        and "AppTheme.isNoir() && !ReaderStatus.isReader(getContext())" in
+           read(path + "CrtScreenLayout.java")
+        and "activity.getWindow().setBackgroundDrawable(new ColorDrawable(paper));" in
+           read(path + "CrtScreenLayout.java")
+        and "updatePaperBackground();" in read(path + "CrtScreenLayout.java"),
     "Cartoteka paper reaches CRT host and Android system-bar insets":
         "content.setBackgroundDrawable(new NoirDotPaper(activity, content))" in
             read(path + "NoirDotPaper.java")
@@ -124,8 +134,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.154":
-        bool(re.search(r"versionCode:\s*254\s+versionName:\s*0\.9\.154",manifest)),
+    "version 0.9.155":
+        bool(re.search(r"versionCode:\s*255\s+versionName:\s*0\.9\.155",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
