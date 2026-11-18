@@ -66,7 +66,7 @@ final class NoirHomeView extends LinearLayout {
         super(c);
         this.gallery = gallery;
         setOrientation(VERTICAL);
-        setBackgroundColor(gallery ? 0xfff6f2eb : NoirHomeStyle.WALL);
+        setBackgroundColor(gallery ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL);
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
@@ -79,7 +79,7 @@ final class NoirHomeView extends LinearLayout {
                                 NoirNewspaperPaper.DEFAULT_STRENGTH)));
             }
         };
-        scroll.setBackgroundDrawable(gallery ? new ColorDrawable(0xfff6f2eb) : newspaperPaper);
+        scroll.setBackgroundDrawable(gallery ? new ColorDrawable(NoirHomeStyle.GALLERY_WALL) : newspaperPaper);
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
