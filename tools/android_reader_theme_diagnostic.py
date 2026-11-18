@@ -74,7 +74,15 @@ def main():
     b=dump("settings_after_click")
     if click_match(b,["Оформление","Цвет","Тема"]):
         b=dump("reader_palette_screen")
-    if click_match(b,["Газета"]):
+    clicked=click_match(b,["Газета"])
+    for attempt in range(5):
+        if clicked: break
+        print("SCROLL_READER_SETTINGS",attempt,flush=True)
+        smoke.cmd("adb","shell","input","swipe","540","1740","540","530","425")
+        time.sleep(1.6)
+        b=dump("settings_scroll_"+str(attempt))
+        clicked=click_match(b,["Газета"])
+    if clicked:
         dump("after_newspaper")
         print("NEWSPAPER_ACTIVE",smoke.reader_visible(),flush=True)
     else:
