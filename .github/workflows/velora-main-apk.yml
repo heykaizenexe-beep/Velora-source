@@ -31,6 +31,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.146-main-APK
+          name: Velora-0.9.147-main-APK
           path: build-output/Velora-CRT.apk
           retention-days: 14
