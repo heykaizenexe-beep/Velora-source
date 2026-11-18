@@ -145,8 +145,8 @@ checks = {
         and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
         and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
             read(path + "FootnotePopup.java"),
-    "version 0.9.157":
-        bool(re.search(r"versionCode:\s*257\s+versionName:\s*0\.9\.157",manifest)),
+    "version 0.9.158":
+        bool(re.search(r"versionCode:\s*258\s+versionName:\s*0\.9\.158",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

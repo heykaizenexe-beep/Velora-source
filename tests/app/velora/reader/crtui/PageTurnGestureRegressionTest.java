@@ -109,9 +109,16 @@ public final class PageTurnGestureRegressionTest {
         check(g.move(400, 300, 250, 1, true), "blocked edge sequence remains owned until terminal event");
         check(g.finish(400, 300, -900, true) == 0, "outward rejected sequence cannot commit after reversing");
         right(g);
-        check(!g.isObserving(600), "long press releases disallow exactly at timeout");
-        check(!g.move(400, 300, 610, 1, true), "selection movement after long press is never captured");
-        check(g.finish(400, 300, -900, true) == 0, "long press cannot commit");
+        check(g.isObserving(600), "a held book edge stays available past the normal text long-press");
+        check(g.move(400, 300, 1100, 1, true), "a delayed edge pull claims the same page");
+        check(g.finish(400, 300, 0, true) == -1, "delayed edge pull commits once");
+        right(g);
+        check(!g.isObserving(2000), "edge hold expires after a bounded grace period");
+        check(!g.move(400, 300, 2010, 1, true), "expired edge does not steal text selection");
+        check(g.finish(400, 300, -900, true) == 0, "expired edge cannot commit");
+        check(g.begin(400, 300, 100, 800, 1000, true), "middle of page may be observed");
+        check(!g.isObserving(650), "interior text long-press retains original timeout");
+        check(!g.move(200, 300, 650, 1, true), "interior text selection cannot become a page grab");
 
         right(g);
         check(!g.move(750, 300, 140, 2, true), "multitouch before claim stays native");

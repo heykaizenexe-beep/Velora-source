@@ -29,6 +29,8 @@ jobs:
         run: python3 tools/check_journal_design.py
       - name: Check Gradle migration boundary
         run: python3 tools/check_modernization.py
+      - name: Check 0.9.158 editorial and page turn contracts
+        run: python3 tools/check_velora_158.py
       - name: Check independent reading themes
         run: python3 tools/check_reader_palettes.py
       - name: Test EPUB and FB2 footnote extraction and popup placement
@@ -45,6 +47,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.157-Journal-Design
+          name: Velora-0.9.158-Editorial-Reading
           path: build-output/Velora-CRT.apk
           retention-days: 14

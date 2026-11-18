@@ -5,6 +5,9 @@ final class PageTurnGesture {
     private final float slop;
     private final float density;
     private final long longPressTimeout;
+    // A reader may rest a finger on the paper edge before pulling it.
+    // Interior long-presses still belong to native text selection.
+    private static final long EDGE_HOLD_GRACE_MS = 1800L;
     private float startX, startY, currentX, currentY, width;
     private long startedAt;
     private boolean tracking, claimed, aborted, physicalRight, edgeGrab, sideChosen, blocked;
@@ -43,7 +46,8 @@ final class PageTurnGesture {
             return true;
         }
         if (!tracking) return false;
-        if (!allowed || pointers != 1 || time < startedAt || time - startedAt >= longPressTimeout) {
+        long holdLimit = edgeGrab ? Math.max(longPressTimeout, EDGE_HOLD_GRACE_MS) : longPressTimeout;
+        if (!allowed || pointers != 1 || time < startedAt || time - startedAt >= holdLimit) {
             tracking = false;
             return false;
         }
@@ -110,7 +114,8 @@ final class PageTurnGesture {
     boolean isBlocked() { return blocked; }
     boolean isObserving(long time) {
         return tracking && !claimed && !aborted && time >= startedAt
-                && time - startedAt < longPressTimeout;
+                && time - startedAt < (edgeGrab ? Math.max(longPressTimeout, EDGE_HOLD_GRACE_MS)
+                        : longPressTimeout);
     }
     void abort() { tracking = false; aborted = true; }
     void reset() { tracking = false; claimed = false; aborted = false; blocked = false; }

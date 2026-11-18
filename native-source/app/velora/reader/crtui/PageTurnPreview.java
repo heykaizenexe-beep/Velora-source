@@ -312,10 +312,13 @@ public final class PageTurnPreview {
                     finishPending(cache.acquire(pendingDirection));
                     if (disposed || busy) return;
                 }
-                warmingSecondForward = pending == null && completed[1] && !attemptedSecondForward
-                        && nextForwardPosition != null && nextForwardPosition.allowsLookahead;
+                // The previous page is more important than optional second-page lookahead:
+                // a cancelled or reversed turn should immediately reveal real text.
+                warmingSecondForward = pending == null && completed[1] && completed[0]
+                        && !attemptedSecondForward && nextForwardPosition != null
+                        && nextForwardPosition.allowsLookahead;
                 direction = pending != null ? pendingDirection
-                        : (!completed[1] || warmingSecondForward ? 1 : (!completed[0] ? 0 : -1));
+                        : (!completed[1] ? 1 : (!completed[0] ? 0 : (warmingSecondForward ? 1 : -1)));
                 if (direction < 0) return;
                 if (warmingSecondForward) attemptedSecondForward = true;
                 else completed[direction] = true;
