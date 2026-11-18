@@ -40,7 +40,7 @@ public final class PageTurnSettings {
     private static final String ORDINARY_DESCRIPTION = "Обычные свайпы и касания.";
     private static final String BOOK_TITLE = "Как в книге";
     private static final String BOOK_DESCRIPTION = "Потяните страницу из любой точки. Лист следует за пальцем; верните его назад, чтобы отменить.";
-    private static final String SUPPORT = "Обычные свайпы или движение бумажного листа. В EPUB/FB2 режим «Как в книге» экспериментальный.";
+    private static final String SUPPORT = "«Как в книге» — экспериментальный режим EPUB/FB2.";
     private static final Function1 FACTORY = new Function1() {
         public Object invoke(Object context) { return new SettingsView((Context) context); }
     };
@@ -137,7 +137,9 @@ public final class PageTurnSettings {
 
             support = new TextView(context);
             support.setText(SUPPORT);
-            support.setTextSize(12);
+            support.setTextSize(11);
+            support.setSingleLine(true);
+            support.setEllipsize(android.text.TextUtils.TruncateAt.END);
             support.setLineSpacing(dp(2), 1f);
             // The book radio already includes this text in its accessible description.
             support.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
