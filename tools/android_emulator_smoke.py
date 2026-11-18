@@ -139,9 +139,9 @@ def page_diff(baseline, changed):
 def drag(name, start_x, end_x, height):
     before = capture(name + "_before")
     runner = subprocess.Popen(["adb", "shell", "input", "swipe",
-                               str(start_x), str(height), str(end_x), str(height), "2500"],
+                               str(start_x), str(height), str(end_x), str(height), "850"],
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    time.sleep(.75)
+    time.sleep(.25)
     during = capture(name + "_held")
     runner.communicate(timeout=15)
     after = capture(name + "_after")
@@ -206,7 +206,7 @@ def main():
         raise AssertionError("Unable to read Android display size")
     width, height = map(int, match.groups())
     # First test the right paper edge (forward), then the left (backward).
-    right = drag("04_right_edge", int(width*.94), int(width*.35), int(height*.55))
+    right = drag("04_right_edge", int(width*.88), int(width*.35), int(height*.55))
     time.sleep(3)
     inner = drag("04_inner_right", int(width*.80), int(width*.35), int(height*.55))
     time.sleep(3)
