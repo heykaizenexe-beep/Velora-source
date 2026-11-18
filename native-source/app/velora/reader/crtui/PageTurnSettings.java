@@ -35,12 +35,12 @@ public final class PageTurnSettings {
     private static final String ORDINARY = "ordinary";
     private static final String BOOK = "book";
     private static final int CONTENT_GROUP = 0x50435453;
-    private static final String TITLE = "Перелистывание страниц";
+    private static final String TITLE = "Как листать";
     private static final String ORDINARY_TITLE = "Обычное";
     private static final String ORDINARY_DESCRIPTION = "Обычные свайпы и касания.";
     private static final String BOOK_TITLE = "Как в книге";
     private static final String BOOK_DESCRIPTION = "Потяните страницу из любой точки. Лист следует за пальцем; верните его назад, чтобы отменить.";
-    private static final String SUPPORT = "«Как в книге» — экспериментальный режим для EPUB и FB2. Доступен при постраничном чтении.";
+    private static final String SUPPORT = "Обычные свайпы или движение бумажного листа. В EPUB/FB2 режим «Как в книге» экспериментальный.";
     private static final Function1 FACTORY = new Function1() {
         public Object invoke(Object context) { return new SettingsView((Context) context); }
     };
@@ -121,7 +121,7 @@ public final class PageTurnSettings {
             addView(title, heading);
 
             choices = new RadioGroup(context);
-            choices.setOrientation(VERTICAL);
+            choices.setOrientation(HORIZONTAL);
             choices.setSaveEnabled(false);
             ordinaryId = ViewCompat.generateViewId();
             bookId = ViewCompat.generateViewId();
@@ -129,20 +129,20 @@ public final class PageTurnSettings {
             book = choice(bookId, BOOK_TITLE, BOOK_DESCRIPTION);
             ordinary.setContentDescription(ORDINARY_TITLE + ". " + ORDINARY_DESCRIPTION);
             book.setContentDescription(BOOK_TITLE + ". " + BOOK_DESCRIPTION + " " + SUPPORT);
-            choices.addView(ordinary, new RadioGroup.LayoutParams(-1, -2));
-            RadioGroup.LayoutParams second = new RadioGroup.LayoutParams(-1, -2);
-            second.topMargin = dp(8);
+            choices.addView(ordinary, new RadioGroup.LayoutParams(0, dp(50), 1f));
+            RadioGroup.LayoutParams second = new RadioGroup.LayoutParams(0, dp(50), 1f);
+            second.leftMargin = dp(8);
             choices.addView(book, second);
             addView(choices, new LinearLayout.LayoutParams(-1, -2));
 
             support = new TextView(context);
             support.setText(SUPPORT);
-            support.setTextSize(13);
+            support.setTextSize(12);
             support.setLineSpacing(dp(2), 1f);
             // The book radio already includes this text in its accessible description.
             support.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams details = new LinearLayout.LayoutParams(-1, -2);
-            details.topMargin = dp(8);
+            details.topMargin = dp(5);
             addView(support, details);
 
             choices.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -159,13 +159,13 @@ public final class PageTurnSettings {
         private RadioButton choice(int id, String label, String description) {
             RadioButton button = new RadioButton(getContext());
             button.setId(id);
-            button.setText(label + "\n" + description);
-            button.setTextSize(16);
+            button.setText(label);
+            button.setTextSize(14);
             button.setSingleLine(false);
             button.setGravity(Gravity.CENTER_VERTICAL);
-            button.setLineSpacing(dp(2), 1f);
-            button.setMinHeight(dp(72));
-            button.setPadding(dp(12), dp(10), dp(12), dp(10));
+            button.setSingleLine(true);
+            button.setMinHeight(dp(48));
+            button.setPadding(dp(10), dp(4), dp(10), dp(4));
             button.setSaveEnabled(false);
             return button;
         }
@@ -211,11 +211,8 @@ public final class PageTurnSettings {
         }
 
         private void styleChoice(RadioButton button, String label, String description) {
-            SpannableString text = new SpannableString(label + "\n" + description);
-            text.setSpan(new StyleSpan(Typeface.BOLD), 0, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            text.setSpan(new RelativeSizeSpan(.875f), label.length() + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            text.setSpan(new ForegroundColorSpan(lastSecondary), label.length() + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            button.setText(text);
+            button.setText(label);
+            button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
             button.setTextColor(lastForeground);
             StateListDrawable radio = new StateListDrawable();
             radio.addState(new int[]{android.R.attr.state_checked}, indicator(true));
