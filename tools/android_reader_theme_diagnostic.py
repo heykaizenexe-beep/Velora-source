@@ -1,100 +1,109 @@
 #!/usr/bin/env python3
-"""Readium newspaper-palette crash reproducer; keeps screenshots and fatal logs."""
-import io
+"""Smoke-test actual EPUB reader palette picker and capture fatal errors."""
 import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from PIL import Image
 import android_emulator_smoke as smoke
 
 OUT=smoke.OUT
-TARGET=["Настройки","Оформление","Тема","Цвет","Aa","Параметры","Газета","Чтение","Стиль"]
 
-def dump(label):
+def nodes(name):
     raw=smoke.ui_xml()
-    (OUT/(label+".xml")).write_text(raw,encoding="utf-8")
-    image=smoke.capture(label)
+    (OUT/(name+".xml")).write_text(raw,encoding="utf-8")
+    smoke.capture(name)
     try:
         root=ET.fromstring(raw[raw.index("<?xml"):])
-        nodes=[]
-        for v in root.iter("node"):
-            cap=(v.get("text","")+" "+v.get("content-desc","")).strip()
-            if cap: nodes.append((cap,v.get("bounds",""),v.get("clickable","false")))
-        print("NODES",label,nodes[:140],flush=True)
-        return nodes
-    except Exception as e:
-        print("xml_error",repr(e),flush=True)
+        out=[]
+        for el in root.iter("node"):
+            label=(el.get("text","")+" "+el.get("content-desc","")).strip()
+            if label:
+                out.append((label,el.get("bounds","")))
+        print("SCREEN",name,[(c[:85],b) for c,b in out if len(c)<100][:55],flush=True)
+        return out
+    except (ValueError,ET.ParseError) as error:
+        print("UI_SCAN_FAILED",name,str(error),flush=True)
         return []
 
-def click_match(nodes, words):
-    for w in words:
-        for caption,bounds,click in nodes:
-            if w.casefold() in caption.casefold():
-                hit=re.search(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",bounds)
-                if hit:
-                    a,b,c,d=map(int,hit.groups())
-                    print("CLICK",w,caption,flush=True)
-                    smoke.cmd("adb","shell","input","tap",(a+c)//2,(b+d)//2)
-                    time.sleep(2)
-                    return True
+def tap_match(items,needle):
+    for label,bounds in items:
+        if needle.casefold() not in label.casefold(): continue
+        m=re.search(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",bounds)
+        if not m: continue
+        x1,y1,x2,y2=map(int,m.groups())
+        if x2<=x1 or y2<=y1: continue
+        print("CLICK",needle,label[:120],flush=True)
+        smoke.cmd("adb","shell","input","tap",(x1+x2)//2,(y1+y2)//2)
+        time.sleep(1.3)
+        return True
     return False
 
+def page_settings():
+    for i in range(9):
+        items=nodes("settings_probe_"+str(i))
+        if any("Настройки текста" in x for x,_ in items):
+            print("TEXT_SETTINGS_OPEN",flush=True)
+            return items
+        if not tap_match(items,"Текст"):
+            size=smoke.cmd("adb","shell","wm","size")
+            wh=re.search(r"(\d+)x(\d+)",size)
+            w,h=map(int,wh.groups())
+            smoke.cmd("adb","shell","input","tap",w//2,h//2)
+            time.sleep(.8)
+    raise AssertionError("Failed to open text settings on reader via toolbar")
+
 def main():
-    fixture=OUT/smoke.BOOK
-    smoke.book_fixture(fixture)
+    book=OUT/smoke.BOOK
+    smoke.book_fixture(book)
     smoke.cmd("adb","install","-r",smoke.ROOT/"build-output/Velora-CRT.apk",timeout=150)
-    smoke.cmd("adb","shell","am","start","-W","-n",smoke.PACKAGE+"/app.velora.reader.MainActivity")
+    smoke.cmd("adb","shell","am","start","-W","-n",
+              smoke.PACKAGE+"/app.velora.reader.MainActivity")
     time.sleep(6)
     smoke.cmd("adb","root");smoke.cmd("adb","wait-for-device")
-    target="/data/user/0/"+smoke.PACKAGE+"/files/"+smoke.BOOK
-    smoke.cmd("adb","shell","mkdir","-p","/data/user/0/"+smoke.PACKAGE+"/files")
-    smoke.cmd("adb","push",fixture,target)
+    folder="/data/user/0/"+smoke.PACKAGE+"/files"
+    smoke.cmd("adb","shell","mkdir","-p",folder)
+    target=folder+"/"+smoke.BOOK
+    smoke.cmd("adb","push",book,target)
     smoke.cmd("adb","shell","chmod","644",target)
     smoke.cmd("adb","shell","am","start","-W","-n",
-        smoke.PACKAGE+"/app.velora.reader.feature.importing.ExternalBookOpenActivity",
-        "-a","android.intent.action.VIEW","-t","application/epub+zip","-d","file://"+target)
-    if not smoke.await_reader():
-        dump("reader_not_open")
-        print("READER_NOT_READY",flush=True)
-        return
+      smoke.PACKAGE+"/app.velora.reader.feature.importing.ExternalBookOpenActivity",
+      "-a","android.intent.action.VIEW","-t","application/epub+zip","-d","file://"+target)
+    if not smoke.await_reader(): raise AssertionError("Reader did not open EPUB fixture")
     smoke.cmd("adb","logcat","-c")
-    a=dump("reader_before_settings")
-    found=click_match(a,["Текст","Настройки","Оформление","Aa","Тема","Параметры"])
-    if not found:
-        # Chrome may be hidden initially.
-        size=smoke.cmd("adb","shell","wm","size")
-        k=re.search(r"(\d+)x(\d+)",size);w,h=map(int,k.groups())
-        smoke.cmd("adb","shell","input","tap",w//2,h//2)
-        time.sleep(2)
-        a=dump("reader_toolbar")
-        found=click_match(a,["Текст","Настройки","Оформление","Aa","Тема","Параметры"])
-    print("SETTINGS_TRIGGER_FOUND",found,flush=True)
-    b=dump("settings_after_click")
-    if click_match(b,["Оформление","Цвет","Тема"]):
-        b=dump("reader_palette_screen")
-    clicked=click_match(b,["Газета"])
-    for attempt in range(5):
-        if clicked: break
-        print("SCROLL_READER_SETTINGS",attempt,flush=True)
-        smoke.cmd("adb","shell","input","swipe","540","1740","540","530","425")
-        time.sleep(1.6)
-        b=dump("settings_scroll_"+str(attempt))
-        clicked=click_match(b,["Газета"])
-    if clicked:
-        dump("after_newspaper")
-        print("NEWSPAPER_ACTIVE",smoke.reader_visible(),flush=True)
+    content=page_settings()
+    found=False
+    for attempt in range(8):
+        if tap_match(content,"Газета"):
+            print("GAZETTE_BUTTON_PRESSED",flush=True)
+            found=True
+            break
+        smoke.cmd("adb","shell","input","swipe","520","1640","520","480","480")
+        time.sleep(1)
+        content=nodes("palette_scroll_"+str(attempt))
+    if not found:raise AssertionError("No independent Gazette swatch in reader settings")
+    content=nodes("gazette_selected")
+    if tap_match(content,"Применить"):
+        time.sleep(6)
     else:
-        print("NO_NEWSPAPER_BUTTON",flush=True)
-    full=subprocess.run(["adb","logcat","-d","-v","time"],capture_output=True,text=True,timeout=50).stdout
-    (OUT/"newspaper-crash-logcat.txt").write_text(full,encoding="utf-8")
-    for match in re.finditer(r"FATAL EXCEPTION|NoWhenBranchMatchedException|NoSuchFieldError|ArrayIndexOutOfBoundsException|ExceptionInInitializerError",full):
-        print("ANDROID_CRASH",full[max(0,match.start()-150):match.start()+3600],flush=True)
-    print("READER_VISIBLE_AT_END",smoke.reader_visible(),flush=True)
+        smoke.cmd("adb","shell","input","swipe","520","1740","520","520","480")
+        time.sleep(1.5)
+        content=nodes("apply_visible")
+        if not tap_match(content,"Применить"):
+            raise AssertionError("Reader apply button missing")
+        time.sleep(6)
+    content=nodes("reader_after_gazette_apply")
+    print("READER_VISIBLE_AFTER_GAZETTE",smoke.reader_visible(),flush=True)
+    logs=subprocess.run(["adb","logcat","-d","-v","time"],capture_output=True,text=True,timeout=60).stdout
+    (OUT/"gazette_apply-logcat.txt").write_text(logs,encoding="utf-8")
+    bad=re.search(r"FATAL EXCEPTION:.*?(?=\n\d\d-\d\d|\Z)",logs,re.DOTALL)
+    if bad:print("FATAL:",bad.group(0)[:4800],flush=True)
+    if bad or not smoke.reader_visible():
+        raise AssertionError("Reader disappeared or fatal crash after selecting Gazette")
+    print("PASS: visible palette swatch, Gazette selected, applied and reader remains open")
 
 try:
     main()
 finally:
-    full=subprocess.run(["adb","logcat","-d","-v","time"],capture_output=True,text=True,timeout=50).stdout
-    (OUT/"newspaper-crash-logcat.txt").write_text(full,encoding="utf-8")
+    logs=subprocess.run(["adb","logcat","-d","-v","time"],capture_output=True,text=True,timeout=60).stdout
+    (OUT/"gazette_apply-logcat.txt").write_text(logs,encoding="utf-8")
