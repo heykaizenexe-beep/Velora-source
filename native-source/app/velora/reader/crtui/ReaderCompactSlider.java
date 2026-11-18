@@ -114,13 +114,22 @@ public final class ReaderCompactSlider {
             return Math.round(n * getResources().getDisplayMetrics().density);
         }
 
+        private String conciseLabel(String text) {
+            if (text == null) return "";
+            if (text.contains("Межстроч")) return "Интервал строк";
+            if (text.contains("Боковые")) return "Поля";
+            if (text.contains("Красная")) return "Отступ абзаца";
+            if (text.contains("Интервал абзацев")) return "Между абзацами";
+            return text;
+        }
+
         void bind(String title,float value,Object range,Function1 onChange) {
             float[] limits=bounds(title,range);
             min=limits[0];max=limits[1];
             callback=onChange;
             binding=true;
             try {
-                titleView.setText(title);
+                titleView.setText(conciseLabel(title));
                 control.setContentDescription(title);
                 titleView.setTextColor(CrtTheme.text());
                 numberView.setTextColor(CrtTheme.accent());
