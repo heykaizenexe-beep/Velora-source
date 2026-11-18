@@ -57,7 +57,7 @@ public final class NoirDotPaper extends Drawable {
     @Override public int getOpacity() { return PixelFormat.OPAQUE; }
 
     public static void applyWindow(Activity activity) {
-        if (!AppTheme.isNoir() || HomePresentation.windowColor(activity) == 0) return;
+        if (!AppTheme.isNoir()) return;
         View decor = activity.getWindow().getDecorView();
         if (!(decor.getBackground() instanceof NoirDotPaper))
             activity.getWindow().setBackgroundDrawable(new NoirDotPaper(activity, decor));

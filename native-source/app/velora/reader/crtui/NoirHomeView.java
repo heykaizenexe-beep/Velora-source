@@ -89,7 +89,7 @@ final class NoirHomeView extends LinearLayout {
 
         LinearLayout toolbar = new LinearLayout(c);
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setMinimumHeight(dp(58));
+        toolbar.setMinimumHeight(dp(52));
         sectionLabel = NoirUi.text(c, "Картотека", 24, NoirHomeStyle.INK, NoirUi.HEADLINE);
         sectionLabel.setAllCaps(true);
         NoirUi.tracking(sectionLabel, -.045f);
@@ -148,14 +148,14 @@ final class NoirHomeView extends LinearLayout {
             tab.setTextSize(12);
             tab.setAllCaps(true);
             NoirUi.tracking(tab, .055f);
-            tab.setMinHeight(dp(44));
+            tab.setMinHeight(dp(40));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
             LayoutParams size = new LayoutParams(0, -1, 1f);
             if (value != Filter.ALL) size.leftMargin = dp(3);
             tabs.addView(tab, size);
         }
-        LayoutParams tabsSize = new LayoutParams(dp(266), -2);
+        LayoutParams tabsSize = new LayoutParams(dp(250), -2);
         tabsSize.gravity = Gravity.CENTER_HORIZONTAL;
         page.addView(tabs, tabsSize);
 
@@ -164,6 +164,10 @@ final class NoirHomeView extends LinearLayout {
         display.setClipChildren(false);
         display.setClipToPadding(false);
         deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
+        deck.setOnLongClickListener(v -> {
+            Book selected = deck.book();
+            return home != null && selected != null && home.showActionsFor(selected);
+        });
         display.addView(deck, new LayoutParams(-1, dp(280)));
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
                 this::readBook, this::openBook, this::ticketInView);
@@ -232,7 +236,8 @@ final class NoirHomeView extends LinearLayout {
 
     private ImageButton toolbarAction(NoirHomeStyle.Symbol symbol, String description, Runnable action) {
         ImageButton button = NoirHomeStyle.icon(getContext(), symbol, description, action);
-        LayoutParams size = new LayoutParams(dp(48), dp(48));
+        LayoutParams size = new LayoutParams(dp(42), dp(42));
+        size.leftMargin = dp(3);
         toolbarActions.addView(button, size);
         return button;
     }
@@ -253,7 +258,7 @@ final class NoirHomeView extends LinearLayout {
         page.setPadding(margin, dp(TOP_PADDING_DP), margin, dp(BOTTOM_PADDING_DP));
         int space = Math.max(1, w - 2 * margin);
         LayoutParams tabsSize = (LayoutParams) tabs.getLayoutParams();
-        tabsSize.width = Math.min(dp(270), space);
+        tabsSize.width = Math.min(dp(250), space);
         tabs.setLayoutParams(tabsSize);
         // The carousel gets the whole display, while ticket/header margins
         // stay narrow. Negative margins cancel only the page's side padding.
@@ -390,6 +395,7 @@ final class NoirHomeView extends LinearLayout {
     private void selectionChanged() {
         Book book = deck.book();
         ticket.bind(book);
+        ticket.catalogNumber(deck.index() + 1, deck.count());
         ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
     }
 
@@ -479,7 +485,7 @@ final class NoirHomeView extends LinearLayout {
         dialog.setCanceledOnTouchOutside(true);
         ScrollView scroll = new ScrollView(c);
         scroll.setVerticalScrollBarEnabled(false);
-        scroll.setBackgroundDrawable(NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 8));
+        scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));
         LinearLayout panel = NoirUi.column(c);
         panel.setPadding(dp(14), dp(12), dp(14), dp(12));
         scroll.addView(panel);

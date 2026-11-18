@@ -2,6 +2,8 @@ package app.velora.reader.crtui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -17,7 +19,8 @@ import java.util.concurrent.Future;
 
 /** The selected book's caption, reading actions and pull-out note. */
 final class NoirBookTicket extends LinearLayout {
-    private final TextView title, author, note, read;
+    private final TextView title, author, note, read, volume, progressText;
+    private final ProgressRule progressRule;
     private final LinearLayout actions;
     private final ImageButton previous, next, noteToggle;
     private final Runnable opened;
@@ -45,7 +48,7 @@ final class NoirBookTicket extends LinearLayout {
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
         NoirUi.tracking(eyebrow, .12f);
         edition.addView(eyebrow, new LayoutParams(0, -2, 1f));
-        TextView volume = NoirUi.text(c, "BOOK / 01", 9,
+        volume = NoirUi.text(c, "BOOK / 01", 9,
                 NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
         NoirUi.tracking(volume, .06f);
         edition.addView(volume, new LayoutParams(-2, -2));
@@ -81,6 +84,17 @@ final class NoirBookTicket extends LinearLayout {
         next = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.NEXT, "Следующая книга", forward);
         caption.addView(next, new LayoutParams(dp(46), dp(46)));
         addView(caption, new LayoutParams(-1, -2));
+        progressText = NoirUi.text(c, "В КОЛЛЕКЦИИ  ·  0%", 9,
+                NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
+        NoirUi.tracking(progressText, .07f);
+        progressText.setGravity(Gravity.CENTER);
+        LayoutParams progressLabel = new LayoutParams(-1, -2);
+        progressLabel.topMargin = dp(7);
+        addView(progressText, progressLabel);
+        progressRule = new ProgressRule(c);
+        LayoutParams progressSize = new LayoutParams(-1, dp(3));
+        progressSize.setMargins(dp(48), dp(5), dp(48), 0);
+        addView(progressRule, progressSize);
 
         actions = new LinearLayout(c);
         actions.setGravity(Gravity.CENTER_VERTICAL);
@@ -126,6 +140,11 @@ final class NoirBookTicket extends LinearLayout {
         return control;
     }
 
+    void catalogNumber(int number, int total) {
+        volume.setText(String.format(java.util.Locale.US, "№ %03d / %03d",
+                Math.max(1, number), Math.max(1, total)));
+    }
+
     void neighbors(boolean before, boolean after) {
         previous.setEnabled(before);
         previous.setAlpha(before ? 1f : .32f);
@@ -151,6 +170,10 @@ final class NoirBookTicket extends LinearLayout {
         int percent = fraction >= 1f ? 100 : Math.min(99, Math.round(fraction * 100f));
         read.setText(label);
         read.setContentDescription(started ? label + ". Прочитано " + percent + "%" : label);
+        progressText.setText(fraction >= 1f ? "ПРОЧИТАНА  ·  100%"
+                : started ? "ЧИТАЮ  ·  " + percent + "%"
+                : "В КОЛЛЕКЦИИ  ·  НЕ НАЧАТА");
+        progressRule.setProgress(fraction);
     }
 
     private boolean pull(View v, MotionEvent e) {
@@ -226,6 +249,26 @@ final class NoirBookTicket extends LinearLayout {
             });
         });
         if (userAction) opened.run();
+    }
+
+    private static final class ProgressRule extends View {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private float progress;
+        ProgressRule(Context c) { super(c); }
+        void setProgress(float value) {
+            progress = Math.max(0f, Math.min(1f, value));
+            invalidate();
+        }
+        @Override protected void onDraw(Canvas canvas) {
+            float height = getHeight();
+            paint.setColor(0xffdfd5c9);
+            canvas.drawRoundRect(0, 0, getWidth(), height, height / 2f, height / 2f, paint);
+            if (progress > 0f) {
+                paint.setColor(NoirHomeStyle.RUST);
+                canvas.drawRoundRect(0, 0, getWidth() * progress, height,
+                        height / 2f, height / 2f, paint);
+            }
+        }
     }
 
     private int dp(float n) { return NoirUi.dp(getContext(), n); }

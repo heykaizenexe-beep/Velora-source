@@ -109,7 +109,9 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
     }
     private void refresh(){
         if(scroll==null)return;
-        scroll.setBackgroundColor(CrtTheme.background());back.setTextColor(CrtTheme.text());
+        if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));
+        else scroll.setBackgroundColor(CrtTheme.background());
+        back.setTextColor(CrtTheme.text());
         title.setTextColor(CrtTheme.text());help.setTextColor(CrtTheme.muted());
         if(classic!=null)classic.refresh();if(pixel!=null)pixel.refresh();if(journal!=null)journal.refresh();if(noir!=null)noir.refresh();
     }

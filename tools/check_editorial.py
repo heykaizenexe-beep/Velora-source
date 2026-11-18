@@ -25,6 +25,20 @@ checks = {
         "float yaw =" in shelf and "shelf.intersectsViewport(offset)" in deck,
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
+    "Cartoteka compact navigation and long-press actions":
+        "toolbar.setMinimumHeight(dp(52));" in home
+        and "tab.setMinHeight(dp(40));" in home
+        and "deck.setOnLongClickListener" in home
+        and "performLongClick()" in deck,
+    "Cartoteka archival reading progress and catalog number":
+        'volume.setText(String.format(java.util.Locale.US, "№ %03d / %03d"' in ticket
+        and "progressRule.setProgress(fraction);" in ticket,
+    "Cartoteka catalog and drawer share the dotted sheet":
+        "panel.setBackgroundDrawable(new NoirDotPaper(c, panel));" in read(path + "NoirCatalogSheet.java")
+        and "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home,
+    "Other themes retain their own theme-settings wallpaper":
+        "if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));"
+        in read(path + "ThemeSettingsActivity.java"),
     "full-width 3D shelf and original narrow editorial ticket":
         "contentSize.width = w;" in home
         and "contentSize.leftMargin = -margin;" in home
@@ -77,8 +91,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.152":
-        bool(re.search(r"versionCode:\s*252\s+versionName:\s*0\.9\.152",manifest)),
+    "version 0.9.153":
+        bool(re.search(r"versionCode:\s*253\s+versionName:\s*0\.9\.153",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

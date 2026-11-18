@@ -41,6 +41,7 @@ final class NoirCoverDeck extends View {
     private List<Book> books = Collections.emptyList();
     private int index, windowCenter = -1, windowFirst = -1, windowLast = -1;
     private float position, downX, downY, dragStart;
+    private long touchStart;
     private boolean attached, horizontal, vertical;
     private Shader floorShadow;
     private VelocityTracker velocity;
@@ -165,10 +166,10 @@ final class NoirCoverDeck extends View {
         side(canvas, front, back, 4, 6, 0xffafa999);
         drawSpine(canvas, card, front, back);
         side(canvas, front, back, 2, 4, 0xffd3ccb7);
-        ink.setColor(0x467a725e);
-        ink.setStrokeWidth(Math.max(1f, getResources().getDisplayMetrics().density * .55f));
-        for (int line = 1; line <= 3; line++) {
-            float f = line * .25f;
+        ink.setStrokeWidth(Math.max(.65f, getResources().getDisplayMetrics().density * .45f));
+        for (int line = 1; line <= 7; line++) {
+            ink.setColor(line % 2 == 0 ? 0x386c6055 : 0x197a7165);
+            float f = line * .125f;
             canvas.drawLine(mix(front[2], back[2], f), mix(front[3], back[3], f),
                     mix(front[4], back[4], f), mix(front[5], back[5], f), ink);
         }
@@ -368,6 +369,7 @@ final class NoirCoverDeck extends View {
                 endTouch();
                 downX = x;
                 downY = y;
+                touchStart = event.getEventTime();
                 dragStart = position;
                 velocity = VelocityTracker.obtain();
                 velocity.addMovement(event);
@@ -411,8 +413,11 @@ final class NoirCoverDeck extends View {
                 endTouch();
                 if (tap && Math.abs(position - index) < .02f) {
                     int direction = x < getWidth() * .5f ? -1 : 1;
-                    if (hits(index, x, y)) performClick();
-                    else if (hits(index + direction, x, y)) settle(index + direction, true);
+                    if (hits(index, x, y)) {
+                        if (event.getEventTime() - touchStart >= ViewConfiguration.getLongPressTimeout()
+                                && performLongClick()) return true;
+                        performClick();
+                    } else if (hits(index + direction, x, y)) settle(index + direction, true);
                     else if (hits(index + direction * 2, x, y)) settle(index + direction * 2, true);
                     return true;
                 }

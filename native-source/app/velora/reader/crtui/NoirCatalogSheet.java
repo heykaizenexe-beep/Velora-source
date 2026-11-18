@@ -40,7 +40,7 @@ final class NoirCatalogSheet extends Dialog {
         GradientDrawable surface = NoirHomeStyle.panel(c, NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 0);
         int corner = dp(14);
         surface.setCornerRadii(new float[]{corner, corner, corner, corner, 0, 0, 0, 0});
-        panel.setBackgroundDrawable(surface);
+        panel.setBackgroundDrawable(new NoirDotPaper(c, panel));
 
         LinearLayout header = new LinearLayout(c);
         header.setGravity(Gravity.CENTER_VERTICAL);
@@ -63,6 +63,8 @@ final class NoirCatalogSheet extends Dialog {
 
         list = new ListView(c);
         list.setAdapter(adapter);
+        list.setBackgroundColor(Color.TRANSPARENT);
+        list.setCacheColorHint(Color.TRANSPARENT);
         list.setDivider(null);
         list.setSelector(new ColorDrawable(NoirHomeStyle.HIGHLIGHT));
         list.setOnItemClickListener((parent, row, position, id) -> {
@@ -162,6 +164,10 @@ final class NoirCatalogSheet extends Dialog {
         }
 
         void bind(Book book, boolean current) {
+            setBackgroundDrawable(current
+                    ? NoirHomeStyle.panel(getContext(), NoirHomeStyle.SURFACE,
+                            NoirHomeStyle.EDGE, 5)
+                    : null);
             String name = JournalBookView.titleOf(book);
             String writer = NoirArchive.firstNonBlank(book.getAuthor());
             cover.bind(book.getDisplayCoverPath(), name);
