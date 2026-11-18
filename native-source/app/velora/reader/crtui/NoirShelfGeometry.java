@@ -2,7 +2,6 @@ package app.velora.reader.crtui;
 
 /** Projects the front and back boards of a hardcover into the shelf viewport. */
 final class NoirShelfGeometry {
-    static final float VISIBLE_DISTANCE = 2.35f;
     private static final float BOARD_DEPTH = .145f;
 
     final float[] front = new float[8];
@@ -13,13 +12,28 @@ final class NoirShelfGeometry {
         this.width = width;
         this.height = height;
         unit = density;
-        coverWidth = Math.max(1f, Math.min(width * .54f, (height - 40f * density) / coverRatio));
+        // Preserve clear space above and below the cover for the colored halo.
+        float verticalAir = Math.min(height * .33f, 160f * density);
+        coverWidth = Math.max(1f, Math.min(width * .54f,
+                (height - verticalAir) / coverRatio));
         coverHeight = coverWidth * coverRatio;
         stride = Math.min(width * .31f, coverWidth * .88f);
     }
 
     float gestureStride() { return Math.max(1f, stride); }
     float bookHeight() { return coverHeight; }
+
+    /** On-screen by actual projected hardcover corners, not book index. */
+    boolean intersectsViewport(float offset) {
+        if (width <= 0f || height <= 0f) return Math.abs(offset) <= 2f;
+        project(offset);
+        float left = Float.POSITIVE_INFINITY, right = Float.NEGATIVE_INFINITY;
+        for (int i = 0; i < 8; i += 2) {
+            left = Math.min(left, Math.min(front[i], back[i]));
+            right = Math.max(right, Math.max(front[i], back[i]));
+        }
+        return right >= 0f && left <= width;
+    }
 
     void project(float offset) {
         float distance = Math.abs(offset);

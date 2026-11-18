@@ -17,8 +17,9 @@ import android.graphics.Shader;
  * or allocating a shader during animation. Neighbor glows crossfade naturally.
  */
 final class NoirShelfGlow {
-    private static final int WIDTH = 160, HEIGHT = 176;
-    private static final float SPREAD_X = .31f, SPREAD_Y = .22f;
+    private static final int WIDTH = 224, HEIGHT = 240;
+    // Wide enough for a feathered colored halo while leaving top/bottom clearance.
+    private static final float SPREAD_X = .48f, SPREAD_Y = .23f;
     private static final float[] FRONT = {0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f};
 
     private final Bitmap mask = makeMask();
@@ -103,16 +104,22 @@ final class NoirShelfGlow {
     }
 
     static int opacity(float x, float y) {
-        float dx = Math.max(0f, Math.abs(x - .5f) - .5f) / SPREAD_X;
-        float dy = Math.max(0f, Math.abs(y - .5f) - .5f) / SPREAD_Y;
-        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        // Sample the entire expanded ellipse; zero alpha is reached before
+        // the bounds, without the square-edged inner patch of the old mask.
+        float nx = (x - .5f) / (.5f + SPREAD_X);
+        float ny = (y - .5f) / (.5f + SPREAD_Y);
+        float distance = (float) Math.sqrt(nx * nx + ny * ny);
         if (distance >= 1f) return 0;
-        // Wide diffuse color, saturated mid halo and a soft near-cover rim.
-        float outer = 58f * (1f - distance) * (1f - distance);
-        float middle = 112f * square(Math.max(0f, 1f - distance / .74f));
-        float inner = 44f * square(Math.max(0f, 1f - distance / .24f));
-        return Math.min(214, Math.round(outer + middle + inner));
+        float outer = 56f * square(Math.max(0f, 1f - distance));
+        float middle = 90f * square(Math.max(0f, 1f - distance / .78f));
+        float inner = 38f * square(Math.max(0f, 1f - distance / .34f));
+        float feather = 1f - smoothstep(.73f, 1f, distance);
+        return Math.max(0, Math.min(190, Math.round((outer + middle + inner) * feather)));
     }
 
     private static float square(float value) { return value * value; }
+    private static float smoothstep(float edge0, float edge1, float value) {
+        float t = Math.max(0f, Math.min(1f, (value - edge0) / (edge1 - edge0)));
+        return t * t * (3f - 2f * t);
+    }
 }

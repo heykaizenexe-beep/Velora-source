@@ -24,6 +24,11 @@ public final class NoirShelfGeometryTest {
         }
         check(shelf.back[2] - shelf.front[2] > density, "the selected book shows a page edge");
 
+        check(shelf.intersectsViewport(0f), "selected cover stays on screen");
+        check(shelf.intersectsViewport(2f), "second neighbor remains until leaving screen");
+        check(shelf.intersectsViewport(-2f), "second neighbor visible on left");
+        check(!shelf.intersectsViewport(12f), "far right book invisible beyond viewport");
+        check(!shelf.intersectsViewport(-12f), "far left book invisible beyond viewport");
         shelf.project(1f);
         check(extent(shelf.front) < faceWidth * .68f, "side cover turns towards its spine");
         check(Math.abs(shelf.front[2] - shelf.back[2]) > 8 * density, "hardcover has a substantial page block");
