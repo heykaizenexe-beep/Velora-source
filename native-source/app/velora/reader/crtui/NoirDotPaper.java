@@ -15,7 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 /** Seamless dot-grid notebook paper continuing under the status/navigation bars. */
-final class NoirDotPaper extends Drawable {
+public final class NoirDotPaper extends Drawable {
     static final int PAPER = 0xfffaf8f2;
     private final Paint background = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint dots = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
@@ -56,7 +56,7 @@ final class NoirDotPaper extends Drawable {
     }
     @Override public int getOpacity() { return PixelFormat.OPAQUE; }
 
-    static void applyWindow(Activity activity) {
+    public static void applyWindow(Activity activity) {
         if (!AppTheme.isNoir() || HomePresentation.windowColor(activity) == 0) return;
         View decor = activity.getWindow().getDecorView();
         if (!(decor.getBackground() instanceof NoirDotPaper))

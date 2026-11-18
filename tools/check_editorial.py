@@ -35,6 +35,9 @@ checks = {
     "dotted paper replaces newspaper texture":
         "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home
         and "new NoirNewspaperPaper" not in home and "newspaperPaper" not in home,
+    "window wallpaper is accessible to the cross-package smali caller":
+        "public final class NoirDotPaper extends Drawable" in read(path + "NoirDotPaper.java")
+        and "public static void applyWindow(Activity activity)" in read(path + "NoirDotPaper.java"),
     "dot grid extends beneath both transparent system bars":
         "NoirDotPaper;->applyWindow" in read("decoded/smali_classes6/app/velora/reader/CrtUi.smali")
         and "return 0L;" in read(path + "HomePresentation.java")
@@ -51,8 +54,8 @@ checks = {
         "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.149":
-        bool(re.search(r"versionCode:\s*249\s+versionName:\s*0\.9\.149",manifest)),
+    "version 0.9.150":
+        bool(re.search(r"versionCode:\s*250\s+versionName:\s*0\.9\.150",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
