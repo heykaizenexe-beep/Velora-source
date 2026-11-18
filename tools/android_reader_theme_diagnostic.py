@@ -28,6 +28,7 @@ def nodes(name):
 
 def tap_match(items,needle):
     for label,bounds in items:
+        if needle == "Текст" and label.strip() != "Текст": continue
         if needle.casefold() not in label.casefold(): continue
         m=re.search(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",bounds)
         if not m: continue
