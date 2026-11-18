@@ -48,11 +48,12 @@ public final class HomePresentation {
                 return Unit.INSTANCE;
             }, composer, 0);
         }
-        return noirHome ? (NoirHomeStyle.WALL & 0xffffffffL) << 32 : 0L;
+        return noirHome ? ((AppTheme.isArchiveGallery() ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL) & 0xffffffffL) << 32 : 0L;
     }
 
     public static int windowColor(Activity activity) {
-        return AppTheme.isPaperHome() && noirWindows.containsKey(activity) ? NoirHomeStyle.WALL : 0;
+        return AppTheme.isPaperHome() && noirWindows.containsKey(activity)
+                ? (AppTheme.isArchiveGallery() ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL) : 0;
     }
 
     static Activity activity(Context context) {
