@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -33,13 +32,10 @@ import java.util.List;
 final class NoirHomeView extends LinearLayout {
     private static final int TOP_PADDING_DP = 7;
     private static final int BOTTOM_PADDING_DP = 16;
-    private final boolean gallery;
     private enum Section { HOME, FAVORITES, HISTORY }
     private enum Filter { ALL, READING, FINISHED }
 
     private final ScrollView scroll;
-    private final NoirNewspaperPaper newspaperPaper;
-    private final SharedPreferences.OnSharedPreferenceChangeListener texturePreferenceListener;
     private final LinearLayout page, toolbarActions, display, tabs;
     private final FrameLayout content;
     private final NoirCoverDeck deck;
@@ -59,27 +55,14 @@ final class NoirHomeView extends LinearLayout {
     private NoirCatalogSheet catalog;
 
     NoirHomeView(Context c) {
-        this(c, false);
-    }
-
-    NoirHomeView(Context c, boolean gallery) {
         super(c);
-        this.gallery = gallery;
         setOrientation(VERTICAL);
-        setBackgroundColor(gallery ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL);
+        setBackgroundColor(NoirHomeStyle.WALL);
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
-        // Reuse a single drawable; settings changes update it without rebuilding the carousel.
-        newspaperPaper = new NoirNewspaperPaper(c);
-        texturePreferenceListener = (preferences, key) -> {
-            if (NoirNewspaperPaper.PREF_STRENGTH.equals(key)) {
-                newspaperPaper.setStrength(NoirNewspaperPaper.clamp(
-                        preferences.getInt(NoirNewspaperPaper.PREF_STRENGTH,
-                                NoirNewspaperPaper.DEFAULT_STRENGTH)));
-            }
-        };
-        scroll.setBackgroundDrawable(gallery ? new ColorDrawable(NoirHomeStyle.GALLERY_WALL) : newspaperPaper);
+        // Reference-ready: deliberately use a clean, untextured warm-paper backdrop.
+        scroll.setBackgroundColor(NoirHomeStyle.WALL);
         addView(scroll, new LayoutParams(-1, -1));
         page = NoirUi.column(c);
         page.setPadding(dp(18), dp(TOP_PADDING_DP), dp(18), dp(BOTTOM_PADDING_DP));
@@ -89,11 +72,11 @@ final class NoirHomeView extends LinearLayout {
         // Editorial masthead: traditional newspaper hierarchy above the existing carousel.
         LinearLayout imprint = new LinearLayout(c);
         imprint.setGravity(Gravity.CENTER_VERTICAL);
-        TextView imprintLeft = NoirUi.text(c, gallery ? "VELORA  /  COLLECTION" : "VELORA  /  АРХИВ", 9,
+        TextView imprintLeft = NoirUi.text(c, "VELORA  /  АРХИВ", 9,
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
         NoirUi.tracking(imprintLeft, .12f);
         imprint.addView(imprintLeft, new LayoutParams(0, -2, 1f));
-        TextView imprintRight = NoirUi.text(c, gallery ? "ЭКСПЕРИМЕНТ  /  01" : "EST. 2026  ·  VOL. 01", 9,
+        TextView imprintRight = NoirUi.text(c, "EST. 2026  ·  VOL. 01", 9,
                 NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
         NoirUi.tracking(imprintRight, .07f);
         imprint.addView(imprintRight, new LayoutParams(-2, -2));
@@ -102,9 +85,9 @@ final class NoirHomeView extends LinearLayout {
 
         LinearLayout toolbar = new LinearLayout(c);
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setMinimumHeight(dp(gallery ? 52 : 58));
-        sectionLabel = NoirUi.text(c, gallery ? "Коллекция" : "Картотека", gallery ? 27 : 24, NoirHomeStyle.INK, NoirUi.HEADLINE);
-        sectionLabel.setAllCaps(!gallery);
+        toolbar.setMinimumHeight(dp(58));
+        sectionLabel = NoirUi.text(c, "Картотека", 24, NoirHomeStyle.INK, NoirUi.HEADLINE);
+        sectionLabel.setAllCaps(true);
         NoirUi.tracking(sectionLabel, -.045f);
         sectionLabel.setGravity(Gravity.CENTER_VERTICAL);
         sectionLabel.setMaxLines(2);
@@ -117,7 +100,7 @@ final class NoirHomeView extends LinearLayout {
         toolbarAction(NoirHomeStyle.Symbol.MENU, "Меню", this::openMenu);
         toolbar.addView(toolbarActions, new LayoutParams(-2, -2));
         page.addView(toolbar, new LayoutParams(-1, -2));
-        TextView deckCaption = NoirUi.text(c, gallery ? "КНИГИ  /  ИСТОРИИ  /  ВОСПОМИНАНИЯ" : "ЛИЧНАЯ КОЛЛЕКЦИЯ  /  КНИГИ И ИСТОРИИ",
+        TextView deckCaption = NoirUi.text(c, "ЛИЧНАЯ КОЛЛЕКЦИЯ  /  КНИГИ И ИСТОРИИ",
                 9, NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
         NoirUi.tracking(deckCaption, .11f);
         LayoutParams deckCaptionSize = new LayoutParams(-1, -2);
@@ -126,7 +109,7 @@ final class NoirHomeView extends LinearLayout {
         View mastheadRule = new View(c);
         mastheadRule.setBackgroundColor(NoirHomeStyle.INK);
         LayoutParams ruleSize = new LayoutParams(-1, dp(1));
-        ruleSize.bottomMargin = dp(gallery ? 10 : 13);
+        ruleSize.bottomMargin = dp(13);
         page.addView(mastheadRule, ruleSize);
 
         query = new EditText(c);
@@ -161,23 +144,23 @@ final class NoirHomeView extends LinearLayout {
             tab.setTextSize(12);
             tab.setAllCaps(true);
             NoirUi.tracking(tab, .055f);
-            tab.setMinHeight(dp(gallery ? 36 : 44));
+            tab.setMinHeight(dp(44));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
             LayoutParams size = new LayoutParams(0, -1, 1f);
             if (value != Filter.ALL) size.leftMargin = dp(3);
             tabs.addView(tab, size);
         }
-        LayoutParams tabsSize = new LayoutParams(dp(gallery ? 240 : 266), -2);
+        LayoutParams tabsSize = new LayoutParams(dp(266), -2);
         tabsSize.gravity = Gravity.CENTER_HORIZONTAL;
         page.addView(tabs, tabsSize);
 
         display = NoirUi.column(c);
         display.setGravity(Gravity.CENTER_HORIZONTAL);
-        deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook, gallery);
+        deck = new NoirCoverDeck(c, this::selectionChanged, this::openBook);
         display.addView(deck, new LayoutParams(-1, dp(280)));
         ticket = new NoirBookTicket(c, () -> deck.step(-1), () -> deck.step(1),
-                this::readBook, this::openBook, this::ticketInView, gallery);
+                this::readBook, this::openBook, this::ticketInView);
         display.addView(ticket, new LayoutParams(-1, -2));
         display.setVisibility(GONE);
 
@@ -220,7 +203,7 @@ final class NoirHomeView extends LinearLayout {
                 NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 7));
         entry.setOnClickListener(v -> openCatalog());
         entry.setFocusable(true);
-        TextView name = NoirUi.text(c, gallery ? "Открыть каталог" : "Библиотека", 14, NoirHomeStyle.INK, NoirUi.MEDIUM);
+        TextView name = NoirUi.text(c, "Библиотека", 14, NoirHomeStyle.INK, NoirUi.MEDIUM);
         Drawable booksIcon = NoirHomeStyle.symbol(c, NoirHomeStyle.Symbol.LIBRARY, NoirHomeStyle.INK_MUTED);
         name.setCompoundDrawablesWithIntrinsicBounds(booksIcon, null, null, null);
         name.setCompoundDrawablePadding(dp(9));
@@ -241,21 +224,9 @@ final class NoirHomeView extends LinearLayout {
 
     private ImageButton toolbarAction(NoirHomeStyle.Symbol symbol, String description, Runnable action) {
         ImageButton button = NoirHomeStyle.icon(getContext(), symbol, description, action);
-        if (gallery) button.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
-                Color.TRANSPARENT, 0xffebe1d5, 0, 5));
-        LayoutParams size = new LayoutParams(dp(gallery ? 40 : 48), dp(gallery ? 40 : 48));
-        if (gallery) size.leftMargin = dp(3);
+        LayoutParams size = new LayoutParams(dp(48), dp(48));
         toolbarActions.addView(button, size);
         return button;
-    }
-
-    @Override protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        if (!gallery) {
-            SharedPreferences preferences = NoirNewspaperPaper.preferences(getContext());
-            preferences.registerOnSharedPreferenceChangeListener(texturePreferenceListener);
-            newspaperPaper.setStrength(NoirNewspaperPaper.readStrength(getContext()));
-        }
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
@@ -274,15 +245,13 @@ final class NoirHomeView extends LinearLayout {
         page.setPadding(margin, dp(TOP_PADDING_DP), margin, dp(BOTTOM_PADDING_DP));
         int space = Math.max(1, w - 2 * margin);
         LayoutParams tabsSize = (LayoutParams) tabs.getLayoutParams();
-        tabsSize.width = Math.min(dp(gallery ? 250 : 270), space);
+        tabsSize.width = Math.min(dp(270), space);
         tabs.setLayoutParams(tabsSize);
         ticket.setLayoutParams(new LayoutParams(Math.min(space, dp(420)), -2));
         LayoutParams librarySize = (LayoutParams) library.getLayoutParams();
         librarySize.width = Math.min(space, dp(420));
         library.setLayoutParams(librarySize);
-        int height = gallery ? Math.min(dp(380), Math.min(Math.round(space * .78f) + dp(16),
-                Math.max(dp(175), h - dp(265))))
-                : Math.min(dp(500), Math.min(Math.round(space * .76f) + dp(40),
+        int height = Math.min(dp(500), Math.min(Math.round(space * .76f) + dp(40),
                 Math.max(dp(190), h - dp(244))));
         deck.setLayoutParams(new LayoutParams(-1, height));
         if (catalog != null) catalog.resize(w, h);
@@ -330,7 +299,7 @@ final class NoirHomeView extends LinearLayout {
         section = value;
         filter = Filter.ALL;
         sectionLabel.setText(value == Section.HISTORY ? "История чтения"
-                : value == Section.FAVORITES ? "Избранное" : gallery ? "Коллекция" : "Картотека");
+                : value == Section.FAVORITES ? "Избранное" : "Картотека");
         update();
         scroll.scrollTo(0, 0);
     }
@@ -340,11 +309,11 @@ final class NoirHomeView extends LinearLayout {
             boolean active = value == filter;
             TextView tab = filters[value.ordinal()];
             tab.setSelected(active);
-            tab.setTextColor(active ? (gallery ? NoirHomeStyle.INK : 0xffffffff) : NoirHomeStyle.INK_MUTED);
+            tab.setTextColor(active ? 0xffffffff : NoirHomeStyle.INK_MUTED);
             tab.setBackgroundDrawable(NoirHomeStyle.control(getContext(),
-                    active ? (gallery ? 0xffe5d7c7 : NoirHomeStyle.RUST) : (gallery ? 0xfff6f2eb : NoirHomeStyle.SURFACE),
-                    active ? (gallery ? 0xffdac9b8 : NoirHomeStyle.RUST_DARK) : NoirHomeStyle.HIGHLIGHT,
-                    active ? 0 : (gallery ? 0xffd9ccbb : NoirHomeStyle.EDGE), gallery ? 5 : 20));
+                    active ? NoirHomeStyle.RUST : NoirHomeStyle.SURFACE,
+                    active ? NoirHomeStyle.RUST_DARK : NoirHomeStyle.HIGHLIGHT,
+                    active ? 0 : NoirHomeStyle.EDGE, 20));
         }
     }
 
@@ -406,7 +375,6 @@ final class NoirHomeView extends LinearLayout {
         Book book = deck.book();
         ticket.bind(book);
         ticket.neighbors(deck.index() > 0, deck.index() + 1 < deck.count());
-        ticket.setCatalogNumber(deck.index() + 1, deck.count());
     }
 
     private Long selectedBookId() {
@@ -438,7 +406,7 @@ final class NoirHomeView extends LinearLayout {
         if (!deck.selectBook(book.getId())) {
             section = Section.HOME;
             filter = Filter.ALL;
-            sectionLabel.setText(gallery ? "Коллекция" : "Картотека");
+            sectionLabel.setText("Картотека");
             if (query.length() > 0) query.setText("");
             else update();
             deck.selectBook(book.getId());
@@ -509,7 +477,7 @@ final class NoirHomeView extends LinearLayout {
         LayoutParams headerSize = new LayoutParams(-1, -2);
         headerSize.bottomMargin = dp(8);
         panel.addView(header, headerSize);
-        menuLink(panel, gallery ? "Коллекция" : "Картотека", section == Section.HOME, () -> section(Section.HOME));
+        menuLink(panel, "Картотека", section == Section.HOME, () -> section(Section.HOME));
         if (home.library != null) menuLink(panel, "Моя библиотека", () -> home.library.invoke());
         menuLink(panel, "Заметки", NoirRoutes::openNotes);
         menuLink(panel, "История чтения", section == Section.HISTORY, () -> section(Section.HISTORY));
@@ -585,8 +553,6 @@ final class NoirHomeView extends LinearLayout {
     }
 
     @Override protected void onDetachedFromWindow() {
-        if (!gallery) NoirNewspaperPaper.preferences(getContext()).unregisterOnSharedPreferenceChangeListener(
-                texturePreferenceListener);
         opening = false;
         if (menu != null) menu.dismiss();
         if (catalog != null) catalog.dismiss();

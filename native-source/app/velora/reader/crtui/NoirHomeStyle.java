@@ -16,7 +16,6 @@ import android.widget.ImageButton;
 /** Palette and controls shared by the catalog, its book card and its menu. */
 final class NoirHomeStyle {
     static final int WALL = 0xfff3eee5;
-    static final int GALLERY_WALL = 0xfff6f2eb;
     static final int SURFACE = 0xfffaf6ed;
     static final int HIGHLIGHT = 0xffeae0d5;
     static final int EDGE = 0xffc9bdb0;

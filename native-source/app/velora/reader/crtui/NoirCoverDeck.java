@@ -36,7 +36,6 @@ final class NoirCoverDeck extends View {
     private final Paint ink = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path outline = new Path();
     private final NoirShelfGeometry shelf = new NoirShelfGeometry();
-    private final boolean gallery;
     private final int touchSlop;
     private final Runnable selected, open;
     private List<Book> books = Collections.emptyList();
@@ -48,13 +47,7 @@ final class NoirCoverDeck extends View {
     private ValueAnimator settling;
 
     NoirCoverDeck(Context c, Runnable selected, Runnable open) {
-        this(c, selected, open, false);
-    }
-
-    NoirCoverDeck(Context c, Runnable selected, Runnable open, boolean gallery) {
         super(c);
-        this.gallery = gallery;
-        shelf.setGallery(gallery);
         spine = new NoirSpine(c);
         this.selected = selected;
         this.open = open;
@@ -128,15 +121,6 @@ final class NoirCoverDeck extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         if (books.isEmpty()) return;
-        if (gallery) {
-            int near = limit(Math.round(position));
-            for (int distance = 2; distance > 0; distance--) {
-                drawGalleryCard(canvas, near - distance);
-                drawGalleryCard(canvas, near + distance);
-            }
-            drawGalleryCard(canvas, near);
-            return;
-        }
         // The book can move past the stop, but there is no next cover to fade toward.
         float glowPosition = Math.max(0f, Math.min(position, books.size() - 1f));
         int left = (int) glowPosition;
@@ -157,16 +141,6 @@ final class NoirCoverDeck extends View {
             drawCard(canvas, near + distance);
         }
         drawCard(canvas, near);
-    }
-
-    private void drawGalleryCard(Canvas canvas, int at) {
-        Card card = cards.get(at);
-        if (card == null || Math.abs(at - position) > NoirShelfGeometry.VISIBLE_DISTANCE) return;
-        shelf.project(at - position);
-        silhouette(canvas, shelf.back, 0x2c302620);
-        silhouette(canvas, shelf.front, 0xffece1d2);
-        art.cover(canvas, card.bitmap, card.cloth, shelf.front);
-        if (at != Math.round(position)) silhouette(canvas, shelf.front, 0x13faf4e9);
     }
 
     private void drawGlow(Canvas canvas, int at, float strength) {

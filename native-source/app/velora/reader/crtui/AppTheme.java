@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 /** App skin identity. Page colour, light/dark mode and CRT options are separate preferences. */
 public final class AppTheme {
-    public static final String CLASSIC="classic", PIXEL_CAT="pixel_cat_crt", JOURNAL="cover_gallery", NOIR="noir_journal", ARCHIVE_GALLERY="archive_gallery_lab";
+    public static final String CLASSIC="classic", PIXEL_CAT="pixel_cat_crt", JOURNAL="cover_gallery", NOIR="noir_journal";
     private static SharedPreferences preferences;
     private static volatile String current=PIXEL_CAT;
     private static int revision;
@@ -25,17 +25,14 @@ public final class AppTheme {
     public static String normalize(String value){
         if (PIXEL_CAT.equals(value)) return PIXEL_CAT;
         if (NOIR.equals(value)) return NOIR;
-        if (ARCHIVE_GALLERY.equals(value)) return ARCHIVE_GALLERY;
         return JOURNAL.equals(value) ? JOURNAL : CLASSIC;
     }
     public static boolean isPixel(){return PIXEL_CAT.equals(current);}
     public static boolean isJournal(){return JOURNAL.equals(current);}
     public static boolean isNoir(){return NOIR.equals(current);}
-    public static boolean isArchiveGallery(){return ARCHIVE_GALLERY.equals(current);}
-    public static boolean isPaperHome(){return isNoir() || isArchiveGallery();}
     public static boolean isJournalHome(String route) {
         CrtTheme.observeDark();
-        return (isJournal() || isPaperHome()) && "home".equals(route);
+        return (isJournal() || isNoir()) && "home".equals(route);
     }
     public static String id(){return current;}
     public static int revision(){return revision;}

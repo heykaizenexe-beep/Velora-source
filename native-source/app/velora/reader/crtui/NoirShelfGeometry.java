@@ -8,42 +8,20 @@ final class NoirShelfGeometry {
     final float[] front = new float[8];
     final float[] back = new float[8];
     private float width, height, coverWidth, coverHeight, stride, unit;
-    private boolean gallery;
-    void setGallery(boolean enabled) { gallery = enabled; }
 
     void size(float width, float height, float density, float coverRatio) {
         this.width = width;
         this.height = height;
         unit = density;
-        coverWidth = Math.max(1f, Math.min(width * (gallery ? .52f : .54f),
-                (height - (gallery ? 32f : 40f) * density) / coverRatio));
+        coverWidth = Math.max(1f, Math.min(width * .54f, (height - 40f * density) / coverRatio));
         coverHeight = coverWidth * coverRatio;
-        stride = gallery ? Math.min(width * .36f, coverWidth * .88f)
-                : Math.min(width * .31f, coverWidth * .88f);
+        stride = Math.min(width * .31f, coverWidth * .88f);
     }
 
     float gestureStride() { return Math.max(1f, stride); }
     float bookHeight() { return coverHeight; }
 
     void project(float offset) {
-        if (gallery) {
-            float distance = Math.abs(offset);
-            float scale = Math.max(.48f, 1f - .27f * distance);
-            float x = width * .5f + Math.copySign(stride * (Math.min(1f, distance)
-                    + .62f * Math.max(0f, distance - 1f)), offset);
-            float y = height * .50f - unit * Math.min(.7f, distance) * 5f;
-            float halfW = coverWidth * scale * .5f;
-            float halfH = coverHeight * scale * .5f;
-            front[0] = x - halfW; front[1] = y - halfH;
-            front[2] = x + halfW; front[3] = y - halfH;
-            front[4] = x + halfW; front[5] = y + halfH;
-            front[6] = x - halfW; front[7] = y + halfH;
-            for (int i = 0; i < 8; i += 2) {
-                back[i] = front[i] + 3f * unit;
-                back[i + 1] = front[i + 1] + 5f * unit;
-            }
-            return;
-        }
         float distance = Math.abs(offset);
         float center = Math.max(0f, 1f - distance);
         float position = Math.min(1f, distance) * stride

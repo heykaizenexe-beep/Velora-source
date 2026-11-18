@@ -28,16 +28,13 @@ public final class HomePresentation {
     private static final Function1 NOIR_FACTORY = new Function1() {
         @Override public Object invoke(Object context) { return new NoirHomeView((Context) context); }
     };
-    private static final Function1 ARCHIVE_GALLERY_FACTORY = new Function1() {
-        @Override public Object invoke(Object context) { return new NoirHomeView((Context) context, true); }
-    };
     private static final Function1 JOURNAL_FACTORY = new Function1() {
         @Override public Object invoke(Object context) { return new JournalHomeView((Context) context); }
     };
 
     /** Used before safe-area padding so the Compose shell and AndroidView share a background. */
     public static long shellColor(Context context, String route, Composer composer) {
-        boolean noirHome = AppTheme.isPaperHome() && "home".equals(route);
+        boolean noirHome = AppTheme.isNoir() && "home".equals(route);
         Activity activity = activity(context);
         if (activity != null && noirHome != noirWindows.containsKey(activity)) {
             EffectsKt.SideEffect(() -> {
@@ -48,12 +45,11 @@ public final class HomePresentation {
                 return Unit.INSTANCE;
             }, composer, 0);
         }
-        return noirHome ? ((AppTheme.isArchiveGallery() ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL) & 0xffffffffL) << 32 : 0L;
+        return noirHome ? (NoirHomeStyle.WALL & 0xffffffffL) << 32 : 0L;
     }
 
     public static int windowColor(Activity activity) {
-        return AppTheme.isPaperHome() && noirWindows.containsKey(activity)
-                ? (AppTheme.isArchiveGallery() ? NoirHomeStyle.GALLERY_WALL : NoirHomeStyle.WALL) : 0;
+        return AppTheme.isNoir() && noirWindows.containsKey(activity) ? NoirHomeStyle.WALL : 0;
     }
 
     static Activity activity(Context context) {
@@ -68,17 +64,7 @@ public final class HomePresentation {
     public static void show(final HomeBinding home, Composer composer) {
         Modifier modifier = SizeKt.fillMaxSize(Modifier.Companion, 1f);
         CrtTheme.observeDark();
-        if (AppTheme.isArchiveGallery()) {
-            composer.startReplaceGroup(0x5641474c);
-            final List<Book> books = collectBooks(composer);
-            AndroidView_androidKt.AndroidView(ARCHIVE_GALLERY_FACTORY, modifier, new Function1() {
-                @Override public Object invoke(Object view) {
-                    ((NoirHomeView) view).bind(books, home);
-                    return Unit.INSTANCE;
-                }
-            }, composer, 0, 0);
-            composer.endReplaceGroup();
-        } else if (AppTheme.isNoir()) {
+        if (AppTheme.isNoir()) {
             composer.startReplaceGroup(0x564e484d);
             final List<Book> books = collectBooks(composer);
             AndroidView_androidKt.AndroidView(NOIR_FACTORY, modifier, new Function1() {
