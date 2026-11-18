@@ -253,6 +253,7 @@ final class NoirBookTicket extends LinearLayout {
 
     private static final class ProgressRule extends View {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final android.graphics.RectF bounds = new android.graphics.RectF();
         private float progress;
         ProgressRule(Context c) { super(c); }
         void setProgress(float value) {
@@ -261,12 +262,13 @@ final class NoirBookTicket extends LinearLayout {
         }
         @Override protected void onDraw(Canvas canvas) {
             float height = getHeight();
+            bounds.set(0, 0, getWidth(), height);
             paint.setColor(0xffdfd5c9);
-            canvas.drawRoundRect(0, 0, getWidth(), height, height / 2f, height / 2f, paint);
+            canvas.drawRoundRect(bounds, height / 2f, height / 2f, paint);
             if (progress > 0f) {
+                bounds.right = getWidth() * progress;
                 paint.setColor(NoirHomeStyle.RUST);
-                canvas.drawRoundRect(0, 0, getWidth() * progress, height,
-                        height / 2f, height / 2f, paint);
+                canvas.drawRoundRect(bounds, height / 2f, height / 2f, paint);
             }
         }
     }
