@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import time
+from android_emulator_health import dismiss_launcher_anr
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -168,6 +169,7 @@ def main():
     cmd("adb", "shell", "am", "start", "-W", "-n",
         PACKAGE + "/app.velora.reader.MainActivity")
     time.sleep(7)
+    dismiss_launcher_anr()
     capture("01_main")
     # The adb shell UID cannot grant itself Storage Access Framework document
     # permissions. This is a non-Play, developer emulator; use its root-only

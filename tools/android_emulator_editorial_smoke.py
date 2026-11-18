@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+from android_emulator_health import dismiss_launcher_anr
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build-output/emulator-evidence"
@@ -33,6 +34,7 @@ def main():
     adb("shell", "chmod", "600", prefs)
     adb("shell", "am", "start", "-W", "-n", PKG + "/app.velora.reader.MainActivity")
     time.sleep(6)
+    dismiss_launcher_anr()
     png = adb("exec-out", "screencap", "-p")
     if not png.startswith(b"\x89PNG\r\n\x1a\n"):
         raise AssertionError("Android screenshot is not PNG")

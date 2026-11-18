@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+from android_emulator_health import dismiss_launcher_anr
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build-output" / "emulator-evidence"
@@ -46,6 +47,7 @@ def main():
     adb("shell", "chmod", "600", preference)
     adb("shell", "am", "start", "-W", "-n", PKG + "/app.velora.reader.MainActivity")
     time.sleep(6)
+    dismiss_launcher_anr()
     snapshot("10_cartoteka_dots_full_screen")
     adb("shell", "uiautomator", "dump", "/sdcard/cartoteka.xml", check=False)
     xml = adb("exec-out", "cat", "/sdcard/cartoteka.xml", check=False)
