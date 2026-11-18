@@ -25,7 +25,7 @@ checks = {
     "archive gallery is separate": "new NoirHomeView((Context) context, true)" in read("native-source/app/velora/reader/crtui/HomePresentation.java") and "this(c, false);" in home,
     "book action retained": 'read = action(c, "Читать"' in ticket and 'diary = action(c, "Дневник"' in ticket,
     "warm paper palette": "0xfff3eee5" in style and "0xffa94f3b" in style,
-    "subtle newspaper texture only in cartoteka": "newspaperPaper = new NoirNewspaperPaper(c);" in home and "new ColorDrawable(0xfff6f2eb) : newspaperPaper" in home and "if (!gallery)" in home and "new NoirNewspaperPaper(" not in read("native-source/app/velora/reader/crtui/ReaderPaper.java"),
+    "subtle newspaper texture only in cartoteka": "newspaperPaper = new NoirNewspaperPaper(c);" in home and "new ColorDrawable(NoirHomeStyle.GALLERY_WALL) : newspaperPaper" in home and "if (!gallery)" in home and "new NoirNewspaperPaper(" not in read("native-source/app/velora/reader/crtui/ReaderPaper.java"),
     "fixed-grain tile has no frame flicker": "BitmapShader(texture, Shader.TileMode.REPEAT" in texture and "Fixed-seed noise" in texture and "for (int i = 0; i < pixels.length; i++)" in texture,
     "ghost ink remains translucent at 100%": "Math.min(27, Math.round(11f * strength / DEFAULT_STRENGTH))" in texture and ".17f" in texture,
     "background keeps central carousel clean": "bounds.width() * .17f" in texture,
