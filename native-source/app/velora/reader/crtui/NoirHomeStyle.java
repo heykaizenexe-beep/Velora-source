@@ -16,14 +16,14 @@ import android.widget.ImageButton;
 /** Palette and controls shared by the catalog, its book card and its menu. */
 final class NoirHomeStyle {
     static final int WALL = NoirDotPaper.PAPER;
-    static final int SURFACE = 0xfffaf6ed;
+    static final int SURFACE = VeloraDesign.EDITORIAL_SURFACE;
     static final int HIGHLIGHT = 0xffeae0d5;
     static final int EDGE = 0xffc9bdb0;
-    static final int INK = 0xff302620;
+    static final int INK = VeloraDesign.EDITORIAL_INK;
     static final int INK_MUTED = 0xff695b4f;
     static final int PAPER = 0xfffaf6ed;
     static final int PAPER_INK = 0xff302620;
-    static final int RUST = 0xffa94f3b;
+    static final int RUST = VeloraDesign.EDITORIAL_ACCENT;
     static final int RUST_DARK = 0xff863c2c;
 
     enum Symbol { SEARCH, ADD, MENU, CLOSE, PREVIOUS, NEXT, NOTE, LIBRARY, UP }
@@ -59,7 +59,7 @@ final class NoirHomeStyle {
         button.setScaleType(ImageButton.ScaleType.CENTER);
         button.setPadding(0, 0, 0, 0);
         button.setContentDescription(description);
-        button.setFocusable(true);
+        VeloraDesign.touchTarget(button);
         button.setOnClickListener(v -> action.run());
         return button;
     }

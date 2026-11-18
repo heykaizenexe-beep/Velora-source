@@ -149,7 +149,7 @@ final class NoirHomeView extends LinearLayout {
             tab.setTextSize(12);
             tab.setAllCaps(true);
             NoirUi.tracking(tab, .055f);
-            tab.setMinHeight(dp(40));
+            tab.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));
             tab.setPadding(dp(4), dp(3), dp(4), dp(3));
             filters[value.ordinal()] = tab;
             LayoutParams size = new LayoutParams(0, -1, 1f);
@@ -240,7 +240,7 @@ final class NoirHomeView extends LinearLayout {
 
     private ImageButton toolbarAction(NoirHomeStyle.Symbol symbol, String description, Runnable action) {
         ImageButton button = NoirHomeStyle.icon(getContext(), symbol, description, action);
-        LayoutParams size = new LayoutParams(dp(42), dp(42));
+        LayoutParams size = new LayoutParams(dp(VeloraDesign.TOUCH_TARGET_DP), dp(VeloraDesign.TOUCH_TARGET_DP));
         size.leftMargin = dp(3);
         toolbarActions.addView(button, size);
         return button;

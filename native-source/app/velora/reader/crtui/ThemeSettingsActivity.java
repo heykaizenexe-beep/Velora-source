@@ -37,7 +37,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
     }
     private void space(int n){View gap=new View(this);body.addView(gap,new LinearLayout.LayoutParams(1,dp(n)));}
     private GradientDrawable shape(int color,int border,int width){
-        GradientDrawable bg=new GradientDrawable();bg.setColor(color);bg.setCornerRadius(dp(10));
+        GradientDrawable bg=new GradientDrawable();bg.setColor(color);bg.setCornerRadius(dp(VeloraDesign.CARD_CORNER_DP));
         if(width>0)bg.setStroke(dp(width),border);return bg;
     }
     private final class ThemeCard {
@@ -57,13 +57,13 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
             card.addView(detail,new LinearLayout.LayoutParams(-1,-2));
             LinearLayout actions=new LinearLayout(ThemeSettingsActivity.this);
             actions.setOrientation(LinearLayout.HORIZONTAL);actions.setGravity(Gravity.CENTER_VERTICAL);
-            select=label("",15);select.setMinHeight(dp(48));select.setGravity(Gravity.CENTER);
+            select=label("",15);select.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));select.setGravity(Gravity.CENTER);
             select.setPadding(dp(8),dp(8),dp(8),dp(8));
             select.setOnClickListener(new View.OnClickListener(){public void onClick(View v){
                 if(!id.equals(AppTheme.id())){AppTheme.select(ThemeSettingsActivity.this,id);ThemeSettingsActivity.this.refresh();}
             }});
             actions.addView(select,new LinearLayout.LayoutParams(0,-2,1));
-            edit=label("Настроить",15);edit.setMinHeight(dp(48));edit.setMinWidth(dp(112));
+            edit=label("Настроить",15);edit.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));edit.setMinWidth(dp(112));
             edit.setPadding(dp(12),dp(8),dp(12),dp(8));edit.setGravity(Gravity.CENTER);
             edit.setClickable(true);edit.setFocusable(true);
             edit.setContentDescription("Настроить выбранную тему «Пиксельный кот»");
@@ -92,7 +92,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
         scroll=new EdgeScrollView(this);scroll.setFillViewport(true);scroll.setId(0x00c7b110);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(12),dp(4),dp(12),dp(12));scroll.addView(body,new ScrollView.LayoutParams(-1,-2));
-        back=label("‹  Настройки",16);back.setMinHeight(dp(48));back.setGravity(Gravity.CENTER_VERTICAL);
+        back=label("‹  Настройки",16);back.setMinHeight(dp(VeloraDesign.TOUCH_TARGET_DP));back.setGravity(Gravity.CENTER_VERTICAL);
         back.setClickable(true);back.setFocusable(true);
         back.setOnClickListener(new View.OnClickListener(){public void onClick(View v){finish();}});
         body.addView(back,new LinearLayout.LayoutParams(-1,-2));

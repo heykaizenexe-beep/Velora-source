@@ -14,12 +14,14 @@ import java.util.Locale;
 
 final class NoirUi {
     // Newspaper edition: warm paper, carbon ink and one restrained oxidised-red accent.
-    static final int BACKGROUND = CrtPalette.NOIR_BACKGROUND, PANEL = 0xfffaf6ed, ACCENT = 0xffa94f3b;
-    static final int WHITE = 0xff302620, DIM = 0xff75695e;
-    static final int INK = 0xff302620, PAPER = 0xfffaf6ed, BLUE = 0xff736851, WINE = 0xffa94f3b;
-    static final Typeface SANS = Typeface.create("sans-serif", Typeface.NORMAL);
-    static final Typeface MEDIUM = Typeface.create("sans-serif-medium", Typeface.NORMAL);
-    static final Typeface SERIF = Typeface.create("serif", Typeface.NORMAL);
+    static final int BACKGROUND = CrtPalette.NOIR_BACKGROUND;
+    static final int PANEL = VeloraDesign.EDITORIAL_SURFACE, ACCENT = VeloraDesign.EDITORIAL_ACCENT;
+    static final int WHITE = VeloraDesign.EDITORIAL_INK, DIM = VeloraDesign.EDITORIAL_MUTED;
+    static final int INK = VeloraDesign.EDITORIAL_INK, PAPER = VeloraDesign.EDITORIAL_SURFACE;
+    static final int BLUE = 0xff736851, WINE = VeloraDesign.EDITORIAL_ACCENT;
+    static final Typeface SANS = VeloraDesign.BODY;
+    static final Typeface MEDIUM = VeloraDesign.ACTION;
+    static final Typeface SERIF = VeloraDesign.READING_DECORATIVE;
     static final Typeface HEADLINE = Typeface.create("serif", Typeface.BOLD);
     private NoirUi() {}
 
@@ -37,7 +39,7 @@ final class NoirUi {
         }
     }
 
-    static int dp(Context c, float size) { return Math.round(size * c.getResources().getDisplayMetrics().density); }
+    static int dp(Context c, float size) { return VeloraDesign.dp(c, size); }
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences("velora_noir_journal", Context.MODE_PRIVATE); }
     static boolean motion(Context c) { return prefs(c).getBoolean("motion", true) && CrtOverlay.animationsEnabled(); }
     static String date(long time) {
@@ -59,10 +61,9 @@ final class NoirUi {
     static TextView control(Context c, String value, Runnable action) {
         TextView view = text(c, value, 15, WHITE, MEDIUM);
         view.setGravity(Gravity.CENTER);
-        view.setMinHeight(dp(c, 46));
+        VeloraDesign.touchTarget(view);
         view.setPadding(dp(c, 12), 0, dp(c, 12), 0);
-        view.setBackgroundDrawable(state(PANEL, 0xffeae0d5, 8, c));
-        view.setFocusable(true);
+        view.setBackgroundDrawable(state(PANEL, 0xffeae0d5, VeloraDesign.CONTROL_CORNER_DP, c));
         view.setOnClickListener(v -> action.run());
         return view;
     }

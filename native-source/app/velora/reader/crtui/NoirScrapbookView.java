@@ -156,7 +156,7 @@ final class NoirScrapbookView extends FrameLayout {
                 JSONObject o=user.optJSONObject(i);
                 if(o==null) continue;
                 String kind=o.optString("kind","text");
-                if(!kind.equals("text")&&!kind.equals("image")) continue;
+                if(!kind.equals("text")&&!kind.equals("quote")&&!kind.equals("image")) continue;
                 Piece p=new Piece(o.optString("id","user_"+i),kind,o.optString("text",""),
                         (float)o.optDouble("x",.09), (float)o.optDouble("y",.67),
                         (float)o.optDouble("w",.34), (float)o.optDouble("h",.18),
@@ -277,13 +277,17 @@ final class NoirScrapbookView extends FrameLayout {
             boolean centered = isReader || kind.equals("photo");
             // Dark reader cutouts still need white lettering on the new light newspaper skin.
             int foreground = isReader || (p.custom && stockIndex == 7) ? 0xfff9f5ee : NoirUi.INK;
+            boolean quotation = kind.equals("quote");
             boolean serif = kind.equals("title") || kind.equals("review")
-                    || kind.equals("note") || kind.equals("description");
-            TextView text = NoirUi.text(host, p.text, textSize(p), foreground,
+                    || kind.equals("note") || kind.equals("description") || quotation;
+            String rendered = quotation ? "\u201c" + p.text + "\u201d" : p.text;
+            TextView text = NoirUi.text(host, rendered, textSize(p), foreground,
                     serif ? NoirUi.SERIF : isReader ? NoirUi.MEDIUM : NoirUi.SANS);
+            if (quotation) text.setTypeface(android.graphics.Typeface.create(
+                    NoirUi.SERIF, android.graphics.Typeface.ITALIC));
             text.setGravity(centered ? Gravity.CENTER : Gravity.TOP);
             int firstLine = p.text.indexOf('\n');
-            if (firstLine > 0) {
+            if (firstLine > 0 && !quotation) {
                 android.text.SpannableString styled = new android.text.SpannableString(p.text);
                 if (kind.equals("title")) {
                     styleText(styled, firstLine + 1, styled.length(), .59f, 0xff665e56, "sans-serif");
@@ -330,6 +334,7 @@ final class NoirScrapbookView extends FrameLayout {
     private float textSize(Piece piece) {
         if (piece.kind.equals("title")) return 19f;
         if (piece.kind.equals("progress")) return 12f;
+        if (piece.kind.equals("quote")) return 14f;
         return piece.custom ? 12f : 13f;
     }
 
@@ -423,6 +428,7 @@ final class NoirScrapbookView extends FrameLayout {
     private String label(Piece p) {
         if(p.kind.equals("read"))return "Читать книгу";
         if(p.kind.equals("photo")||p.kind.equals("image"))return "Фотография в книге";
+        if(p.kind.equals("quote"))return "Цитата: " + p.text;
         return p.text;
     }
     private void clamp(Piece p) {
@@ -494,7 +500,8 @@ final class NoirScrapbookView extends FrameLayout {
             case "photo": actions.pickJournalPhoto();break;
             case "review": actions.editReview();break;
             case "image": options(p);break;
-            case "text": editText(p);break;
+            case "text":
+            case "quote": editText(p);break;
             default: options(p);break;
         }
     }
@@ -598,21 +605,33 @@ final class NoirScrapbookView extends FrameLayout {
     }
     void addPiece() {
         new AlertDialog.Builder(host).setTitle("Добавить на разворот")
-                .setItems(new String[]{"Текстовая вырезка","Фотография"},(d,which)->{
-                    if(which==0)editText(null);
-                    else actions.chooseScrapPhoto();
-                }).show();
+                .setItems(new String[]{"Заметка", "Цитата из книги", "Фотография"},
+                        (dialog, selected) -> {
+                            if (selected == 0) editText(null, "text");
+                            else if (selected == 1) editText(null, "quote");
+                            else actions.chooseScrapPhoto();
+                        }).show();
     }
-    private void editText(Piece existing) {
+    private void editText(Piece existing) { editText(existing, "text"); }
+
+    private void editText(Piece existing, String newKind) {
+        String kind = existing == null ? newKind : existing.kind;
         EditText input=new EditText(host);
         input.setTypeface(NoirUi.themedFont(host, NoirUi.SERIF));
         input.setTextColor(NoirUi.INK);input.setHintTextColor(NoirUi.BLUE);
         input.setBackgroundColor(NoirUi.PAPER);
         input.setPadding(dp(15),dp(12),dp(15),dp(12));
-        input.setHint("Напиши текст для своей вырезки");
+        input.setHint(kind.equals("quote") ? "Введи цитату из книги"
+                : kind.equals("image") ? "Подпись к фотографии" : "Текст заметки");
+        input.setContentDescription(kind.equals("quote") ? "Текст цитаты" : "Текст вырезки");
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         input.setMinLines(3);input.setMaxLines(8);
         if(existing!=null)input.setText(existing.text);
-        new AlertDialog.Builder(host).setTitle(existing==null?"Новая вырезка":"Редактировать вырезку")
+        new AlertDialog.Builder(host).setTitle(existing==null
+                ? (kind.equals("quote") ? "Новая цитата" : "Новая заметка")
+                : (kind.equals("quote") ? "Редактировать цитату" : "Редактировать вырезку"))
                 .setView(input).setNegativeButton("Отмена",null)
                 .setPositiveButton("Сохранить",(d,w)->{
                     String text=input.getText().toString().trim();
@@ -626,8 +645,11 @@ final class NoirScrapbookView extends FrameLayout {
                         attachPiece(existing, order);
                     } else {
                         int n=pieces.size();
-                        Piece p=new Piece("mine_" + UUID.randomUUID(),"text",text,
-                                n % 2 == 0 ? .07f : .54f, .56f + .055f * (n % 3), .35f, .18f, n % 2 == 0 ? -5f : 4f, n % STOCK.length, true);
+                        boolean quote = kind.equals("quote");
+                        Piece p=new Piece("mine_" + UUID.randomUUID(), quote ? "quote" : "text", text,
+                                n % 2 == 0 ? .07f : .54f, .56f + .055f * (n % 3),
+                                quote ? .39f : .35f, quote ? .22f : .18f,
+                                n % 2 == 0 ? -5f : 4f, quote ? 0 : n % STOCK.length, true);
                         pieces.add(p);attachPiece(p);
                     }
                     save();

@@ -81,14 +81,14 @@ public final class NoirSpreadActivity extends Activity {
         TextView back = NoirUi.flatControl(this, "‹", this::closeBook);
         back.setContentDescription("Вернуться к книгам");
         back.setTextSize(28);
-        header.addView(back, new LinearLayout.LayoutParams(dp(48), dp(46)));
+        header.addView(back, new LinearLayout.LayoutParams(dp(48), dp(VeloraDesign.TOUCH_TARGET_DP)));
         TextView heading = NoirUi.text(this, "Дневник", 22, NoirUi.WHITE, NoirUi.HEADLINE);
         heading.setGravity(Gravity.CENTER);
         header.addView(heading, new LinearLayout.LayoutParams(0, -2, 1));
         undoButton = NoirUi.flatControl(this, "↶", () -> { if (scrapbook != null) scrapbook.undo(); });
         undoButton.setTextSize(21);
         undoButton.setContentDescription("Отменить последнее изменение вырезки");
-        LinearLayout.LayoutParams undoSize = new LinearLayout.LayoutParams(dp(48), dp(46));
+        LinearLayout.LayoutParams undoSize = new LinearLayout.LayoutParams(dp(48), dp(VeloraDesign.TOUCH_TARGET_DP));
         header.addView(undoButton, undoSize);
         LinearLayout.LayoutParams headerSize = new LinearLayout.LayoutParams(-1, -2);
         headerSize.setMargins(dp(12), 0, dp(12), 0);
@@ -122,17 +122,17 @@ public final class NoirSpreadActivity extends Activity {
         pages.setGravity(Gravity.CENTER);
         previous = NoirUi.flatControl(this, "Книга", () -> stage.turn(-1));
         previous.setContentDescription("Разворот о книге");
-        pages.addView(previous, new LinearLayout.LayoutParams(-2, dp(46)));
+        pages.addView(previous, new LinearLayout.LayoutParams(-2, dp(VeloraDesign.TOUCH_TARGET_DP)));
         next = NoirUi.flatControl(this, "Записи", () -> stage.turn(1));
         next.setContentDescription("Разворот с записями и фото");
-        pages.addView(next, new LinearLayout.LayoutParams(-2, dp(46)));
+        pages.addView(next, new LinearLayout.LayoutParams(-2, dp(VeloraDesign.TOUCH_TARGET_DP)));
         footer.addView(pages, new LinearLayout.LayoutParams(0, -2, 1));
         addClipping = NoirUi.flatControl(this, "+", () -> {
             if (scrapbook != null && book != null) scrapbook.addPiece();
         });
         addClipping.setTextSize(25);
-        addClipping.setContentDescription("Добавить текстовую вырезку или фотографию");
-        footer.addView(addClipping, new LinearLayout.LayoutParams(dp(48), dp(46)));
+        addClipping.setContentDescription("Добавить заметку, цитату или фотографию");
+        footer.addView(addClipping, new LinearLayout.LayoutParams(dp(48), dp(VeloraDesign.TOUCH_TARGET_DP)));
         LinearLayout.LayoutParams footerSize = new LinearLayout.LayoutParams(-1, -2);
         footerSize.setMargins(dp(12), 0, dp(12), 0);
         layout.addView(footer, footerSize);
@@ -200,7 +200,7 @@ public final class NoirSpreadActivity extends Activity {
         cover.destination(new RectF(x, y, x + width, y + height), snapshot);
         cover.phase(openingBook ? 0 : 1);
         transitionAnimator = ValueAnimator.ofFloat(openingBook ? 0 : 1, openingBook ? 1 : 0);
-        transitionAnimator.setDuration(openingBook ? 760 : 565);
+        transitionAnimator.setDuration(openingBook ? VeloraDesign.BOOK_OPEN_MS : VeloraDesign.BOOK_CLOSE_MS);
         transitionAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
         transitionAnimator.addUpdateListener(animation -> cover.phase((Float) animation.getAnimatedValue()));
         transitionAnimator.addListener(new AnimatorListenerAdapter() {
