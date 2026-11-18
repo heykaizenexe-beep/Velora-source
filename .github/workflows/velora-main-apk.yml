@@ -29,8 +29,17 @@ jobs:
         run: python3 tools/check_journal_design.py
       - name: Check Gradle migration boundary
         run: python3 tools/check_modernization.py
-      - name: Check 0.9.158 editorial and page turn contracts
+      - name: Check editorial reading invariants
         run: python3 tools/check_velora_158.py
+      - name: Check Fables-style cover deck and theme isolation
+        run: python3 tools/check_velora_159.py
+      - name: Test pure-Java Tinder-style swipe math
+        run: |
+          mkdir -p build-output/editorial-tests
+          javac -encoding UTF-8 -d build-output/editorial-tests \
+            native-source/app/velora/reader/crtui/EditorialSwipeMotion.java \
+            tests/app/velora/reader/crtui/EditorialSwipeMotionRegressionTest.java
+          java -ea -cp build-output/editorial-tests app.velora.reader.crtui.EditorialSwipeMotionRegressionTest
       - name: Check independent reading themes
         run: python3 tools/check_reader_palettes.py
       - name: Test EPUB and FB2 footnote extraction and popup placement
@@ -47,6 +56,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.158-Editorial-Reading
+          name: Velora-0.9.159-Fables-Swipe
           path: build-output/Velora-CRT.apk
           retention-days: 14

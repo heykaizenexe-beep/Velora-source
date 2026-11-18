@@ -56,6 +56,14 @@ jobs:
             java -ea -cp build-output/gesture-tests app.velora.reader.crtui."$test"
           done
 
+      - name: Verify new swipe decision math before the Android emulator
+        run: |
+          mkdir -p build-output/editorial-tests
+          javac -encoding UTF-8 -d build-output/editorial-tests \
+            native-source/app/velora/reader/crtui/EditorialSwipeMotion.java \
+            tests/app/velora/reader/crtui/EditorialSwipeMotionRegressionTest.java
+          java -ea -cp build-output/editorial-tests app.velora.reader.crtui.EditorialSwipeMotionRegressionTest
+
       - name: Install screenshot comparison dependency
         run: python3 -m pip install pillow==11.3.0
 

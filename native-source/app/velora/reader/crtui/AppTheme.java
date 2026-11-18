@@ -38,8 +38,9 @@ public final class AppTheme {
     public static int revision(){return revision;}
     public static synchronized void select(Context context,String value){
         initialize(context);String next=normalize(value);if(next.equals(current))return;
-        boolean changedVectorStyle = (NOIR.equals(current) || CLASSIC.equals(current))
-                != (NOIR.equals(next) || CLASSIC.equals(next));
+        // Pixel-mode icons are the only bitmap-grid paths; invalidate vector
+        // caches whenever switching between that mode and smooth app skins.
+        boolean changedVectorStyle = PIXEL_CAT.equals(current) != PIXEL_CAT.equals(next);
         current=next;revision++;preferences.edit().putString("theme_id",current).apply();
         // Material icons memoize their paths; selecting the archive must rebuild
         // their smooth outlines, without changing the saved pixel-cat vectors.

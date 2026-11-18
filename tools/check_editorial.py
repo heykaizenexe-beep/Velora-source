@@ -26,7 +26,7 @@ checks = {
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
     "Cartoteka vector icons differ from pixel-cat without affecting it":
-        "if(AppTheme.isNoir() || AppTheme.CLASSIC.equals(AppTheme.id())){smooth(p,rows);return;}" in
+        "if(!AppTheme.isPixel()){smooth(p,rows);return;}" in
            read(path + "PixelIconPaths.java")
         and "private static void smooth(PathBuilder p,int[] rows)" in
            read(path + "PixelIconPaths.java")
@@ -145,8 +145,8 @@ checks = {
         and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
         and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
             read(path + "FootnotePopup.java"),
-    "version 0.9.158":
-        bool(re.search(r"versionCode:\s*258\s+versionName:\s*0\.9\.158",manifest)),
+    "version 0.9.159":
+        bool(re.search(r"versionCode:\s*259\s+versionName:\s*0\.9\.159",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():
