@@ -42,7 +42,7 @@ def main():
     adb("shell", "uiautomator", "dump", "/sdcard/editorial.xml")
     hierarchy = adb("exec-out", "cat", "/sdcard/editorial.xml").decode("utf-8", "replace")
     (OUT / "editorial.xml").write_text(hierarchy, encoding="utf-8")
-    expected = ["VELORA", "Истории, к которым", "Твоя коллекция", "Продолжить чтение"]
+    expected = ["VELORA", "Истории, к которым", "Твоя коллекция", "ПРОДОЛЖИТЬ ЧТЕНИЕ"]
     missing = [label for label in expected if label not in hierarchy]
     if missing:
         raise AssertionError("Editorial home UI not found: " + repr(missing))
