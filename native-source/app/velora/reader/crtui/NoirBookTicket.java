@@ -17,7 +17,8 @@ import java.util.concurrent.Future;
 
 /** The selected book's caption, reading actions and pull-out note. */
 final class NoirBookTicket extends LinearLayout {
-    private final TextView title, author, note, read;
+    private final TextView title, author, note, read, volume, progressLine;
+    private final boolean gallery;
     private final LinearLayout actions;
     private final ImageButton previous, next, noteToggle;
     private final Runnable opened;
@@ -30,22 +31,29 @@ final class NoirBookTicket extends LinearLayout {
     private Future<?> pendingNote;
 
     NoirBookTicket(Context c, Runnable back, Runnable forward, Runnable reader, Runnable journal, Runnable opened) {
+        this(c, back, forward, reader, journal, opened, false);
+    }
+
+    NoirBookTicket(Context c, Runnable back, Runnable forward, Runnable reader, Runnable journal, Runnable opened, boolean gallery) {
         super(c);
+        this.gallery = gallery;
         this.opened = opened;
         setOrientation(VERTICAL);
         touchSlop = ViewConfiguration.get(c).getScaledTouchSlop();
-        setPadding(dp(12), dp(10), dp(12), dp(10));
+        setPadding(dp(gallery ? 14 : 12), dp(gallery ? 12 : 10),
+                dp(gallery ? 14 : 12), dp(gallery ? 12 : 10));
         setBackgroundDrawable(NoirHomeStyle.panel(c,
-                NoirHomeStyle.SURFACE, NoirHomeStyle.EDGE, 8));
+                gallery ? 0xfffbf8f2 : NoirHomeStyle.SURFACE,
+                gallery ? 0xffd9ccbb : NoirHomeStyle.EDGE, gallery ? 4 : 8));
 
         // The book remains centered above; only its information card becomes a news brief.
         LinearLayout edition = new LinearLayout(c);
         edition.setGravity(Gravity.CENTER_VERTICAL);
-        TextView eyebrow = NoirUi.text(c, "ИЗ ЛИЧНОГО АРХИВА", 9,
+        TextView eyebrow = NoirUi.text(c, gallery ? "КАТАЛОЖНАЯ КАРТОЧКА" : "ИЗ ЛИЧНОГО АРХИВА", 9,
                 NoirHomeStyle.RUST, NoirUi.MEDIUM);
         NoirUi.tracking(eyebrow, .12f);
         edition.addView(eyebrow, new LayoutParams(0, -2, 1f));
-        TextView volume = NoirUi.text(c, "BOOK / 01", 9,
+        volume = NoirUi.text(c, "№ 001", 9,
                 NoirHomeStyle.INK_MUTED, NoirUi.MEDIUM);
         NoirUi.tracking(volume, .06f);
         edition.addView(volume, new LayoutParams(-2, -2));
@@ -61,10 +69,10 @@ final class NoirBookTicket extends LinearLayout {
         caption.setGravity(Gravity.CENTER_VERTICAL);
         caption.setBaselineAligned(false);
         previous = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.PREVIOUS, "Предыдущая книга", back);
-        caption.addView(previous, new LayoutParams(dp(46), dp(46)));
+        if (!gallery) caption.addView(previous, new LayoutParams(dp(46), dp(46)));
         LinearLayout metadata = NoirUi.column(c);
         metadata.setPadding(dp(6), 0, dp(6), 0);
-        title = NoirUi.text(c, "", 20, NoirHomeStyle.INK, NoirUi.HEADLINE);
+        title = NoirUi.text(c, "", gallery ? 22 : 20, NoirHomeStyle.INK, NoirUi.HEADLINE);
         title.setGravity(Gravity.CENTER);
         title.setMaxLines(2);
         title.setEllipsize(TextUtils.TruncateAt.END);
@@ -79,8 +87,16 @@ final class NoirBookTicket extends LinearLayout {
         metadata.addView(author, new LayoutParams(-1, -2));
         caption.addView(metadata, new LayoutParams(0, -2, 1f));
         next = NoirHomeStyle.icon(c, NoirHomeStyle.Symbol.NEXT, "Следующая книга", forward);
-        caption.addView(next, new LayoutParams(dp(46), dp(46)));
+        if (!gallery) caption.addView(next, new LayoutParams(dp(46), dp(46)));
         addView(caption, new LayoutParams(-1, -2));
+        progressLine = NoirUi.text(c, "", 10, NoirHomeStyle.RUST, NoirUi.MEDIUM);
+        progressLine.setGravity(Gravity.CENTER);
+        NoirUi.tracking(progressLine, .055f);
+        if (gallery) {
+            LayoutParams progressSize = new LayoutParams(-1, -2);
+            progressSize.topMargin = dp(6);
+            addView(progressLine, progressSize);
+        }
 
         actions = new LinearLayout(c);
         actions.setGravity(Gravity.CENTER_VERTICAL);
@@ -100,7 +116,7 @@ final class NoirBookTicket extends LinearLayout {
         actions.addView(noteToggle, new LayoutParams(dp(46), dp(46)));
         LayoutParams actionsSize = new LayoutParams(-2, -2);
         actionsSize.gravity = Gravity.CENTER_HORIZONTAL;
-        actionsSize.topMargin = dp(9);
+        actionsSize.topMargin = dp(gallery ? 12 : 9);
         addView(actions, actionsSize);
 
         note = NoirUi.text(c, "", 15, NoirHomeStyle.PAPER_INK, NoirUi.SERIF);
@@ -124,6 +140,11 @@ final class NoirBookTicket extends LinearLayout {
         control.setBackgroundDrawable(NoirHomeStyle.control(c,
                 NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 8));
         return control;
+    }
+
+    void setCatalogNumber(int number, int total) {
+        volume.setText(gallery ? String.format(java.util.Locale.US, "№ %03d / %03d", number, total)
+                : String.format(java.util.Locale.US, "BOOK / %02d", number));
     }
 
     void neighbors(boolean before, boolean after) {
@@ -151,6 +172,8 @@ final class NoirBookTicket extends LinearLayout {
         int percent = fraction >= 1f ? 100 : Math.min(99, Math.round(fraction * 100f));
         read.setText(label);
         read.setContentDescription(started ? label + ". Прочитано " + percent + "%" : label);
+        progressLine.setText(fraction >= 1f ? "ПРОЧИТАНО  ·  100%"
+                : started ? "В ПРОЦЕССЕ  ·  " + percent + "%" : "В КОЛЛЕКЦИИ  ·  НЕ НАЧАТА");
     }
 
     private boolean pull(View v, MotionEvent e) {
