@@ -92,6 +92,24 @@
 
     move-result-object v0
 
+    # The supported LIGHT enum has custom newspaper colors when Gazette is selected.
+    const-string v3, "LIGHT"
+
+    invoke-virtual {v3, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v3
+
+    if-eqz v3, :cond_reader_color_ready
+
+    invoke-static {}, Lapp/velora/reader/crtui/ReaderPaper;->isNewspaperSelected()Z
+
+    move-result v3
+
+    if-eqz v3, :cond_reader_color_ready
+
+    const-string v0, "NEWSPAPER"
+
+    :cond_reader_color_ready
     invoke-static {v0}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
 
     move-result v1
@@ -190,13 +208,22 @@
 
     if-ne v0, v4, :cond_reader_standard
 
-    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+    const/4 v4, 0x1
+
+    invoke-static {v4}, Lapp/velora/reader/crtui/ReaderPaper;->setNewspaperSelected(Z)V
+
+    # Never pass the extension NEWSPAPER to Readium's three-theme navigator.
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->LIGHT:Lorg/readium/r2/navigator/preferences/Theme;
 
     move-object/from16 v26, v0
 
     goto :goto_2
 
     :cond_reader_standard
+    const/4 v4, 0x0
+
+    invoke-static {v4}, Lapp/velora/reader/crtui/ReaderPaper;->setNewspaperSelected(Z)V
+
     sget-object v4, Lapp/velora/reader/feature/reader/readium/ReadiumPreferenceMapper$WhenMappings;->$EnumSwitchMapping$0:[I
 
     invoke-virtual {v0}, Lapp/velora/reader/core/model/ReaderPageTheme;->ordinal()I
@@ -689,6 +716,21 @@
     return-object v0
 
     :cond_reader_regular_theme
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->LIGHT:Lorg/readium/r2/navigator/preferences/Theme;
+
+    if-ne p1, v0, :cond_reader_not_custom
+
+    invoke-static {}, Lapp/velora/reader/crtui/ReaderPaper;->isNewspaperSelected()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_reader_not_custom
+
+    sget-object v0, Lapp/velora/reader/core/model/ReaderPageTheme;->NEWSPAPER:Lapp/velora/reader/core/model/ReaderPageTheme;
+
+    return-object v0
+
+    :cond_reader_not_custom
     .line 73
     if-nez p1, :cond_0
 
@@ -786,6 +828,21 @@
 
     invoke-static {v0, v1}, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object;Ljava/lang/String;)V
 
+    # Record the user's color choice separately from the navigator enum.
+    sget-object v3, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    if-ne v0, v3, :cond_color_plain
+
+    const/4 v3, 0x1
+
+    goto :goto_color_flag
+
+    :cond_color_plain
+    const/4 v3, 0x0
+
+    :goto_color_flag
+    invoke-static {v3}, Lapp/velora/reader/crtui/ReaderPaper;->setNewspaperSelected(Z)V
+
     .line 45
     move-object/from16 v1, p0
 
@@ -878,6 +935,16 @@
     const/16 v26, 0x0
 
     move-object/from16 v1, p1
+
+    # Navigator gets LIGHT with newspaper's explicit background/text colors.
+    sget-object v4, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    if-ne v0, v4, :cond_theme_navigator_ready
+
+    sget-object v0, Lorg/readium/r2/navigator/preferences/Theme;->LIGHT:Lorg/readium/r2/navigator/preferences/Theme;
+
+    :cond_theme_navigator_ready
+    const/4 v4, 0x0
 
     move-object/from16 v23, v0
 
