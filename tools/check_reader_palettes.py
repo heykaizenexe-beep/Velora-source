@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard four visible reader palettes and safe Readium compatibility in Velora 0.9.146."""
+"""Guard four visible reader palettes and safe Readium compatibility in Velora 0.9.147."""
 from pathlib import Path
 from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,6 +10,7 @@ ui=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/Readium
 activity=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderActivity.smali")
 fragment=read("decoded/smali_classes5/app/velora/reader/feature/reader/readium/VeloraEpubReaderFragment.smali")
 page_turn=read("native-source/app/velora/reader/crtui/PageTurnSettings.java")
+compact=read("native-source/app/velora/reader/crtui/ReaderCompactSlider.java")
 readium=read("decoded/smali_classes20/org/readium/r2/navigator/preferences/Theme.smali")
 model=read("decoded/smali_classes12/app/velora/reader/core/model/ReaderPageTheme.smali")
 candidates={
@@ -26,6 +27,8 @@ candidates={
 "independent user palette remains selected on reopening": ':cond_reader_palette_initial_done' in ui and 'ReaderPaper;->isNewspaperSelected()Z' in ui,
 "theme selector shows genuine paper and ink colors": 'PHOTO_READER_COLOR_SWATCHES' in ui and 'ReaderPaper;->composeArgb(I)J' in ui and 'const/16 v97, 0xc' in ui,
 "selected color swatch has checkmark": ':cond_reader_swatch_label_done' in ui and 'const-string v13, "✓ "' in ui,
+"compact slider preserves callbacks": 'READER_COMPACT_APPEARANCE_SLIDER' in ui and 'ReaderCompactSlider;->compose' in ui and 'callback.invoke(Float.valueOf(v))' in compact,
+"compact sliders show values and accessible labels": 'numberView.setText(String.format' in compact and 'control.setContentDescription(title);' in compact and 'dp(51)' in compact,
 "large page-turn options reduced to side-by-side controls": 'choices.setOrientation(HORIZONTAL)' in page_turn and 'new RadioGroup.LayoutParams(0, dp(50), 1f)' in page_turn,
 "UI retains existing light/sepia/dark choices": all(x in ui for x in ('Theme;->LIGHT:', 'Theme;->SEPIA:', 'Theme;->DARK:', 'const-string v10, "Газета"')),
 "UI includes fourth readium theme":'Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:' in ui and '    const/4 v1, 0x4\n\n    new-array v1, v1, [Lkotlin/Pair;' in ui,
