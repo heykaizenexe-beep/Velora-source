@@ -22,7 +22,7 @@ checks = {
     "Cartoteka keeps its original 3D cover deck":
         "deck = new NoirCoverDeck(" in home and "drawSpine(canvas, card" in deck,
     "original perspective rendering stays intact":
-        "float yaw =" in shelf and "shelf.project(offset)" in deck,
+        "float yaw =" in shelf and "shelf.intersectsViewport(offset)" in deck,
     "swipe gestures and settle animation remain":
         "onTouchEvent(MotionEvent" in deck and "settle(" in deck,
     "full-width 3D shelf and original narrow editorial ticket":
