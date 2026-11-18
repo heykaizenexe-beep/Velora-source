@@ -114,7 +114,11 @@ public final class FootnoteContent {
         if (text.matches("[↩↵↑⤴↰←]+") || text.equals("back") || text.equals("назад")) return true;
         String href = element.attr("href");
         String id = lower(decodeFragment(href.substring(href.indexOf('#') + 1)));
-        return referenceLabel(text) && id.matches("_?(?:fnref|ftnref|noteref|ref|back|return)[-_.:]?\\d+.*");
+        // A cross-file endnote can legitimately have id="ref-27"; treat it as
+        // a note when the destination is the book's note document, not a
+        // backlink into the reading chapter.
+        return referenceLabel(text) && !noteFile(href)
+                && id.matches("_?(?:fnref|ftnref|noteref|ref|back|return)[-_.:]?\\d+.*");
     }
     private static boolean referenceLabel(String text) {
         String compact = text == null ? "" : text.replaceAll("[\\s\\[\\]().{}]", "");
