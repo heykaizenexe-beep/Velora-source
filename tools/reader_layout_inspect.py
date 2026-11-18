@@ -2,13 +2,14 @@
 from pathlib import Path
 p=Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium/ReadiumReaderUiKt.smali")
 ls=p.read_text().splitlines()
-for key in ("Landroidx/compose/ui/graphics/ColorKt;->Color(I)J",
-"Landroidx/compose/ui/graphics/ColorKt;->Color(",
-"ColorKt;->Color(", "textButtonColors-ro_MJ88", "getContentColor()I",
-"getBackgroundColor()I", "ReadiumSettingsOverlay$lambda$0$27$1$8$0$1"):
- a=[i for i,s in enumerate(ls) if key in s]
- print("TOKEN",key,"TOTAL",len(a),"LINES",[i+1 for i in a[:24]])
-for x,y in ((38826,38945),(38945,39075),(40386,40472),
-(35200,35350),(36600,36675),(37180,37260)):
- print("====",x,y,flush=True)
- for i in range(x-1,y):print(str(i+1)+": "+ls[i],flush=True)
+for a,b in ((500,550),(660,712),(40479,40790)): 
+ print("====",p,a,b,flush=True)
+ for i in range(a-1,b):print(f"{i+1}: {ls[i]}",flush=True)
+p=Path("decoded/smali_classes5/app/velora/reader/feature/reader/readium/VeloraEpubReaderFragment.smali")
+ls=p.read_text().splitlines()
+for keyword in ("toPageTheme(", "setReaderPageTheme(", "updatePreferences(", "applyPreferences(", "setPreferences(", "readerPageTheme"):
+ hits=[i for i,line in enumerate(ls) if keyword in line]
+ print("FOUND",keyword,[i+1 for i in hits[:50]])
+ for i in hits[:4]:
+  print("AROUND",i+1,flush=True)
+  for j in range(max(0,i-25),min(len(ls),i+30)):print(f"{j+1}: {ls[j]}",flush=True)
