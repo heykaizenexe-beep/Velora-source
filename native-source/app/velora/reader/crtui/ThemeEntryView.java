@@ -16,7 +16,7 @@ public final class ThemeEntryView extends TextView implements CrtTheme.Listener 
     }
     int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
     public void refresh(){
-        String theme = AppTheme.isNoir() ? "Noir Journal" : AppTheme.isJournal() ? "Журнал" : AppTheme.isPixel() ? "Пиксельный кот · CRT" : "Классическая";
+        String theme = AppTheme.isArchiveGallery() ? "Архивная галерея · Эксперимент" : AppTheme.isNoir() ? "Картотека" : AppTheme.isJournal() ? "Журнал" : AppTheme.isPixel() ? "Пиксельный кот · CRT" : "Классическая";
         setText("Темы  →\n" + theme);
         setTypeface(CrtFonts.pixel());setTextColor(CrtTheme.text());
         GradientDrawable bg=new GradientDrawable();bg.setColor(CrtTheme.surfaceAlt());bg.setCornerRadius(dp(10));bg.setStroke(dp(1),CrtTheme.border());setBackgroundDrawable(bg);
