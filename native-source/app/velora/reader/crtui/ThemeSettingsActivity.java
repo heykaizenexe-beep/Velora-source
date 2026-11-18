@@ -104,7 +104,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
         space(10);
         journal=new ThemeCard(AppTheme.JOURNAL,"Журнал","Одна книга на экране. Листай вверх и вниз на телефоне, влево и вправо на планшете.");
         space(10);
-        noir=new ThemeCard(AppTheme.NOIR,"Картотека","3D-книжная карусель и чистый однотонный фон. Без фоновых текстур.");
+        noir=new ThemeCard(AppTheme.NOIR,"Картотека","3D-книжная карусель на точечном бумажном фоне по всему экрану.");
         refresh();setContentView(scroll);CrtOverlay.install(this);ReaderStatus.hideSystemStatus(this);
     }
     private void refresh(){

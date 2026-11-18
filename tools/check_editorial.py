@@ -32,21 +32,27 @@ checks = {
         and "NoirHomeStyle.EDGE, 20" in home,
     "reading and book-journal actions remain":
         'read = action(c, "Читать"' in ticket and 'diary = action(c, "Дневник"' in ticket,
-    "flat warm paper background replaces newspaper texture":
-        "scroll.setBackgroundColor(NoirHomeStyle.WALL);" in home
-        and "new NoirNewspaperPaper" not in home
-        and "newspaperPaper" not in home,
+    "dotted paper replaces newspaper texture":
+        "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home
+        and "new NoirNewspaperPaper" not in home and "newspaperPaper" not in home,
+    "dot grid extends beneath both transparent system bars":
+        "NoirDotPaper;->applyWindow" in read("decoded/smali_classes6/app/velora/reader/CrtUi.smali")
+        and "return 0L;" in read(path + "HomePresentation.java")
+        and "phase.setTranslate(-screen[0], -screen[1])" in read(path + "NoirDotPaper.java"),
+    "realistic curl shading preserved on reader paper":
+        "new int[]{0x44000000,0x25000000" in read(path + "PageCurlView.java")
+        and "paperTone(.82f)" in read(path + "PageCurlView.java"),
     "unused newspaper texture slider is hidden":
         "newspaperSlider" not in settings and "NoirNewspaperPaper" not in settings,
     "experimental gallery removed from theme menu and router":
         "archive_gallery_lab" not in themes and "ARCHIVE_GALLERY" not in routing
         and "Архивная галерея" not in settings,
     "original beige and rust palette remains":
-        "0xfff3eee5" in style and "0xffa94f3b" in style,
+        "NoirDotPaper.PAPER" in style and "0xffa94f3b" in style,
     "no old unlicensed Schueler font required":
         "schuelerBold" not in fonts,
-    "version 0.9.148":
-        bool(re.search(r"versionCode:\s*248\s+versionName:\s*0\.9\.148",manifest)),
+    "version 0.9.149":
+        bool(re.search(r"versionCode:\s*249\s+versionName:\s*0\.9\.149",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

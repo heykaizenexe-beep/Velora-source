@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 public final class PageCurlView extends View {
     private static final int STRIPS = 36;
     private static final int FACE_STRIPS = PageCurlMesh.FACE_STRIPS;
-    private static final int REVERSE_TEXT_ALPHA = 48;
+    private static final int REVERSE_TEXT_ALPHA = 38;
     private final PageCurlGeometry geometry = new PageCurlGeometry();
     private final Paint imagePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final Paint paperPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -40,13 +40,14 @@ public final class PageCurlView extends View {
     private final Matrix shadowMatrix=new Matrix();
     private final Matrix shadeMatrix=new Matrix(), endMatrix=new Matrix();
     private final LinearGradient foldShadow=new LinearGradient(0f,0f,1f,0f,
-            new int[]{0x28000000,0x0c000000,0x00000000},new float[]{0f,.4f,1f},Shader.TileMode.CLAMP);
+            new int[]{0x44000000,0x25000000,0x07000000,0x00000000},new float[]{0f,.25f,.62f,1f},Shader.TileMode.CLAMP);
     private final LinearGradient endFade=new LinearGradient(0f,0f,0f,1f,
             new int[]{0x00ffffff,0xffffffff,0xffffffff,0x00ffffff},new float[]{0f,.08f,.92f,1f},Shader.TileMode.CLAMP);
     private final Shader finiteShadow = Build.VERSION.SDK_INT >= 28
             ? new ComposeShader(foldShadow,endFade,PorterDuff.Mode.DST_IN) : foldShadow;
     private final LinearGradient frontShade=new LinearGradient(0f,0f,1f,0f,
-            0x00000000,0x20000000,Shader.TileMode.CLAMP);
+            new int[]{0x00000000,0x16000000,0x2b000000,0x07000000},
+            new float[]{0f,.22f,.64f,1f},Shader.TileMode.CLAMP);
     private LinearGradient backShade;
     private final float[] ridgeSpan = new float[2];
     private final float[] stripValues = new float[9];
@@ -72,7 +73,8 @@ public final class PageCurlView extends View {
         dragging = false;
         this.paperColor = paperColor | 0xff000000;
         backShade = new LinearGradient(0f,0f,1f,0f,
-                paperTone(.96f),paperTone(.84f),Shader.TileMode.CLAMP);
+                new int[]{paperTone(.98f),paperTone(.82f),paperTone(.91f),paperTone(.98f)},
+                new float[]{0f,.25f,.65f,1f},Shader.TileMode.CLAMP);
         if (Build.VERSION.SDK_INT >= 29 && !meshUnavailable && oldPage != null && !oldPage.isRecycled()) {
             try {
                 pageShader = new BitmapShader(oldPage,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);

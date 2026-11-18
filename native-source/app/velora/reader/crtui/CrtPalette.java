@@ -3,7 +3,7 @@ package app.velora.reader.crtui;
 /** Immutable CRT colour roles shared by Android Views and Compose. */
 public final class CrtPalette {
     private CrtPalette() {}
-    static final int NOIR_BACKGROUND = 0xfff3eee5;
+    static final int NOIR_BACKGROUND = NoirDotPaper.PAPER;
 
     public static final int PRIMARY=0, ON_PRIMARY=1, PRIMARY_CONTAINER=2, ON_PRIMARY_CONTAINER=3,
         INVERSE_PRIMARY=4, SECONDARY=5, ON_SECONDARY=6, SECONDARY_CONTAINER=7,

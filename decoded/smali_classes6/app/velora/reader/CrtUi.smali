@@ -123,6 +123,9 @@
 
     invoke-virtual {v1, v5}, Landroidx/core/view/WindowInsetsControllerCompat;->setAppearanceLightNavigationBars(Z)V
 
+    # Apply the dot-paper Window drawable after the standard bar colors.
+    invoke-static {p0}, Lapp/velora/reader/crtui/NoirDotPaper;->applyWindow(Landroid/app/Activity;)V
+
     :cond_6
     return-void
 .end method

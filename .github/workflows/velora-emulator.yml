@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/edge-drag-preview-0.9.140
+      - main
   workflow_dispatch:
 
 permissions:

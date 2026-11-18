@@ -45,7 +45,8 @@ public final class HomePresentation {
                 return Unit.INSTANCE;
             }, composer, 0);
         }
-        return noirHome ? (NoirHomeStyle.WALL & 0xffffffffL) << 32 : 0L;
+        // Do not paint an opaque Compose color over the full-window dotted wallpaper.
+        return 0L;
     }
 
     public static int windowColor(Activity activity) {
