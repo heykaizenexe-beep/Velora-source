@@ -34849,6 +34849,18 @@
     sget-object v17, Lorg/readium/r2/navigator/preferences/Theme;->SEPIA:Lorg/readium/r2/navigator/preferences/Theme;
 
     :cond_1b
+    # Restore the actual independent color choice in the settings picker.
+    invoke-static {}, Lapp/velora/reader/crtui/ReaderPaper;->isNewspaperSelected()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_reader_palette_initial_done
+
+    sget-object v17, Lorg/readium/r2/navigator/preferences/Theme;->NEWSPAPER:Lorg/readium/r2/navigator/preferences/Theme;
+
+    :cond_reader_palette_initial_done
+    const/4 v0, 0x0
+
     move/from16 v26, v0
 
     move-object/from16 v0, v17
@@ -38580,7 +38592,7 @@
 
     .end local v10    # "localMap\\83":Landroidx/compose/runtime/CompositionLocalMap;
     .local v101, "localMap\\83":Landroidx/compose/runtime/CompositionLocalMap;
-    const-string v10, "\u0421\u0432\u0435\u0442\u043b\u0430\u044f"
+    const-string v10, "День"
 
     invoke-static {v1, v10}, Lkotlin/TuplesKt;->to(Ljava/lang/Object;Ljava/lang/Object;)Lkotlin/Pair;
 
@@ -38609,7 +38621,7 @@
     .line 1265
     sget-object v1, Lorg/readium/r2/navigator/preferences/Theme;->DARK:Lorg/readium/r2/navigator/preferences/Theme;
 
-    const-string v10, "\u0422\u0451\u043c\u043d\u0430\u044f"
+    const-string v10, "Ночь"
 
     invoke-static {v1, v10}, Lkotlin/TuplesKt;->to(Ljava/lang/Object;Ljava/lang/Object;)Lkotlin/Pair;
 
@@ -38874,10 +38886,32 @@
     move-result-wide v87
 
     :goto_35
-    nop
+    # PHOTO_READER_COLOR_SWATCHES
+    invoke-virtual {v1}, Lorg/readium/r2/navigator/preferences/Theme;->name()Ljava/lang/String;
+
+    move-result-object v12
+
+    invoke-static {v12}, Lapp/velora/reader/crtui/ReaderPaper;->pageBackground(Ljava/lang/String;)I
+
+    move-result v12
+
+    invoke-static {v12}, Lapp/velora/reader/crtui/ReaderPaper;->composeArgb(I)J
+
+    move-result-wide v87
+
+    invoke-virtual {v1}, Lorg/readium/r2/navigator/preferences/Theme;->name()Ljava/lang/String;
+
+    move-result-object v12
+
+    invoke-static {v12}, Lapp/velora/reader/crtui/ReaderPaper;->pageText(Ljava/lang/String;)I
+
+    move-result v12
+
+    invoke-static {v12}, Lapp/velora/reader/crtui/ReaderPaper;->composeArgb(I)J
+
+    move-result-wide v89
 
     .line 1269
-    const-wide/16 v89, 0x0
 
     const-wide/16 v91, 0x0
 
@@ -38885,7 +38919,8 @@
 
     const/16 v96, 0x6000
 
-    const/16 v97, 0xe
+    # Both container AND text color are explicit; only disabled colors default.
+    const/16 v97, 0xc
 
     move-object/from16 v95, v2
 
@@ -38898,6 +38933,20 @@
     .line 1276
     .end local v95    # "$composer\\87":Landroidx/compose/runtime/Composer;
     .restart local v2    # "$composer\\87":Landroidx/compose/runtime/Composer;
+    # Add a compact checkmark inside the selected swatch.
+    invoke-static {v11}, Lapp/velora/reader/feature/reader/readium/ReadiumReaderUiKt;->ReadiumSettingsOverlay$lambda$0$25(Landroidx/compose/runtime/MutableState;)Lorg/readium/r2/navigator/preferences/Theme;
+
+    move-result-object v13
+
+    if-ne v13, v1, :cond_reader_swatch_label_done
+
+    const-string v13, "✓ "
+
+    invoke-virtual {v13, v10}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v10
+
+    :cond_reader_swatch_label_done
     new-instance v12, Lapp/velora/reader/feature/reader/readium/ReadiumReaderUiKt$$ExternalSyntheticLambda33;
 
     invoke-direct {v12, v10}, Lapp/velora/reader/feature/reader/readium/ReadiumReaderUiKt$$ExternalSyntheticLambda33;-><init>(Ljava/lang/String;)V
