@@ -8,6 +8,8 @@
 /verification/
 /.idea/
 /.gradle/
+**/.gradle/
+**/build/
 /.venv/
 /signing/
 local.properties
