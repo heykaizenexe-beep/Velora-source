@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * Subtle newspaper-paper backdrop for Cartoteka's HOME screen ONLY.
  *
- * This is intentionally not a scanned newspaper: tiny neutral paper grain and
+ * This is intentionally not a scanned newspaper: real CC0 paper scan plus tiny neutral grain and
  * very faint column impressions at the edges suggest print without competing
  * with book covers, reading controls or the editorial masthead.
  *
@@ -27,7 +27,7 @@ import java.io.IOException;
  * network assets, external fonts, allocations or randomness on draw().
  */
 final class NoirNewspaperPaper extends Drawable {
-    static final int DEFAULT_STRENGTH = 35;
+    static final int DEFAULT_STRENGTH = 45;
     static final int MIN_STRENGTH = 0;
     static final int MAX_STRENGTH = 100;
     static final String PREF_STRENGTH = "newspaper_texture_strength";
@@ -123,12 +123,12 @@ final class NoirNewspaperPaper extends Drawable {
         canvas.drawRect(bounds, paper);
 
         // The grain is adjustable separately from the opaque paper base.
-        // At 0% the background is perfectly clean; at 35% it matches v0.9.144.
+        // At 0% the background is perfectly clean; the 45% default remains soft.
         if (strength == 0) return;
         if (hasPhoto) {
-            // 35% exposes recognizable fibers, but keeps the carousel readable.
+            // 45% uses a true scanned-paper layer; still blends with clear ivory.
             // Blend the actual photograph instead of replacing the base color.
-            photograph.setAlpha((Math.min(150, Math.round(strength * 1.5f))
+            photograph.setAlpha((Math.min(190, Math.round(strength * 2.1f))
                     * alpha + 127) / 255);
             canvas.drawRect(bounds, photograph);
         } else {
