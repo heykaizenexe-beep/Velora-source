@@ -8,6 +8,8 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Matrix;
+import android.view.View;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -49,13 +51,20 @@ final class NoirNewspaperPaper extends Drawable {
     private final Paint paper = new Paint();
     private final Paint grain = new Paint();
     private final Paint photograph = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private final View owner;
+    private final int[] screenPosition = new int[2];
+    private final Matrix origin = new Matrix();
+    private BitmapShader grainPattern, photographPattern;
     private boolean hasPhoto;
     private final Paint ghostInk = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final float density;
     private int alpha = 255;
     private int strength;
 
-    NoirNewspaperPaper(Context context) {
+    NoirNewspaperPaper(Context context) { this(context, null); }
+
+    NoirNewspaperPaper(Context context, View owner) {
+        this.owner=owner;
         density = context.getResources().getDisplayMetrics().density;
         strength = readStrength(context);
         loadRealPaperTexture(context);
@@ -78,8 +87,8 @@ final class NoirNewspaperPaper extends Drawable {
             }
         }
         texture.setPixels(pixels, 0, TILE, 0, 0, TILE, TILE);
-        grain.setShader(new BitmapShader(texture, Shader.TileMode.REPEAT,
-                Shader.TileMode.REPEAT));
+        grainPattern=new BitmapShader(texture, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+        grain.setShader(grainPattern);
         ghostInk.setStrokeWidth(Math.max(0.7f, density * .45f));
         ghostInk.setStyle(Paint.Style.STROKE);
     }
@@ -95,8 +104,9 @@ final class NoirNewspaperPaper extends Drawable {
             stream = context.getAssets().open("noir/newsprint-paper.jpg");
             Bitmap bitmap = BitmapFactory.decodeStream(stream);
             if (bitmap != null) {
-                photograph.setShader(new BitmapShader(bitmap, Shader.TileMode.MIRROR,
-                        Shader.TileMode.MIRROR));
+                photographPattern=new BitmapShader(bitmap, Shader.TileMode.MIRROR,
+                        Shader.TileMode.MIRROR);
+                photograph.setShader(photographPattern);
                 hasPhoto = true;
             }
         } catch (IOException unavailable) {
@@ -121,6 +131,14 @@ final class NoirNewspaperPaper extends Drawable {
 
         paper.setColor((alpha << 24) | (NoirHomeStyle.WALL & 0x00ffffff));
         canvas.drawRect(bounds, paper);
+        // Match the original dotted paper: the scanned pattern must not
+        // jump when the header, scroll view and window overlap or scroll.
+        if(owner!=null){
+            owner.getLocationOnScreen(screenPosition);
+            origin.setTranslate(-screenPosition[0],-screenPosition[1]);
+            grainPattern.setLocalMatrix(origin);
+            if(photographPattern!=null)photographPattern.setLocalMatrix(origin);
+        }
 
         // The grain is adjustable separately from the opaque paper base.
         // At 0% the background is perfectly clean; the 45% default remains soft.

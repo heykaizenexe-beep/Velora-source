@@ -54,7 +54,7 @@ final class NoirHomeWallpaper extends Drawable {
             return;
         }
         newspaper=next;
-        surface=next?new NoirNewspaperPaper(context):new NoirDotPaper(context,owner);
+        surface=next?new NoirNewspaperPaper(context,owner):new NoirDotPaper(context,owner);
         surface.setBounds(getBounds());
         surface.setAlpha(alpha);
         if(filter!=null)surface.setColorFilter(filter);
