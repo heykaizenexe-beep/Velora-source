@@ -20,7 +20,7 @@ checks={
  "Legacy dots are default": "getBoolean(PREF_NEWSPAPER,false)" in paper,
  "Newsprint uses local texture": "new NoirNewspaperPaper(context)" in paper and 'noir/newsprint-paper.jpg' in read("NoirNewspaperPaper.java"),
  "Wallpaper covers system bars": "new NoirHomeWallpaper(activity, decor)" in window and "new NoirHomeWallpaper(activity, screen)" in screen,
- "Reader paper is independent": "!ReaderStatus.isReader(activity)" in window and "AppTheme.isNoir() && !reader" in screen,
+ "Reader paper is independent": "ReaderStatus.isReader(activity)) return;" in window and "AppTheme.isNoir() && !reader" in screen,
  "Spread and 3D cover deck preserved": "new NoirCoverDeck(" in home and "new NoirBookTicket(" in home and "NoirScrapbookView" in read("NoirSpreadActivity.java"),
 }
 for label,ok in checks.items():print(("PASS" if ok else "FAIL")+": "+label)
