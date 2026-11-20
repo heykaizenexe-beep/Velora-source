@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Path;
+import android.graphics.Typeface;
 import android.view.View;
 import app.velora.reader.core.model.Book;
 import java.util.Locale;
@@ -64,7 +66,19 @@ public final class ShelfCoverView extends View implements CrtTheme.Listener {
     protected void onDraw(Canvas canvas){
         int width=getWidth(),height=getHeight();if(width<=0||height<=0)return;
         float line=Math.max(1f,getResources().getDisplayMetrics().density);
-        paint.setStyle(Paint.Style.FILL);paint.setColor(CrtTheme.surface());canvas.drawRect(0,0,width,height,paint);
+        boolean archive=AppTheme.isNoir();
+        paint.setAntiAlias(archive);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(archive?0xffe6dac7:CrtTheme.surface());
+        if(archive){
+            canvas.drawRoundRect(new RectF(0,0,width,height),dp(3),dp(3),paint);
+        }else canvas.drawRect(0,0,width,height,paint);
+        int clipped=canvas.save();
+        if(archive){
+            Path path=new Path();
+            path.addRoundRect(new RectF(line,line,width-line,height-line),dp(3),dp(3),Path.Direction.CW);
+            canvas.clipPath(path);
+        }
         if(bitmap!=null&&!bitmap.isRecycled()){
             float scale=Math.min(Math.max(0,width-2*line)/bitmap.getWidth(),Math.max(0,height-2*line)/bitmap.getHeight());
             float w=bitmap.getWidth()*scale,h=bitmap.getHeight()*scale;
@@ -77,7 +91,8 @@ public final class ShelfCoverView extends View implements CrtTheme.Listener {
             canvas.drawRect(spine,line,spine+line,height-line,paint);
             canvas.drawRect(inset,height*.23f,width-inset,height*.23f+line,paint);
             canvas.drawRect(inset,height*.77f,width-inset,height*.77f+line,paint);
-            paint.setTypeface(CrtFonts.pixel());paint.setTextAlign(Paint.Align.CENTER);paint.setAntiAlias(false);
+            paint.setTypeface(archive?Typeface.create("serif",Typeface.BOLD):CrtFonts.pixel());
+            paint.setTextAlign(Paint.Align.CENTER);paint.setAntiAlias(archive);
             paint.setColor(CrtTheme.accent());paint.setTextSize(Math.min(width*.46f,height*.29f));
             canvas.drawText(initial,(width+spine)/2,height*.47f-(paint.ascent()+paint.descent())/2,paint);
             paint.setColor(CrtTheme.muted());paint.setTextSize(width*.16f);
@@ -85,7 +100,13 @@ public final class ShelfCoverView extends View implements CrtTheme.Listener {
             if(textWidth>available)paint.setTextSize(paint.getTextSize()*available/textWidth);
             canvas.drawText(format,(width+spine)/2,height*.67f-(paint.ascent()+paint.descent())/2,paint);
         }
-        paint.setColor(CrtTheme.border());paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(line);
-        canvas.drawRect(line/2,line/2,width-line/2,height-line/2,paint);paint.setStyle(Paint.Style.FILL);
+        canvas.restoreToCount(clipped);
+        paint.setColor(archive?0xff8c755f:CrtTheme.border());
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(line);
+        if(archive)canvas.drawRoundRect(new RectF(line/2,line/2,width-line/2,height-line/2),
+                dp(3),dp(3),paint);
+        else canvas.drawRect(line/2,line/2,width-line/2,height-line/2,paint);
+        paint.setStyle(Paint.Style.FILL);
     }
 }

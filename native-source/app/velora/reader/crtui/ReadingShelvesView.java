@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
@@ -271,16 +273,22 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
         private final LinearLayout covers;
         private final TextView placeholder,extra;
         ShelfRack(){
-            super(ReadingShelvesView.this.getContext());setBackgroundDrawable(new PixelFrame(BG,BORDER));
+            super(ReadingShelvesView.this.getContext());
+            setBackgroundDrawable(AppTheme.isNoir()
+                    ? NoirHomeStyle.panel(getContext(),0xffefe8d9,0xffc9b49c,9)
+                    : new PixelFrame(BG,BORDER));
             covers=row();covers.setGravity(Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
             FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-1,-1);cp.setMargins(dp(10),dp(8),dp(10),dp(10));addView(covers,cp);
             placeholder=text("",20,MUTED);placeholder.setGravity(Gravity.CENTER);placeholder.setPadding(dp(12),0,dp(12),0);
             addView(placeholder,new FrameLayout.LayoutParams(-1,-1));
             extra=text("",18,GREEN);extra.setPadding(dp(7),dp(4),dp(7),dp(4));extra.setBackgroundDrawable(new PixelFrame(SURFACE,BORDER));
             FrameLayout.LayoutParams ep=new FrameLayout.LayoutParams(-2,-2,Gravity.RIGHT|Gravity.TOP);ep.topMargin=dp(7);ep.rightMargin=dp(7);addView(extra,ep);
-            addView(new ShelfBeam(getContext()),new FrameLayout.LayoutParams(-1,dp(8),Gravity.BOTTOM));
+            addView(new ShelfBeam(getContext()),new FrameLayout.LayoutParams(-1,dp(12),Gravity.BOTTOM));
         }
         void bind(List<Book> preview,int total){
+            setBackgroundDrawable(AppTheme.isNoir()
+                    ? NoirHomeStyle.panel(getContext(),0xffefe8d9,0xffc9b49c,9)
+                    : new PixelFrame(BG,BORDER));
             covers.removeAllViews();
             for(Book book:preview){
                 ShelfCoverView cover=new ShelfCoverView(getContext(),book);
@@ -331,8 +339,29 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
         public int getOpacity(){return PixelFormat.TRANSLUCENT;}
     }
     private final class ShelfBeam extends View {
-        final Paint p=new Paint();ShelfBeam(Context c){super(c);setImportantForAccessibility(2);}
+        final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
+        ShelfBeam(Context c){super(c);setImportantForAccessibility(2);}
         protected void onDraw(Canvas c){
+            if(AppTheme.isNoir()){
+                float w=getWidth(),h=getHeight();
+                // Walnut wood, engraved fine grain and a soft edge highlight.
+                p.setShader(new LinearGradient(0,0,0,h,
+                        new int[]{0xffdac3a3,0xffaa8062,0xff674839},
+                        null,Shader.TileMode.CLAMP));
+                p.setStyle(Paint.Style.FILL);
+                c.drawRoundRect(new RectF(0,0,w,h),dp(3),dp(3),p);
+                p.setShader(null);
+                p.setColor(0x88fff1d3);p.setStrokeWidth(Math.max(1f,dp(.7f)));
+                c.drawLine(dp(5),dp(1.5f),w-dp(5),dp(1.5f),p);
+                p.setColor(0x46604432);
+                for(int n=0;n<3;n++){
+                    float y=h*(.34f+n*.22f);
+                    float left=dp(9)+n*dp(6);
+                    c.drawLine(left,y,w-dp(12)-n*dp(4),y,p);
+                }
+                return;
+            }
+            p.setShader(null);
             p.setColor(color(BORDER));c.drawRect(0,0,getWidth(),getHeight(),p);
             p.setColor(color(GREEN));c.drawRect(dp(4),0,getWidth()-dp(4),dp(2),p);
             p.setColor(color(RAISED));c.drawRect(dp(8),dp(4),getWidth()-dp(8),getHeight(),p);

@@ -49,7 +49,7 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
  }
  private MutableState state(int n){return n==0?binding.title:n==1?binding.author:n==2?binding.series:binding.index;}
  private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
- private TextView label(String s,int size,int color){TextView v=new TextView(getContext());v.setText(s);v.setTextSize(size);v.setTextColor(color);v.setTypeface(CrtFonts.pixel());v.setIncludeFontPadding(false);labels.add(v);return v;}
+ private TextView label(String s,int size,int color){TextView v=new TextView(getContext());v.setText(s);v.setTextSize(size);v.setTextColor(color);v.setTypeface(AppTheme.isNoir()?NoirUi.SANS:CrtFonts.pixel());v.setIncludeFontPadding(false);labels.add(v);return v;}
  private GradientDrawable box(boolean focus){GradientDrawable d=new GradientDrawable();d.setColor(CrtTheme.surface());d.setCornerRadius(dp(2));d.setStroke(dp(1),focus?CrtTheme.accent():CrtTheme.border());return d;}
  private TextView button(String s,View.OnClickListener listener){TextView t=label(s,20,CrtTheme.accent());t.setGravity(Gravity.CENTER);t.setPadding(dp(8),dp(8),dp(8),dp(8));t.setMinHeight(dp(48));t.setBackgroundDrawable(box(false));t.setOnClickListener(listener);t.setFocusable(true);buttons.add(t);return t;}
  private void gap(LinearLayout parent,int h){parent.addView(new View(getContext()),new LinearLayout.LayoutParams(1,dp(h)));}

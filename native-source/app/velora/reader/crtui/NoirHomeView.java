@@ -24,9 +24,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.SeekBar;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import app.velora.reader.core.model.Book;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -564,7 +561,6 @@ final class NoirHomeView extends LinearLayout {
         menuLink(panel, "Профиль", this::profile);
         if (home.settings != null) menuLink(panel, "Настройки", () -> home.settings.invoke());
         menuLink(panel, "Темы оформления", () -> getContext().startActivity(new Intent(c, ThemeSettingsActivity.class)));
-        menuLink(panel, "Бумага и фактура Картотеки", this::paperSettings);
         menuLink(panel, NoirUi.prefs(c).getBoolean("motion", true) ? "Анимация: включена" : "Анимация: выключена",
                 () -> NoirUi.prefs(c).edit().putBoolean("motion", !NoirUi.prefs(c).getBoolean("motion", true)).apply());
         dialog.setContentView(scroll);
@@ -587,74 +583,6 @@ final class NoirHomeView extends LinearLayout {
             panel.setTranslationX(dp(120));
             panel.animate().translationX(0f).setDuration(200).start();
         }
-    }
-
-    private void repaintPaper() {
-        NoirHomeWallpaper.refresh(this);
-        NoirHomeWallpaper.refresh(scroll);
-        Activity activity=HomePresentation.activity(getContext());
-        if(activity!=null)NoirDotPaper.applyWindow(activity);
-        CrtTheme.onAppearanceChanged();
-    }
-
-    private void paperSettings() {
-        Context c=getContext();
-        LinearLayout content=NoirUi.column(c);
-        content.setPadding(dp(16),dp(6),dp(16),dp(10));
-        TextView title=NoirUi.text(c,"Фон главной страницы",15,NoirHomeStyle.INK,NoirUi.MEDIUM);
-        content.addView(title,new LayoutParams(-1,-2));
-
-        RadioGroup options=new RadioGroup(c);
-        options.setOrientation(RadioGroup.VERTICAL);
-        RadioButton dots=new RadioButton(c);
-        dots.setId(1);
-        dots.setText("Точечная бумага");
-        dots.setTextColor(NoirHomeStyle.INK);
-        dots.setMinHeight(dp(48));
-        RadioButton newspaper=new RadioButton(c);
-        newspaper.setId(2);
-        newspaper.setText("Газетная бумага");
-        newspaper.setTextColor(NoirHomeStyle.INK);
-        newspaper.setMinHeight(dp(48));
-        options.addView(dots);
-        options.addView(newspaper);
-        options.check(NoirHomeWallpaper.newspaper(c)?2:1);
-        content.addView(options,new LayoutParams(-1,-2));
-
-        TextView strength=NoirUi.text(c,"",13,NoirHomeStyle.INK,NoirUi.SANS);
-        LayoutParams textSize=new LayoutParams(-1,-2);
-        textSize.topMargin=dp(9);
-        content.addView(strength,textSize);
-        SeekBar slider=new SeekBar(c);
-        slider.setMax(NoirNewspaperPaper.MAX_STRENGTH);
-        slider.setProgress(NoirNewspaperPaper.readStrength(c));
-        slider.setContentDescription("Выраженность газетной фактуры");
-        slider.setMinimumHeight(dp(48));
-        strength.setText("Фактура газеты: "+slider.getProgress()+"%");
-        content.addView(slider,new LayoutParams(-1,dp(48)));
-        TextView hint=NoirUi.text(c,
-                "0% — чистая бумага. Изменения видны только в Картотеке, не на страницах книг.",
-                12,NoirHomeStyle.INK_MUTED,NoirUi.SANS);
-        content.addView(hint,new LayoutParams(-1,-2));
-
-        options.setOnCheckedChangeListener((group,id)->{
-            NoirHomeWallpaper.setNewspaper(c,id==2);
-            repaintPaper();
-        });
-        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){
-                strength.setText("Фактура газеты: "+value+"%");
-                if(fromUser){
-                    NoirNewspaperPaper.preferences(c).edit()
-                            .putInt(NoirNewspaperPaper.PREF_STRENGTH,value).apply();
-                    repaintPaper();
-                }
-            }
-            @Override public void onStartTrackingTouch(SeekBar bar){}
-            @Override public void onStopTrackingTouch(SeekBar bar){}
-        });
-        new AlertDialog.Builder(c).setTitle("Бумага и фактура")
-                .setView(content).setPositiveButton("Готово",null).show();
     }
 
     private void menuLink(LinearLayout panel, String label, Runnable action) {
@@ -681,7 +609,7 @@ final class NoirHomeView extends LinearLayout {
         Context c = getContext();
         LinearLayout content = NoirUi.column(c);
         content.setPadding(dp(22), dp(8), dp(22), dp(8));
-        content.setBackgroundColor(NoirUi.PAPER);
+        content.setBackgroundDrawable(new NoirDotPaper(c,content));
         int completed = 0;
         for (Book book : books) if (book.isFinished() && JournalReader.canRead(book.getFormat())) completed++;
         content.addView(NoirUi.text(c, "В личной библиотеке: " + books.size() + "\nПрочитано: " + completed,

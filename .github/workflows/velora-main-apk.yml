@@ -23,10 +23,10 @@ jobs:
           python-version: '3.12'
       - name: Compile and package Velora
         run: python3 rebuild.py --compile-home
-      - name: Check carousel and newspaper design regression
+      - name: Check 3D carousel and Cartoteka design regression
         run: python3 tools/check_editorial.py
-      - name: Check Cartoteka journal, paper and viewport contracts
-        run: python3 tools/check_cartoteka_160.py
+      - name: Check Cartoteka dotted backgrounds and warm bookshelves
+        run: python3 tools/check_cartoteka_161.py
       - name: Check journal and editorial UI contracts
         run: python3 tools/check_journal_design.py
       - name: Check Gradle migration boundary
@@ -58,6 +58,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Velora-0.9.160-Cartoteka
+          name: Velora-0.9.161-Cartoteka-Dots-Wood
           path: build-output/Velora-CRT.apk
           retention-days: 14

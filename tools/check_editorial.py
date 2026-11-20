@@ -112,10 +112,10 @@ checks = {
     "diary uses the same dot-grid drawable as Cartoteka":
         "backdrop.setBackgroundDrawable(new NoirDotPaper(this, backdrop));" in
           read(path + "NoirSpreadActivity.java"),
-    "Cartoteka paper is individually selectable":
+    "all Cartoteka screens use the common dot wallpaper":
         "new NoirHomeWallpaper(c, scroll)" in home
-        and "NoirNewspaperPaper.PREF_STRENGTH" in home
-        and "options.check(NoirHomeWallpaper.newspaper(c)?2:1);" in home,
+        and "new NoirDotPaper(context,owner)" in read(path + "NoirHomeWallpaper.java")
+        and "paperSettings()" not in home,
     "window wallpaper is accessible to the cross-package smali caller":
         "public final class NoirDotPaper extends Drawable" in read(path + "NoirDotPaper.java")
         and "public static void applyWindow(Activity activity)" in read(path + "NoirDotPaper.java"),
@@ -126,9 +126,10 @@ checks = {
     "realistic curl shading preserved on reader paper":
         "new int[]{0x44000000,0x25000000" in read(path + "PageCurlView.java")
         and "paperTone(.82f)" in read(path + "PageCurlView.java"),
-    "Cartoteka paper slider lives inside its own menu":
-        "private void paperSettings()" in home and "SeekBar slider=new SeekBar(c);" in home
-        and "NoirNewspaperPaper" not in settings,
+    "retired newspaper controls do not override dotted Cartoteka":
+        "this::paperSettings" not in home
+        and "NoirNewspaperPaper" not in settings
+        and "new NoirNewspaperPaper" not in read(path + "NoirHomeWallpaper.java"),
     "experimental gallery removed from theme menu and router":
         "archive_gallery_lab" not in themes and "ARCHIVE_GALLERY" not in routing
         and "Архивная галерея" not in settings,
@@ -147,8 +148,8 @@ checks = {
         and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
         and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
             read(path + "FootnotePopup.java"),
-    "version 0.9.160":
-        bool(re.search(r"versionCode:\s*260\s+versionName:\s*0\.9\.160",manifest)),
+    "version 0.9.161":
+        bool(re.search(r"versionCode:\s*261\s+versionName:\s*0\.9\.161",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

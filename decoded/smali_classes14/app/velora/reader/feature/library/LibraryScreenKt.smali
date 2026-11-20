@@ -33076,7 +33076,15 @@
 
     new-array v0, v10, [Landroidx/compose/ui/graphics/Color;
 
+    # Velora Cartoteka: a warm walnut bookshelf, not Pixel Cat's green CRT rack.
+    invoke-static {}, Lapp/velora/reader/crtui/AppTheme;->isNoir()Z
+    move-result v3
+    if-eqz v3, :velora_shelf_wood_top_pixel
+    const-wide v3, 0xffb99b76L
+    goto :velora_shelf_wood_top_done
+    :velora_shelf_wood_top_pixel
     const-wide v3, 0xff203023L
+    :velora_shelf_wood_top_done
 
     invoke-static {v3, v4}, Landroidx/compose/ui/graphics/ColorKt;->Color(J)J
 
@@ -33090,7 +33098,14 @@
 
     aput-object v3, v0, v14
 
+    invoke-static {}, Lapp/velora/reader/crtui/AppTheme;->isNoir()Z
+    move-result v3
+    if-eqz v3, :velora_shelf_wood_bottom_pixel
+    const-wide v3, 0xff6f5040L
+    goto :velora_shelf_wood_bottom_done
+    :velora_shelf_wood_bottom_pixel
     const-wide v3, 0xff172219L
+    :velora_shelf_wood_bottom_done
 
     invoke-static {v3, v4}, Landroidx/compose/ui/graphics/ColorKt;->Color(J)J
 
@@ -33140,7 +33155,14 @@
 
     const/high16 v3, 0x3f800000    # 1.0f
 
+    invoke-static {}, Lapp/velora/reader/crtui/AppTheme;->isNoir()Z
+    move-result v7
+    if-eqz v7, :velora_shelf_wood_edge_pixel
+    const-wide v7, 0xffd6b994L
+    goto :velora_shelf_wood_edge_done
+    :velora_shelf_wood_edge_pixel
     const-wide v7, 0xffc5df8bL
+    :velora_shelf_wood_edge_done
 
     invoke-static {v7, v8}, Landroidx/compose/ui/graphics/ColorKt;->Color(J)J
 

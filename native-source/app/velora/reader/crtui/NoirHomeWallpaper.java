@@ -9,31 +9,18 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 /**
- * A single visual contract for Cartoteka's window, screen, home and catalog.
- * The newspaper layer is strictly opt-in and never leaks into reading pages
- * or into the other app themes. Existing dot-paper users keep their choice.
+ * Every non-reader Cartoteka surface uses the SAME dotted notebook paper.
+ * The once-selectable newsprint experiment is deliberately retired so no
+ * screen can render a mismatched newspaper or solid-paper background.
+ *
+ * Keep this Drawable class instead of changing the existing activity/CRT
+ * hooks; older installations can upgrade without losing any preferences.
  */
 final class NoirHomeWallpaper extends Drawable {
-    static final String PREF_NEWSPAPER="cartoteka_newsprint_enabled";
-    private final Context context;
-    private final View owner;
-    private Drawable surface;
-    private boolean newspaper;
-    private int alpha=255;
-    private ColorFilter filter;
+    private final NoirDotPaper dots;
 
     NoirHomeWallpaper(Context context,View owner){
-        this.context=context.getApplicationContext()==null?context:context.getApplicationContext();
-        this.owner=owner;
-        chooseSurface();
-    }
-
-    static boolean newspaper(Context context){
-        return NoirNewspaperPaper.preferences(context).getBoolean(PREF_NEWSPAPER,false);
-    }
-
-    static void setNewspaper(Context context,boolean enabled){
-        NoirNewspaperPaper.preferences(context).edit().putBoolean(PREF_NEWSPAPER,enabled).apply();
+        dots=new NoirDotPaper(context,owner);
     }
 
     static void refresh(View view){
@@ -41,48 +28,28 @@ final class NoirHomeWallpaper extends Drawable {
             ((NoirHomeWallpaper)view.getBackground()).refresh();
     }
 
-    void refresh(){
-        chooseSurface();
-        invalidateSelf();
-    }
-
-    private void chooseSurface(){
-        boolean next=newspaper(context);
-        if(surface!=null&&next==newspaper){
-            if(next)((NoirNewspaperPaper)surface).setStrength(
-                    NoirNewspaperPaper.readStrength(context));
-            return;
-        }
-        newspaper=next;
-        surface=next?new NoirNewspaperPaper(context,owner):new NoirDotPaper(context,owner);
-        surface.setBounds(getBounds());
-        surface.setAlpha(alpha);
-        if(filter!=null)surface.setColorFilter(filter);
-    }
+    void refresh(){invalidateSelf();}
 
     @Override protected void onBoundsChange(Rect bounds){
-        if(surface!=null)surface.setBounds(bounds);
+        dots.setBounds(bounds);
     }
 
     @Override public void draw(Canvas canvas){
-        chooseSurface();
-        surface.setBounds(getBounds());
-        surface.draw(canvas);
+        dots.setBounds(getBounds());
+        dots.draw(canvas);
     }
 
-    @Override public void setAlpha(int value){
-        alpha=Math.max(0,Math.min(255,value));
-        if(surface!=null)surface.setAlpha(alpha);
+    @Override public void setAlpha(int alpha){
+        dots.setAlpha(Math.max(0,Math.min(255,alpha)));
         invalidateSelf();
     }
 
-    @Override public void setColorFilter(ColorFilter value){
-        filter=value;
-        if(surface!=null)surface.setColorFilter(value);
+    @Override public void setColorFilter(ColorFilter filter){
+        dots.setColorFilter(filter);
         invalidateSelf();
     }
 
     @Override public int getOpacity(){
-        return newspaper?PixelFormat.TRANSLUCENT:PixelFormat.OPAQUE;
+        return PixelFormat.OPAQUE;
     }
 }
