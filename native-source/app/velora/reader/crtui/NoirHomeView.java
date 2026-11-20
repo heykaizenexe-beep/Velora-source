@@ -629,7 +629,7 @@ final class NoirHomeView extends LinearLayout {
         slider.setMax(NoirNewspaperPaper.MAX_STRENGTH);
         slider.setProgress(NoirNewspaperPaper.readStrength(c));
         slider.setContentDescription("Выраженность газетной фактуры");
-        slider.setMinHeight(dp(48));
+        slider.setMinimumHeight(dp(48));
         strength.setText("Фактура газеты: "+slider.getProgress()+"%");
         content.addView(slider,new LayoutParams(-1,dp(48)));
         TextView hint=NoirUi.text(c,
