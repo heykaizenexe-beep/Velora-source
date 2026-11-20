@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+from xml.etree import ElementTree
 from android_emulator_health import dismiss_launcher_anr
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,6 +67,38 @@ def main():
     state = adb("shell", "dumpsys", "activity", "activities")
     if "MainActivity" not in state:
         raise AssertionError("Cartoteka Activity disappeared after the drag")
-    print("PASS: real Android selected Cartoteka, captured dot paper and ran its swipe")
+
+    # Open the fixed footer to validate the new true cover-grid dialog.
+    def footer_bounds(document):
+        try:
+            for node in ElementTree.fromstring(document).iter("node"):
+                label = node.attrib.get("text", "") + " " + node.attrib.get("content-desc", "")
+                if "Журнал обложек" not in label:
+                    continue
+                match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",
+                                     node.attrib.get("bounds", ""))
+                if match:
+                    return list(map(int, match.groups()))
+        except ElementTree.ParseError:
+            return None
+        return None
+
+    bounds = footer_bounds(xml)
+    if bounds is None:
+        adb("shell", "uiautomator", "dump", "/sdcard/cartoteka_again.xml", check=False)
+        xml = adb("exec-out", "cat", "/sdcard/cartoteka_again.xml", check=False)
+        bounds = footer_bounds(xml)
+    if bounds is None:
+        raise AssertionError("Cartoteka fixed journal footer was not visible")
+    x1, y1, x2, y2 = bounds
+    adb("shell", "input", "tap", (x1+x2)//2, (y1+y2)//2)
+    time.sleep(1)
+    snapshot("12_cartoteka_cover_grid")
+    adb("shell", "uiautomator", "dump", "/sdcard/cartoteka_grid.xml", check=False)
+    grid_xml = adb("exec-out", "cat", "/sdcard/cartoteka_grid.xml", check=False)
+    (OUT / "cartoteka_grid.xml").write_text(grid_xml, encoding="utf-8")
+    if "Журнал" not in grid_xml or "Найти книгу" not in grid_xml:
+        raise AssertionError("Cartoteka journal grid dialog was not shown")
+    print("PASS: Cartoteka kept its 3D carousel and opened searchable cover grid")
 if __name__ == "__main__":
     main()

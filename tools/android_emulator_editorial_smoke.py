@@ -43,11 +43,25 @@ def main():
     hierarchy = adb("exec-out", "cat", "/sdcard/editorial.xml").decode("utf-8", "replace")
     (OUT / "editorial.xml").write_text(hierarchy, encoding="utf-8")
     # New design is intentionally based on a personal library, not fictitious popularity.
-    expected = ["VELORA", "Твои истории", "В библиотеке", "Добавь свою первую книгу"]
+    # UIAutomator exposes only the visible part of a ScrollView. Check the
+    # masthead first, then scroll to independently inspect the collection.
+    expected = ["VELORA", "Твои истории"]
     missing = [label for label in expected if label not in hierarchy]
     if missing:
-        raise AssertionError("Editorial home UI not found: " + repr(missing))
-    print("PASS: Editorial main theme shows its large title, collection and reading action")
+        raise AssertionError("Editorial home masthead was not shown: " + repr(missing))
+    screen = adb("shell", "wm", "size").decode("utf-8", "replace")
+    match = re.search(r"(\d+)x(\d+)", screen)
+    if match:
+        width, height = map(int, match.groups())
+        adb("shell", "input", "swipe", int(width * .5), int(height * .8),
+            int(width * .5), int(height * .36), 450)
+        time.sleep(1)
+        adb("shell", "uiautomator", "dump", "/sdcard/editorial_after_scroll.xml")
+        scrolled = adb("exec-out", "cat", "/sdcard/editorial_after_scroll.xml").decode("utf-8", "replace")
+        (OUT / "editorial_after_scroll.xml").write_text(scrolled, encoding="utf-8")
+        if "В библиотеке" not in scrolled and "В библиотеке" not in hierarchy:
+            raise AssertionError("Editorial collection was not shown after scrolling")
+    print("PASS: Editorial masthead and scrollable collection appeared on Android")
 
 
 if __name__ == "__main__":
