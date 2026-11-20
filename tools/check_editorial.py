@@ -43,22 +43,22 @@ checks = {
     "Cartoteka archival reading progress and catalog number":
         'volume.setText(String.format(java.util.Locale.US, "№ %03d / %03d"' in ticket
         and "progressRule.setProgress(fraction);" in ticket,
-    "Cartoteka catalog and drawer share the dotted sheet":
-        "panel.setBackgroundDrawable(new NoirDotPaper(c, panel));" in read(path + "NoirCatalogSheet.java")
-        and "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home,
-    "Cartoteka-only dots on shelves, metadata and statistics":
-        "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+    "Cartoteka catalog and drawer share the selected paper":
+        "panel.setBackgroundDrawable(new NoirHomeWallpaper(context,panel));" in read(path + "NoirCatalogSheet.java")
+        and "scroll.setBackgroundDrawable(new NoirHomeWallpaper(c, scroll));" in home,
+    "Cartoteka-only selected wallpaper on shelves, metadata and statistics":
+        "if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this))" in
             read(path + "MinimalStatsView.java")
-        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this))" in
             read(path + "MetadataEditorView.java")
-        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this))" in
+        and "if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this))" in
             read(path + "ReadingShelvesView.java"),
     "Cartoteka-only dot paper in the notes editor":
         'colors.put("archive",AppTheme.isNoir());' in read(path + "RichNoteEditorActivity.java")
         and "classList.toggle('archive-theme',!!colors.archive)" in
             read("decoded/assets/velora-rich-notes/editor.html"),
     "Other themes retain their own theme-settings wallpaper":
-        "if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));"
+        "if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirHomeWallpaper(this,scroll));"
         in read(path + "ThemeSettingsActivity.java"),
     "Cartoteka keeps library visible without scrolling":
         "addView(library, librarySize);" in home
@@ -76,9 +76,9 @@ checks = {
            read(path + "CrtScreenLayout.java")
         and "updatePaperBackground();" in read(path + "CrtScreenLayout.java"),
     "Cartoteka paper reaches CRT host and Android system-bar insets":
-        "content.setBackgroundDrawable(new NoirDotPaper(activity, content))" in
+        "content.setBackgroundDrawable(new NoirHomeWallpaper(activity, content))" in
             read(path + "NoirDotPaper.java")
-        and "screen.setBackgroundDrawable(new NoirDotPaper(activity, screen));" in
+        and "screen.setBackgroundDrawable(new NoirHomeWallpaper(activity, screen));" in
             read(path + "CrtScreenLayout.java")
         and "const/4 v5, 0x1" in
             read("decoded/smali_classes6/app/velora/reader/CrtUi.smali"),
@@ -112,9 +112,10 @@ checks = {
     "diary uses the same dot-grid drawable as Cartoteka":
         "backdrop.setBackgroundDrawable(new NoirDotPaper(this, backdrop));" in
           read(path + "NoirSpreadActivity.java"),
-    "dotted paper replaces newspaper texture":
-        "scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));" in home
-        and "new NoirNewspaperPaper" not in home and "newspaperPaper" not in home,
+    "Cartoteka paper is individually selectable":
+        "new NoirHomeWallpaper(c, scroll)" in home
+        and "NoirNewspaperPaper.PREF_STRENGTH" in home
+        and "options.check(NoirHomeWallpaper.newspaper(c)?2:1);" in home,
     "window wallpaper is accessible to the cross-package smali caller":
         "public final class NoirDotPaper extends Drawable" in read(path + "NoirDotPaper.java")
         and "public static void applyWindow(Activity activity)" in read(path + "NoirDotPaper.java"),
@@ -125,8 +126,9 @@ checks = {
     "realistic curl shading preserved on reader paper":
         "new int[]{0x44000000,0x25000000" in read(path + "PageCurlView.java")
         and "paperTone(.82f)" in read(path + "PageCurlView.java"),
-    "unused newspaper texture slider is hidden":
-        "newspaperSlider" not in settings and "NoirNewspaperPaper" not in settings,
+    "Cartoteka paper slider lives inside its own menu":
+        "private void paperSettings()" in home and "SeekBar slider=new SeekBar(c);" in home
+        and "NoirNewspaperPaper" not in settings,
     "experimental gallery removed from theme menu and router":
         "archive_gallery_lab" not in themes and "ARCHIVE_GALLERY" not in routing
         and "Архивная галерея" not in settings,
@@ -145,8 +147,8 @@ checks = {
         and "final int background=archive?paper:" in read(path + "FootnotePopup.java")
         and 'if(archive)body.setTypeface(Typeface.create("serif",Typeface.NORMAL));' in
             read(path + "FootnotePopup.java"),
-    "version 0.9.159":
-        bool(re.search(r"versionCode:\s*259\s+versionName:\s*0\.9\.159",manifest)),
+    "version 0.9.160":
+        bool(re.search(r"versionCode:\s*260\s+versionName:\s*0\.9\.160",manifest)),
 }
 apk = ROOT / "build-output/Velora-CRT.apk"
 if apk.is_file():

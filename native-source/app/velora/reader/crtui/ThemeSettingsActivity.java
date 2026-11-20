@@ -131,7 +131,7 @@ public final class ThemeSettingsActivity extends Activity implements CrtTheme.Li
     }
     private void refresh(){
         if(scroll==null)return;
-        if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirDotPaper(this,scroll));
+        if(AppTheme.isNoir())scroll.setBackgroundDrawable(new NoirHomeWallpaper(this,scroll));
         else scroll.setBackgroundColor(CrtTheme.background());
         back.setTextColor(CrtTheme.text());
         title.setTextColor(CrtTheme.text());help.setTextColor(CrtTheme.muted());

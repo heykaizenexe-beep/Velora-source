@@ -20,13 +20,13 @@ public final class MinimalStatsView extends EdgeScrollView implements CrtTheme.L
     private YearMonth calendarMonth=YearMonth.now();private LocalDate selectedDay;
     public MinimalStatsView(Context context) {
         super(context);setId(0x00c7a002);setFillViewport(true);setVerticalScrollBarEnabled(false);
-        if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(CrtTheme.background());host=column();host.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);
         addView(host,new ScrollView.LayoutParams(-1,-2));
     }
     protected void onAttachedToWindow(){super.onAttachedToWindow();CrtTheme.addListener(this);onCrtThemeChanged();}
     protected void onDetachedFromWindow(){CrtTheme.removeListener(this);super.onDetachedFromWindow();}
-    public void onCrtThemeChanged(){if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+    public void onCrtThemeChanged(){if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(CrtTheme.background());boolean changed=paletteDark!=CrtTheme.isDark();paletteDark=CrtTheme.isDark();if(changed||host.getChildCount()==0)render();}
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     LinearLayout column(){LinearLayout v=new LinearLayout(getContext());v.setOrientation(1);return v;}

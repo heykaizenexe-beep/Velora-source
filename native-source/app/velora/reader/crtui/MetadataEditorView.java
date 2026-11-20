@@ -17,7 +17,7 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
  private final java.util.ArrayList<TextView> labels=new java.util.ArrayList<TextView>();
  private final java.util.ArrayList<TextView> buttons=new java.util.ArrayList<TextView>();
  public MetadataEditorView(Context c){
-  super(c);setFillViewport(false);setVerticalScrollBarEnabled(false);if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+  super(c);setFillViewport(false);setVerticalScrollBarEnabled(false);if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(CrtTheme.background());
   host=new LinearLayout(c);host.setOrientation(1);host.setPadding(dp(2),dp(4),dp(2),dp(8));addView(host,new ScrollView.LayoutParams(-1,-2));
   LinearLayout top=new LinearLayout(c);top.setGravity(Gravity.CENTER_VERTICAL);cover=new CoverImageView(c);top.addView(cover,new LinearLayout.LayoutParams(dp(72),dp(108)));
@@ -39,7 +39,7 @@ public final class MetadataEditorView extends EdgeScrollView implements CrtTheme
  protected void onAttachedToWindow(){super.onAttachedToWindow();CrtTheme.addListener(this);onCrtThemeChanged();}
  protected void onDetachedFromWindow(){CrtTheme.removeListener(this);super.onDetachedFromWindow();}
  public void onCrtThemeChanged(){
-  if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+  if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(CrtTheme.background());
   for(TextView label:labels)label.setTextColor(CrtTheme.muted());
   for(TextView button:buttons){button.setTextColor(CrtTheme.accent());button.setBackgroundDrawable(box(false));}

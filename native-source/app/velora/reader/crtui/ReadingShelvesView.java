@@ -63,7 +63,7 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
 
     public ReadingShelvesView(Context context) {
         super(context);
-        setId(0x00c7a030); if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+        setId(0x00c7a030); if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(color(BG));
         content=column();
         addView(content,new FrameLayout.LayoutParams(-1,-1,Gravity.TOP|Gravity.CENTER_HORIZONTAL));
@@ -115,7 +115,7 @@ public final class ReadingShelvesView extends FrameLayout implements CrtTheme.Li
 
     protected void onAttachedToWindow(){super.onAttachedToWindow();CrtTheme.addListener(this);onCrtThemeChanged();}
     protected void onDetachedFromWindow(){CrtTheme.removeListener(this);super.onDetachedFromWindow();}
-    public void onCrtThemeChanged(){if(AppTheme.isNoir())setBackgroundDrawable(new NoirDotPaper(getContext(),this));
+    public void onCrtThemeChanged(){if(AppTheme.isNoir())setBackgroundDrawable(new NoirHomeWallpaper(getContext(),this));
         else setBackgroundColor(color(BG));retint(content);}
     private void retint(View view){
         if(view instanceof PaletteLabel)((PaletteLabel)view).refreshColor();

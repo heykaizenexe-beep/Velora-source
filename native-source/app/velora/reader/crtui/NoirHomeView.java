@@ -24,6 +24,9 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.SeekBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import app.velora.reader.core.model.Book;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,14 +60,14 @@ final class NoirHomeView extends LinearLayout {
     NoirHomeView(Context c) {
         super(c);
         setOrientation(VERTICAL);
-        setBackgroundDrawable(new NoirDotPaper(c, this));
+        setBackgroundDrawable(new NoirHomeWallpaper(c, this));
         scroll = new ScrollView(c);
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(false);
         scroll.setClipChildren(false);
         scroll.setClipToPadding(false);
         // The notebook print is continuous with the Window behind the system bars.
-        scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));
+        scroll.setBackgroundDrawable(new NoirHomeWallpaper(c, scroll));
         // Reserve a real footer for the library: it never requires vertical scrolling.
         addView(scroll, new LayoutParams(-1, 0, 1f));
         page = NoirUi.column(c);
@@ -184,8 +187,10 @@ final class NoirHomeView extends LinearLayout {
                 if (display.getVisibility() != VISIBLE) return;
                 getWindowVisibleDisplayFrame(visibleWindow);
                 getLocationOnScreen(screenLocation);
+                // The screen location already includes scrolling: subtracting scrollY
+                // a second time caused the carousel to slip off center.
                 int viewportCenter = visibleWindow.isEmpty() ? getHeight() / 2
-                        : visibleWindow.centerY() - screenLocation[1] - scroll.getScrollY();
+                        : visibleWindow.centerY() - screenLocation[1];
                 int coverTop = deck.getTop() + deck.centeredCoverTop();
                 int actionsBottom = ticket.getTop() + ticket.actionsBottom();
                 // Fit the books and their controls around the visible center, above the library row.
@@ -216,7 +221,7 @@ final class NoirHomeView extends LinearLayout {
                 NoirHomeStyle.SURFACE, NoirHomeStyle.HIGHLIGHT, NoirHomeStyle.EDGE, 7));
         entry.setOnClickListener(v -> openCatalog());
         entry.setFocusable(true);
-        TextView name = NoirUi.text(c, "Библиотека", 14, NoirHomeStyle.INK, NoirUi.MEDIUM);
+        TextView name = NoirUi.text(c, "Журнал обложек", 14, NoirHomeStyle.INK, NoirUi.MEDIUM);
         Drawable booksIcon = NoirHomeStyle.symbol(c, NoirHomeStyle.Symbol.LIBRARY, NoirHomeStyle.INK_MUTED);
         name.setCompoundDrawablesWithIntrinsicBounds(booksIcon, null, null, null);
         name.setCompoundDrawablePadding(dp(9));
@@ -327,7 +332,12 @@ final class NoirHomeView extends LinearLayout {
     void bind(List<Book> incoming, HomeBinding binding) {
         home = binding;
         List<Book> received = incoming == null ? Collections.emptyList() : incoming;
-        if (loading == (incoming == null) && books.equals(received)) return;
+        if (loading == (incoming == null) && books.equals(received)) {
+            // Even when the book list is unchanged, progress and notes can refresh.
+            selectionChanged();
+            if (catalog != null) catalog.bind(received, selectedBookId());
+            return;
+        }
         loading = incoming == null;
         books = received;
         libraryCount.setText(NoirCatalogSheet.bookCount(books.size()));
@@ -531,7 +541,7 @@ final class NoirHomeView extends LinearLayout {
         dialog.setCanceledOnTouchOutside(true);
         ScrollView scroll = new ScrollView(c);
         scroll.setVerticalScrollBarEnabled(false);
-        scroll.setBackgroundDrawable(new NoirDotPaper(c, scroll));
+        scroll.setBackgroundDrawable(new NoirHomeWallpaper(c, scroll));
         LinearLayout panel = NoirUi.column(c);
         panel.setPadding(dp(14), dp(12), dp(14), dp(12));
         scroll.addView(panel);
@@ -554,6 +564,7 @@ final class NoirHomeView extends LinearLayout {
         menuLink(panel, "Профиль", this::profile);
         if (home.settings != null) menuLink(panel, "Настройки", () -> home.settings.invoke());
         menuLink(panel, "Темы оформления", () -> getContext().startActivity(new Intent(c, ThemeSettingsActivity.class)));
+        menuLink(panel, "Бумага и фактура Картотеки", this::paperSettings);
         menuLink(panel, NoirUi.prefs(c).getBoolean("motion", true) ? "Анимация: включена" : "Анимация: выключена",
                 () -> NoirUi.prefs(c).edit().putBoolean("motion", !NoirUi.prefs(c).getBoolean("motion", true)).apply());
         dialog.setContentView(scroll);
@@ -576,6 +587,74 @@ final class NoirHomeView extends LinearLayout {
             panel.setTranslationX(dp(120));
             panel.animate().translationX(0f).setDuration(200).start();
         }
+    }
+
+    private void repaintPaper() {
+        NoirHomeWallpaper.refresh(this);
+        NoirHomeWallpaper.refresh(scroll);
+        Activity activity=HomePresentation.activity(getContext());
+        if(activity!=null)NoirDotPaper.applyWindow(activity);
+        CrtTheme.onAppearanceChanged();
+    }
+
+    private void paperSettings() {
+        Context c=getContext();
+        LinearLayout content=NoirUi.column(c);
+        content.setPadding(dp(16),dp(6),dp(16),dp(10));
+        TextView title=NoirUi.text(c,"Фон главной страницы",15,NoirHomeStyle.INK,NoirUi.MEDIUM);
+        content.addView(title,new LayoutParams(-1,-2));
+
+        RadioGroup options=new RadioGroup(c);
+        options.setOrientation(RadioGroup.VERTICAL);
+        RadioButton dots=new RadioButton(c);
+        dots.setId(1);
+        dots.setText("Точечная бумага");
+        dots.setTextColor(NoirHomeStyle.INK);
+        dots.setMinHeight(dp(48));
+        RadioButton newspaper=new RadioButton(c);
+        newspaper.setId(2);
+        newspaper.setText("Газетная бумага");
+        newspaper.setTextColor(NoirHomeStyle.INK);
+        newspaper.setMinHeight(dp(48));
+        options.addView(dots);
+        options.addView(newspaper);
+        options.check(NoirHomeWallpaper.newspaper(c)?2:1);
+        content.addView(options,new LayoutParams(-1,-2));
+
+        TextView strength=NoirUi.text(c,"",13,NoirHomeStyle.INK,NoirUi.SANS);
+        LayoutParams textSize=new LayoutParams(-1,-2);
+        textSize.topMargin=dp(9);
+        content.addView(strength,textSize);
+        SeekBar slider=new SeekBar(c);
+        slider.setMax(NoirNewspaperPaper.MAX_STRENGTH);
+        slider.setProgress(NoirNewspaperPaper.readStrength(c));
+        slider.setContentDescription("Выраженность газетной фактуры");
+        slider.setMinHeight(dp(48));
+        strength.setText("Фактура газеты: "+slider.getProgress()+"%");
+        content.addView(slider,new LayoutParams(-1,dp(48)));
+        TextView hint=NoirUi.text(c,
+                "0% — чистая бумага. Изменения видны только в Картотеке, не на страницах книг.",
+                12,NoirHomeStyle.INK_MUTED,NoirUi.SANS);
+        content.addView(hint,new LayoutParams(-1,-2));
+
+        options.setOnCheckedChangeListener((group,id)->{
+            NoirHomeWallpaper.setNewspaper(c,id==2);
+            repaintPaper();
+        });
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){
+                strength.setText("Фактура газеты: "+value+"%");
+                if(fromUser){
+                    NoirNewspaperPaper.preferences(c).edit()
+                            .putInt(NoirNewspaperPaper.PREF_STRENGTH,value).apply();
+                    repaintPaper();
+                }
+            }
+            @Override public void onStartTrackingTouch(SeekBar bar){}
+            @Override public void onStopTrackingTouch(SeekBar bar){}
+        });
+        new AlertDialog.Builder(c).setTitle("Бумага и фактура")
+                .setView(content).setPositiveButton("Готово",null).show();
     }
 
     private void menuLink(LinearLayout panel, String label, Runnable action) {

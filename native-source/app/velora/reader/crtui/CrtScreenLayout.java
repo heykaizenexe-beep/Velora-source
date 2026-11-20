@@ -127,8 +127,8 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
         // This wrapper is also used by the Readium/fixed-page reader.
         // The archive's dots must never leak into the top or bottom reader insets.
         if (AppTheme.isNoir() && !ReaderStatus.isReader(activity)) {
-            content.setBackgroundDrawable(new NoirDotPaper(activity, content));
-            screen.setBackgroundDrawable(new NoirDotPaper(activity, screen));
+            content.setBackgroundDrawable(new NoirHomeWallpaper(activity, content));
+            screen.setBackgroundDrawable(new NoirHomeWallpaper(activity, screen));
         } else {
             int paper = ReaderPaper.background(activity);
             content.setBackgroundColor(paper);
@@ -178,10 +178,10 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
     private void updatePaperBackground() {
         boolean reader = ReaderStatus.isReader(getContext());
         if (AppTheme.isNoir() && !reader) {
-            setBackgroundDrawable(new NoirDotPaper(getContext(), this));
+            setBackgroundDrawable(new NoirHomeWallpaper(getContext(), this));
             if (getParent() instanceof View) {
                 View root = (View) getParent();
-                root.setBackgroundDrawable(new NoirDotPaper(getContext(), root));
+                root.setBackgroundDrawable(new NoirHomeWallpaper(getContext(), root));
             }
             return;
         }
@@ -332,7 +332,7 @@ public final class CrtScreenLayout extends FrameLayout implements CrtTheme.Liste
         setPadding(l,t,r,b);
         try{View.class.getMethod("requestApplyInsets").invoke(this);}catch(Exception ignored){}
         if (AppTheme.isNoir() && !ReaderStatus.isReader(getContext()))
-            setBackgroundDrawable(new NoirDotPaper(getContext(), this));
+            setBackgroundDrawable(new NoirHomeWallpaper(getContext(), this));
         else setBackgroundColor(ReaderPaper.background(getContext()));
         return true;
     }
